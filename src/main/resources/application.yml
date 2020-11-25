@@ -1,5 +1,7 @@
 server:
   port: 8520
+  error:
+    path: key3/error/error.ftl
 
 spring:
   jackson:

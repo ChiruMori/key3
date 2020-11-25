@@ -94,8 +94,8 @@ public class WebMvcAutoConfiguration extends WebMvcConfigurationSupport {
         String workDir = FILE_PROTOCOL + QfzsUtils.ensureSuffix(qfzsProperties.getWorkDir(), QfzsConst.FILE_SEPARATOR);
 
         // register /** resource handler.
-        registry.addResourceHandler("/font/**")
-                .addResourceLocations("classpath:/admin/")
+        registry.addResourceHandler("/key3/**")
+                .addResourceLocations("classpath:/static/")
                 .addResourceLocations(workDir + "/static/");
 
         String uploadUrlPattern = QfzsUtils.ensureBoth(qfzsProperties.getUploadUrlPrefix(), QfzsConst.URL_SEPARATOR) + "**";
@@ -134,7 +134,7 @@ public class WebMvcAutoConfiguration extends WebMvcConfigurationSupport {
         configurer.setDefaultEncoding("UTF-8");
 
         Properties properties = new Properties();
-        // properties.setProperty("auto_import", "/common/macro/common_macro.ftl as common,/common/macro/global_macro.ftl as global");
+        properties.setProperty("auto_import", "/macro/common_macro.ftl as common");
 
         configurer.setFreemarkerSettings(properties);
 

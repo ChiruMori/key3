@@ -52,7 +52,8 @@ dependencies {
     implementation group: 'com.github.binarywang', name: 'java-emoji-converter', version: '1.0.1'
     // Http 请求工具
     implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.12'
-
+    // 热加载
+    implementation group: 'org.springframework.boot', name: 'spring-boot-devtools', version: '2.3.4.RELEASE'
 
     implementation "com.sun.mail:jakarta.mail"
     implementation "cn.hutool:hutool-core:$hutoolVersion"

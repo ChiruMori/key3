@@ -32,8 +32,8 @@ public class ContentFilter extends AbstractAuthenticationFilter {
         super(oneTimeTokenService, qfzsProperties, cacheStore);
 
         addToBlackSet("/**");
-        // TODO Admin 添加到白名单
-        addToWhiteSet("/key3/api/**", "/key3/version", "/key3/js/**", "/key3/css/**");
+        // 静态资源放行
+        addToWhiteSet("/key3/js/**", "/key3/css/**", "/key3/vendor/**");
         // setFailureHandler(); 只在需要安装时启用，抛出异常后，转发到安装的 URL
     }
 

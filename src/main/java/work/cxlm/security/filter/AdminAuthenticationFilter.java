@@ -44,9 +44,9 @@ public class AdminAuthenticationFilter extends AbstractAuthenticationFilter {
         super(oneTimeTokenService, qfzsProperties, cacheStore);
         this.userService = userService;
         // 针对管理员相关的 API 接口进行过滤
-        addToBlackSet("/key3/admin/api/**");
+        addToBlackSet("/key3/admin/api/**", "/key3/admin/page/**");
         // 排除管理员登录、更新 Token 接口
-        addToWhiteSet("/key3/admin/api/login");
+        addToWhiteSet("/key3/admin/api/login", "/key3/admin/page/login");
         DefaultAuthenticationFailureHandler failureHandler = new DefaultAuthenticationFailureHandler();
         failureHandler.setProductEnv(qfzsProperties.isProductionEnv());
         failureHandler.setObjectMapper(objectMapper);
@@ -63,7 +63,7 @@ public class AdminAuthenticationFilter extends AbstractAuthenticationFilter {
         // 从缓存中获取管理员 userId
         Optional<Integer> adminId = cacheStore.getAny(SecurityUtils.buildAccessTokenKey(token), Integer.class);
         if (!adminId.isPresent()) {
-            throw new AuthenticationException("Token 已过期或不存在").setErrorData(token);
+            response.sendRedirect("/key3/admin/page/login");
         }
         // 从数据库中查询，并存储到安全上下文
         User admin = userService.getById(adminId.get());
