@@ -10,3 +10,6 @@
 
 <#-- Custom styles for this template-->
 <link href="/key3/css/sb-admin-2.min.css" rel="stylesheet">
+
+<#-- 确保 JQuery 加载的优先级 -->
+<script src="/key3/vendor/jquery/jquery.min.js"></script>

@@ -5,7 +5,6 @@ $().ready(function () {
         utils.writeCache(CONST_VAL.tokenKey, authToken.access_token);
         utils.writeCache(CONST_VAL.refreshKey, authToken.refresh_token);
         window.location.href = "/key3/admin/page/dashboard?admin_token_Authorization=" + authToken.access_token;
-        // console.log("登陆成功，重定向");
     }
 
     // 读取本地缓存的登录状态
@@ -17,10 +16,9 @@ $().ready(function () {
             '?' + CONST_VAL.tokenQueryName + '=' + utils.readCache(CONST_VAL.tokenKey);
         utils.ajax(url, null, 'POST', function(res){
             refreshTokenByAuth(res.data);
-        }, function(res) {
-            console.error(res);
-            errDiv.text("自动登录失败，请尝试手动登录");
-        })
+        }, function() {
+            console.error("Token 已过期，自动登录失败，需要手动登录");
+        });
     }
     // 登录
     let loginBtn = $('#loginBtn');

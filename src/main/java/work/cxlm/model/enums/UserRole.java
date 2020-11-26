@@ -39,4 +39,18 @@ public enum UserRole implements ValueEnum<Integer> {
     public boolean isAdminRole() {
         return this == CLUB_ADMIN || this == SYSTEM_ADMIN;
     }
+
+    /**
+     * 判断当前角色是否为系统管理员
+     */
+    public boolean isSystemAdmin() {
+        return this == SYSTEM_ADMIN;
+    }
+
+    /**
+     * 是否为普通用户角色
+     */
+    public boolean isNormalRole() {
+        return this == NORMAL;
+    }
 }

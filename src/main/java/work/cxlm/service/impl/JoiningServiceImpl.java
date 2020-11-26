@@ -182,4 +182,12 @@ public class JoiningServiceImpl extends AbstractCrudService<Joining, JoiningId> 
     public void deleteByUserId(Integer userId) {
         joiningRepository.deleteByIdUserId(userId);
     }
+
+    @Override
+    public List<Joining> listAllJoiningByClubId(Integer clubId) {
+        if (clubId == null) {
+            return Collections.emptyList();
+        }
+        return joiningRepository.findAllByIdClubId(clubId);
+    }
 }

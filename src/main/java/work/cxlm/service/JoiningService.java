@@ -77,4 +77,9 @@ public interface JoiningService extends CrudService<Joining, JoiningId> {
      * 删除某用户的全部社团信息
      */
     void deleteByUserId(Integer userId);
+
+    /**
+     * 获取指定社团的所有 Joining 实体
+     */
+    List<Joining> listAllJoiningByClubId(Integer clubId);
 }

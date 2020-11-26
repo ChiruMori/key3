@@ -1,5 +1,7 @@
 package work.cxlm.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import work.cxlm.model.entity.Log;
 
 /**
@@ -8,4 +10,6 @@ import work.cxlm.model.entity.Log;
  * @author cxlm
  */
 public interface LogRepository extends BaseRepository<Log, Long> {
+
+    Page<Log> findAllByLogKey(Integer logKey, Pageable pageable);
 }

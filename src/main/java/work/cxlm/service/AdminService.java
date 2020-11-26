@@ -6,10 +6,15 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import work.cxlm.model.dto.UserDTO;
+import work.cxlm.model.entity.Club;
+import work.cxlm.model.entity.User;
 import work.cxlm.model.params.LoginParam;
 import work.cxlm.model.params.AuthorityParam;
 import work.cxlm.model.params.UserParam;
+import work.cxlm.model.vo.DashboardVO;
 import work.cxlm.security.token.AuthToken;
+
+import java.util.List;
 
 /**
  * created 2020/10/21 14:49
@@ -83,4 +88,14 @@ public interface AdminService {
      * 查询所有用户
      */
     Page<UserDTO> pageUsers(Pageable pageable);
+
+    /**
+     * 列出用户管理的所有社团
+     */
+    List<Club> listManagedClubs(User admin);
+
+    /**
+     * 获取仪表盘页面数据
+     */
+    DashboardVO dashboardDataOf(Integer clubId);
 }

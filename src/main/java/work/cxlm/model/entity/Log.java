@@ -17,17 +17,16 @@ import javax.persistence.*;
 @Entity
 @ToString
 @EqualsAndHashCode(callSuper = true)
-@Table(name = "system_logs", indexes = {@Index(name = "logs_create_time", columnList = "create_time")})
+@Table(name = "system_logs", indexes = {
+        @Index(name = "logs_create_time", columnList = "create_time"),
+        @Index(name = "logs_fk_key", columnList = "log_key"),
+})
 public class Log extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY, generator = "custom-id")
     @GenericGenerator(name = "custom-id", strategy = "work.cxlm.model.entity.support.CustomIdGenerator")
     private Long id;
-
-    /* 一般作为外键使用，关联产生当前日志的东西 */
-    @Column(name = "log_key", length = 1023)
-    private String logKey;
 
     @Column(name = "type", nullable = false)
     private LogType type;
@@ -37,4 +36,8 @@ public class Log extends BaseEntity {
 
     @Column(name="ip", length=127)
     private String ip;
+
+    /* 一般作为外键使用，关联产生当前日志的东西，通常为社团，系统级日志时为 admin id */
+    @Column(name = "log_key")
+    private Integer logKey;
 }

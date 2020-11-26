@@ -15,6 +15,15 @@ public interface LogService extends CrudService<Log, Long> {
     /**
      * 列出最近的日志
      * @param top 条目数
+     * @param showHead 是否需要补充头像、用户信息
      */
-    Page<LogDTO> pageLatest(int top);
+    Page<LogDTO> pageLatest(int top, boolean showHead);
+
+    /**
+     * 列出某社团可以查看的最近日志
+     * @param top 条目数
+     * @param clubId 社团 ID，可以传递 -1 表示不限社团
+     * @param showHead 是否需要补充头像、用户信息
+     */
+    Page<LogDTO> pageClubLatest(int top, Integer clubId, boolean showHead);
 }

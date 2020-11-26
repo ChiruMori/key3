@@ -15,7 +15,7 @@
 
     <!-- 导航选项 - 仪表盘 -->
     <li class="nav-item active">
-        <a class="nav-link" href="#">
+        <a class="nav-link" href="/key3/admin/page/dashboard">
             <i class="fas fa-fw fa-tachometer-alt"></i>
             <span>Dashboard</span></a>
     </li>
@@ -96,12 +96,16 @@
         <button class="rounded-circle border-0" id="sidebarToggle"></button>
     </div>
 
-    <!-- 侧边栏：信息卡片 -->
-    <div class="sidebar-card">
-        <i class="fab fa-github fa-3x mb-2"></i>
-        <p class="text-center mb-2">欢迎使用本程序，使用期间，如果遇到问题、功能建议或者希望贡献代码等，可以在 <a class="text-success"
-                                                                             href="https://github.com/first-snow/qfzs">github</a> 上进行反馈，也可以<a class="text-success"
-                                                                                                                                              href="mailto:cxlm@cxlm.work">发邮件</a>给<a class="text-success" href="https://cxlm.work">作者</a></p>
-    </div>
+    <#if base.showSideBarCard>
+        <#-- 侧边栏：信息卡片，只在 dashboard 页面显示 -->
+        <div class="sidebar-card">
+            <i class="fab fa-github fa-3x mb-2"></i>
+            <p class="text-center mb-2">欢迎使用本程序，使用期间，如果遇到问题、功能建议或者希望贡献代码等，可以在 <a class="text-success"
+                                                                                 href="https://github.com/first-snow/qfzs">github</a>
+                上进行反馈，也可以<a class="text-success"
+                            href="mailto:cxlm@cxlm.work">发邮件</a>给<a class="text-success" href="https://cxlm.work">作者</a>
+            </p>
+        </div>
+    </#if>
 
 </ul>

@@ -32,7 +32,7 @@ public class LogEvent extends ApplicationEvent {
         this.param = param;
     }
 
-    public LogEvent(Object source, String logKey, LogType type, String content) {
+    public LogEvent(Object source, Integer logKey, LogType type, String content) {
         this(source, new LogParam(logKey, type, content));
     }
 

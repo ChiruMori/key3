@@ -17,13 +17,14 @@ public interface JoiningRepository extends BaseRepository<Joining, JoiningId> {
     /**
      * 通过联合主键的 clubId 查找所有 Joining 实体
      */
+    List<Joining> findAllByIdClubId(Integer clubId);
     Page<Joining> findAllByIdClubId(Integer clubId, Pageable pageable);
 
-    List<Joining> findAllByIdUserId(Integer userId);
 
     /**
      * 通过联合主键的 userId 查找所有 Joining 实体
      */
+    List<Joining> findAllByIdUserId(Integer userId);
     Page<Joining> findAllByIdUserId(Integer userId, Pageable pageable);
 
     /**

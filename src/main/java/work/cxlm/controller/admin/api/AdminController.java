@@ -12,6 +12,7 @@ import work.cxlm.model.dto.UserDTO;
 import work.cxlm.model.params.LoginParam;
 import work.cxlm.model.params.AuthorityParam;
 import work.cxlm.model.params.UserParam;
+import work.cxlm.model.vo.DashboardVO;
 import work.cxlm.model.vo.PageUserVO;
 import work.cxlm.security.token.AuthToken;
 import work.cxlm.service.AdminService;
@@ -98,6 +99,12 @@ public class AdminController {
     @ApiOperation("分页获取全部用户信息")
     public Page<UserDTO> pageUsers(@PageableDefault(sort = "studentNo", direction = Sort.Direction.DESC) Pageable pageable) {
         return adminService.pageUsers(pageable);
+    }
+
+    @GetMapping("dashboard/{clubId}")
+    @ApiOperation("请求仪表盘页面需要的数据")
+    public DashboardVO getDashboardData(@PathVariable("clubId") Integer clubId) {
+        return adminService.dashboardDataOf(clubId);
     }
 
 }

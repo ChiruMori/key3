@@ -58,12 +58,14 @@ public class AdminAuthenticationFilter extends AbstractAuthenticationFilter {
     protected void doAuthenticate(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws IOException, ServletException {
         String token = getTokenFromRequest(request);
         if (StringUtils.isBlank(token)) {
-            throw new AuthenticationException("未登录，请登录后访问");
+            response.sendRedirect("/key3/admin/page/login");
+            return;
         }
         // 从缓存中获取管理员 userId
         Optional<Integer> adminId = cacheStore.getAny(SecurityUtils.buildAccessTokenKey(token), Integer.class);
         if (!adminId.isPresent()) {
             response.sendRedirect("/key3/admin/page/login");
+            return;
         }
         // 从数据库中查询，并存储到安全上下文
         User admin = userService.getById(adminId.get());

@@ -1,6 +1,7 @@
 package work.cxlm.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
@@ -16,6 +17,7 @@ import work.cxlm.exception.ForbiddenException;
 import work.cxlm.exception.NotFoundException;
 import work.cxlm.model.dto.UserDTO;
 import work.cxlm.model.entity.Club;
+import work.cxlm.model.entity.Joining;
 import work.cxlm.model.entity.User;
 import work.cxlm.model.enums.LogType;
 import work.cxlm.model.enums.UserRole;
@@ -23,19 +25,20 @@ import work.cxlm.model.params.LoginParam;
 import work.cxlm.model.params.AuthorityParam;
 import work.cxlm.model.params.UserParam;
 import work.cxlm.model.support.QfzsConst;
+import work.cxlm.model.vo.DashboardVO;
 import work.cxlm.repository.UserRepository;
 import work.cxlm.security.authentication.Authentication;
 import work.cxlm.security.context.SecurityContextHolder;
 import work.cxlm.security.token.AuthToken;
 import work.cxlm.security.util.SecurityUtils;
-import work.cxlm.service.AdminService;
-import work.cxlm.service.ClubService;
-import work.cxlm.service.JoiningService;
-import work.cxlm.service.UserService;
+import work.cxlm.service.*;
 import work.cxlm.utils.ServiceUtils;
 import work.cxlm.utils.ServletUtils;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 /**
  * created 2020/11/21 14:01
@@ -52,19 +55,25 @@ public class AdminServiceImpl implements AdminService {
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final ClubService clubService;
+    private final LogService logService;
+    private final BillService billService;
 
     public AdminServiceImpl(UserService userService,
                             AbstractStringCacheStore cacheStore,
                             UserRepository userRepository,
                             ApplicationEventPublisher eventPublisher,
                             ClubService clubService,
-                            JoiningService joiningService) {
+                            JoiningService joiningService,
+                            LogService logService,
+                            BillService billService) {
         this.userService = userService;
         this.cacheStore = cacheStore;
         this.userRepository = userRepository;
         this.eventPublisher = eventPublisher;
         this.clubService = clubService;
         this.joiningService = joiningService;
+        this.logService = logService;
+        this.billService = billService;
     }
 
     @Override
@@ -79,11 +88,11 @@ public class AdminServiceImpl implements AdminService {
         String requirePasscode = cacheStore.getAny(passcodeCacheKey, String.class).
                 orElseThrow(() -> new ForbiddenException("请使用小程序中生成的合法登录口令登录"));
         if (!Objects.equals(loginParam.getPasscode(), requirePasscode)) {
-            eventPublisher.publishEvent(new LogEvent(this, targetUser.getRealName(), LogType.LOGGED_FAILED, ServletUtils.getRequestIp()));
+            eventPublisher.publishEvent(new LogEvent(this, targetUser.getId(), LogType.CLUB_EVENT, ServletUtils.getRequestIp() + "登录失败"));
             throw new ForbiddenException("错误的登录口令");
         }
         cacheStore.delete(passcodeCacheKey);  // 清除用完的 passcode key
-        eventPublisher.publishEvent(new LogEvent(this, targetUser.getRealName(), LogType.LOGGED_IN, ServletUtils.getRequestIp()));
+        eventPublisher.publishEvent(new LogEvent(this, targetUser.getId(), LogType.CLUB_EVENT, ServletUtils.getRequestIp() + "登录系统"));
         return userService.buildAuthToken(targetUser, User::getId);
     }
 
@@ -108,7 +117,7 @@ public class AdminServiceImpl implements AdminService {
             cacheStore.delete(SecurityUtils.buildRefreshTokenKey(refreshToken));
             cacheStore.delete(SecurityUtils.buildRefreshTokenKey(admin));
         });
-        eventPublisher.publishEvent(new LogEvent(this, admin.getRealName(), LogType.LOGGED_OUT, ServletUtils.getRequestIp()));
+        eventPublisher.publishEvent(new LogEvent(this, admin.getId(), LogType.LOGGED_OUT, ServletUtils.getRequestIp() + "登录管理后台"));
     }
 
     @Override
@@ -147,7 +156,7 @@ public class AdminServiceImpl implements AdminService {
         if (param.isSystemAdmin()) {
             targetUser.setRole(grant ? UserRole.SYSTEM_ADMIN : UserRole.NORMAL);
             userService.update(targetUser);
-            eventPublisher.publishEvent(new LogEvent(this, admin.getRealName(), LogType.AUTH_REVOKE,
+            eventPublisher.publishEvent(new LogEvent(this, admin.getId(), LogType.AUTH_REVOKE,
                     admin.getRealName() + "改变了" + param.getStudentNo() + "系统管理员权限为" + grant));
             return;
         }
@@ -164,7 +173,7 @@ public class AdminServiceImpl implements AdminService {
         } else {
             joiningService.revokeAdmin(targetUser.getId(), param.getClubId());
         }
-        eventPublisher.publishEvent(new LogEvent(this, admin.getRealName(), LogType.AUTH_REVOKE,
+        eventPublisher.publishEvent(new LogEvent(this, admin.getId(), LogType.AUTH_REVOKE,
                 admin.getRealName() + "修改了" + param.getStudentNo() + "的" + targetClub.getName() + "社团管理员权限为" + grant));
     }
 
@@ -224,5 +233,37 @@ public class AdminServiceImpl implements AdminService {
     public Page<UserDTO> pageUsers(@NonNull Pageable pageable) {
         Page<User> userPage = userRepository.findAllBy(pageable);
         return ServiceUtils.convertPageElements(userPage, pageable, user -> new UserDTO().convertFrom(user));
+    }
+
+    @Override
+    public List<Club> listManagedClubs(User admin) {
+        if (admin.getRole().isSystemAdmin()) {
+            return clubService.listAll();
+        }
+        List<Joining> allJoining = joiningService.listAllJoiningByUserId(admin.getId());
+        return clubService.listAllByIds(allJoining.stream().
+                filter(Joining::getAdmin).  // 确保为管理员角色
+                map(joining -> joining.getId().getClubId()).  // 得到社团 ID
+                collect(Collectors.toList()));  // 转为 List，去数据库查询
+    }
+
+    @Override
+    public DashboardVO dashboardDataOf(Integer clubId) {
+        Club targetClub = clubService.getById(clubId);
+        List<Joining> clubMembers = joiningService.listAllJoiningByClubId(clubId);
+        long activeUserCount = userService.listAllByIds(clubMembers.stream().map(j -> j.getId().getUserId()).collect(Collectors.toList())).stream().filter(u -> StringUtils.isNotEmpty(u.getWxId())).count();
+
+        DashboardVO dashboardVO = new DashboardVO();
+        dashboardVO.setBills(billService.pageClubLatest(5, clubId, true));
+        UserRole role = SecurityContextHolder.ensureUser().getRole();
+        if (role.isSystemAdmin()) {
+            clubId = -1;
+        }
+        dashboardVO.setEnrollMembers(clubMembers.size());
+        dashboardVO.setLogs(logService.pageClubLatest(5, clubId, true));
+        dashboardVO.setAssets(targetClub.getAssets());
+        dashboardVO.setActiveMembers((int) activeUserCount);
+        dashboardVO.setUsage(79.24f); // TODO 计算活动室使用率
+        return dashboardVO;
     }
 }

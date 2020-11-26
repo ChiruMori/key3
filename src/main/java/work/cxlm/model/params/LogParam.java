@@ -22,8 +22,7 @@ import javax.validation.constraints.Size;
 @AllArgsConstructor
 public class LogParam implements InputConverter<Log> {
 
-    @Size(max = 1023, message = "log Key 的长度必须小于 {max}")
-    private String logKey;
+    private Integer logKey;
 
     @NotNull(message = "日志类型不能为 null")
     private LogType type;
@@ -34,7 +33,7 @@ public class LogParam implements InputConverter<Log> {
 
     private String ip;
 
-    public LogParam(String logKey, LogType type, String content) {
+    public LogParam(Integer logKey, LogType type, String content) {
         this.logKey = logKey;
         this.type = type;
         this.content = content;

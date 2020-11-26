@@ -22,13 +22,17 @@ public class LogDTO implements OutputConverter<LogDTO, Log> {
 
     private Long id;
 
-    private String logKey;
-
     private LogType type;
 
     private String content;
 
-    private String ipAddress;
+    private String ip;
+
+    private Integer logKey;
 
     private Date createTime;
+
+    private String showHead;
+
+    private String who;
 }

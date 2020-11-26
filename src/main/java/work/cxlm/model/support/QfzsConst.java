@@ -81,4 +81,6 @@ public class QfzsConst {
     public final static String ADMIN_PASSCODE_PREFIX = "admin_pass_";
 
     public final static String DEFAULT_ERROR_PATH = "error/error";
+
+    public static final String SYSTEM_HEAD = "https://upload.cc/i1/2020/11/26/HSBol9.png";
 }

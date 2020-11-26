@@ -1,13 +1,12 @@
-
 <#-- 顶部导航栏 -->
 <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
 
-    <!-- 侧边栏在顶部导航栏的开关按钮 -->
+    <#-- 侧边栏在顶部导航栏的开关按钮 -->
     <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
         <i class="fa fa-bars"></i>
     </button>
 
-    <!-- 搜索框 -->
+    <#-- 搜索框 -->
     <form
             class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
         <div class="input-group">
@@ -53,23 +52,29 @@
             <a class="nav-link dropdown-toggle" href="#" id="clubDropdown" role="button"
                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <i class="fas fa-users-cog fa-fw"></i>
-                <div class="ml-2 font-weight-bold">键盘乐团</div>
+                <div class="ml-2 font-weight-bold" id="now-club-name">加载中...</div>
             </a>
             <!-- 下拉选框 - 社团列表 -->
             <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
                  aria-labelledby="clubDropdown">
                 <h6 class="dropdown-header">
                     <span>管理的社团</span>
-                    <a href="#" class="float-right h5 text-light">+</a>
+                    <#if base.systemAdmin>
+                        <a href="#" class="float-right h5 text-light" title="新增社团">+</a>
+                    </#if>
                 </h6>
-                <a class="dropdown-item d-flex align-items-center" href="#">
-                    <div class="dropdown-list-image mr-3 mb-0 pt-1 h3">
-                        <i class="fas fa-user-friends"></i>
-                    </div>
-                    <div class="font-weight-bold">
-                        <div class="text-truncate">键盘乐团</div>
-                    </div>
-                </a>
+                <#list base.clubs as club>
+                    <a class="dropdown-item d-flex align-items-center" href="#${club.id}">
+                        <div class="dropdown-list-image mr-3 mb-0 pt-1 h3">
+                            <i class="fas fa-user-friends"></i>
+                        </div>
+                        <div class="font-weight-bold">
+                            <div itemid="${club.id}" class="text-truncate club-item">${club.name}</div>
+                        </div>
+                    </a>
+                <#else>
+                    <div class="text-mute p-3">什么也没有</div>
+                </#list>
             </div>
         </li>
 
@@ -79,9 +84,8 @@
         <li class="nav-item dropdown no-arrow">
             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <span class="mr-2 d-none d-lg-inline text-gray-600 small">欢迎，羚！</span>
-                <img class="img-profile rounded-circle"
-                     src="https://thirdwx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTKDKcfU30R79icsAMMQKuaLcpMGlwl0iarWVdicYOYIMiauzdWm2xNO7W9T3z3l2vVTRUJZibeZVguVerQ/132">
+                <span class="mr-2 d-none d-lg-inline text-gray-600 small">欢迎，${base.userName}</span>
+                <img class="img-profile rounded-circle" src="${base.head}" alt="头像而已">
             </a>
             <!-- 下拉列表：管理员信息维护 -->
             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
@@ -118,8 +122,10 @@
             <div class="modal-body">点击登出将清除您的登录状态</div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" type="button" data-dismiss="modal">取消</button>
-                <a class="btn btn-primary" href="/key3/admin/page/login">Logout</a>
+                <a class="btn btn-primary" href="/key3/admin/page/login">登出</a>
             </div>
         </div>
     </div>
 </div>
+
+<script src="/key3/js/top_bar.min.js" type="text/javascript"></script>

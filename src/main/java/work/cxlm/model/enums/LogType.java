@@ -7,7 +7,6 @@ package work.cxlm.model.enums;
  */
 public enum LogType implements ValueEnum<Integer> {
 
-
     /**
      * 管理后台用户登录
      */
@@ -35,6 +34,11 @@ public enum LogType implements ValueEnum<Integer> {
 
     AUTH_REVOKE(22),
 
+    /**
+     * 社团级日志
+     */
+    CLUB_EVENT(30),
+
     ;
     private final Integer value;
 
@@ -45,5 +49,12 @@ public enum LogType implements ValueEnum<Integer> {
     @Override
     public Integer getValue() {
         return value;
+    }
+
+    /**
+     * 判断当前日志是否为系统级别日志
+     */
+    public boolean systemLevel() {
+        return this != CLUB_EVENT;
     }
 }
