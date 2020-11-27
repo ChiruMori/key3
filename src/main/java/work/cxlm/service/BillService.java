@@ -19,4 +19,6 @@ public interface BillService extends CrudService<Bill, Integer> {
      * @param showHead 是否显示用户相关信息
      */
     Page<BillDTO> pageClubLatest(int top, Integer clubId, boolean showHead);
+
+    void removeByClubId(Integer clubId);
 }

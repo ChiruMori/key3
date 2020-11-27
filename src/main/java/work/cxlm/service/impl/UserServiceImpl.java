@@ -222,11 +222,23 @@ public class UserServiceImpl extends AbstractCrudService<User, Integer> implemen
     }
 
     @Override
-    public boolean managerOf(@NonNull Integer userId, @NonNull Club club) {
-        Assert.notNull(userId, "用户 ID 不能为 null");
+    public boolean managerOfClub(@NonNull Integer userId, @NonNull Club club) {
+        Assert.notNull(club, "社团不能为 null");
+        return managerOfClub(getById(userId), club);
+    }
+
+    @Override
+    public boolean managerOfClub(@NonNull User admin,  @NonNull Club club) {
+        Assert.notNull(admin, "用户不能为 null");
         Assert.notNull(club, "社团不能为 null");
 
-        JoiningId jid = new JoiningId(userId, club.getId());
+        if (admin.getRole().isSystemAdmin()){
+            return true;
+        }
+        if (admin.getRole().isNormalRole()) {
+            return false;
+        }
+        JoiningId jid = new JoiningId(admin.getId(), club.getId());
         Joining joining = joiningService.getByIdOfNullable(jid);
         return joining != null && joining.getAdmin();
     }

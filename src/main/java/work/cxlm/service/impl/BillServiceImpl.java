@@ -56,4 +56,9 @@ public class BillServiceImpl extends AbstractCrudService<Bill, Integer> implemen
         billDTO.setShowHead(targetUser.getHead());
         return billDTO;
     }
+
+    @Override
+    public void removeByClubId(Integer clubId) {
+        billRepository.deleteByClubId(clubId);
+    }
 }

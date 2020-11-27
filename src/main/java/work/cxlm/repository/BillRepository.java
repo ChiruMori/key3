@@ -19,4 +19,9 @@ public interface BillRepository extends BaseRepository<Bill, Integer> {
      * @param latestPageable 分页请求
      */
     Page<Bill> findAllyByClubId(Integer clubId, Pageable latestPageable);
+
+    /**
+     * 删除社团全部财务信息
+     */
+    void deleteByClubId(Integer clubId);
 }

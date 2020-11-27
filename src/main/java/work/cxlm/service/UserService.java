@@ -89,8 +89,9 @@ public interface UserService extends CrudService<User, Integer> {
      * @param club   社团
      * @return 布尔值表示结果
      */
-    boolean managerOf(@NonNull Integer userId, @NonNull Club club);
+    boolean managerOfClub(@NonNull Integer userId, @NonNull Club club);
 
+    boolean managerOfClub(@NonNull User admin, @NonNull Club club);
     /**
      * 判断用户是否为另一用户的管理员
      *
@@ -106,4 +107,5 @@ public interface UserService extends CrudService<User, Integer> {
      * @param other 另一用户
      */
     boolean managerOf(@NonNull User admin, @NonNull User other);
+
 }

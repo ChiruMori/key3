@@ -47,6 +47,8 @@ public class Club extends BaseEntity {
     @Override
     public void prePersist() {
         super.prePersist();
-        assets = new BigDecimal(0);
+        if (assets == null) { // 必须加这个条件，否则将导致新建 Club 时传入的初始经费被覆盖
+            assets = new BigDecimal(0);
+        }
     }
 }

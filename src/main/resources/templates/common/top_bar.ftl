@@ -60,7 +60,7 @@
                 <h6 class="dropdown-header">
                     <span>管理的社团</span>
                     <#if base.systemAdmin>
-                        <a href="#" class="float-right h5 text-light" title="新增社团">+</a>
+                        <a href="javascript:" id="newClubBtn" class="float-right h5 text-light" title="新增社团">+</a>
                     </#if>
                 </h6>
                 <#list base.clubs as club>
@@ -122,7 +122,7 @@
             <div class="modal-body">点击登出将清除您的登录状态</div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" type="button" data-dismiss="modal">取消</button>
-                <a class="btn btn-primary" href="/key3/admin/page/login">登出</a>
+                <a class="btn btn-primary" href="#" id="logoutBtn">登出</a>
             </div>
         </div>
     </div>

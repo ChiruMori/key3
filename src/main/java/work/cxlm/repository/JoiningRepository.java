@@ -31,4 +31,9 @@ public interface JoiningRepository extends BaseRepository<Joining, JoiningId> {
      * 删除用户的社团加入信息
      */
     void deleteByIdUserId(Integer userId);
+
+    /**
+     * 删除社团的全部加入信息
+     */
+    void deleteByIdClubId(Integer clubId);
 }

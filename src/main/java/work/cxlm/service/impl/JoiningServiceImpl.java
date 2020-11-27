@@ -45,12 +45,15 @@ public class JoiningServiceImpl extends AbstractCrudService<Joining, JoiningId> 
     private UserService userService;
 
     private final JoiningRepository joiningRepository;
-    private final ClubService clubService;
+    private ClubService clubService;
 
-    protected JoiningServiceImpl(JoiningRepository joiningRepository,
-                                 ClubService clubService) {
+    protected JoiningServiceImpl(JoiningRepository joiningRepository) {
         super(joiningRepository);
         this.joiningRepository = joiningRepository;
+    }
+
+    @Autowired
+    public void setClubService(ClubService clubService) {
         this.clubService = clubService;
     }
 
@@ -189,5 +192,10 @@ public class JoiningServiceImpl extends AbstractCrudService<Joining, JoiningId> 
             return Collections.emptyList();
         }
         return joiningRepository.findAllByIdClubId(clubId);
+    }
+
+    @Override
+    public void removeByIdClubId(Integer clubId) {
+        joiningRepository.deleteByIdClubId(clubId);
     }
 }

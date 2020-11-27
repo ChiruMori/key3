@@ -37,7 +37,6 @@ import work.cxlm.utils.ServletUtils;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
@@ -148,7 +147,7 @@ public class AdminServiceImpl implements AdminService {
             if (param.isSystemAdmin()) {
                 throw new BadRequestException("权限不足，宁无法授权系统管理员");
             }
-            if (targetClub == null || userService.managerOf(admin.getId(), targetClub)) {
+            if (targetClub == null || userService.managerOfClub(admin.getId(), targetClub)) {
                 throw new BadRequestException("宁不是该社团的管理员，不要瞎搞");
             }
         }

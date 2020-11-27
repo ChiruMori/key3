@@ -32,7 +32,7 @@ public class ContentController {
      * 管理控制台
      */
     @GetMapping("dashboard")
-    public String index(String token, Model model) {
+    public String index(Model model) {
         adminModel.wrapBaseData(model, true);
         return "pages/index";
     }
@@ -40,6 +40,12 @@ public class ContentController {
     @GetMapping("login")
     public String login() {
         return "pages/login";
+    }
+
+    @GetMapping("club-info")
+    public String clubInfo(Model model) {
+        adminModel.wrapBaseData(model, false);
+        return "pages/club-info";
     }
 
 }

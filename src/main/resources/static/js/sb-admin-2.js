@@ -6,7 +6,8 @@ const CONST_VAL = {
     tokenQueryName: 'admin_token_Authorization',
     tokenHeaderName: 'ADMIN-Authorization',
     managingClubKey: 'managing_club',
-    clubChangedEventKey: 'club_changed'
+    clubChangedEventKey: 'club_changed',
+    newClubLockKey: 'new_club_lock'
 };
 
 // 全局变量
@@ -154,21 +155,28 @@ let utils = (function () {
                 complete(res);
             }
         })
-    }
+    };
 
     /**
      * 从 localStorage 中读取数据
      */
     const readCache = function (key) {
         return JSON.parse(localStorage.getItem(key));
-    }
+    };
+
+    /**
+     * 清除 localStorage 中指定的缓存
+     */
+    const removeCache = function (key) {
+        localStorage.removeItem(key);
+    };
 
     /**
      * 向 localStorage 中写入数据
      */
     const writeCache = function (key, val) {
         localStorage.setItem(key, JSON.stringify(val));
-    }
+    };
 
     /**
      * 简易的事件分发中心，只积压一条事件
@@ -198,12 +206,11 @@ let utils = (function () {
         if (typeof fn !== 'function') {
             delete listeners[type];
         }
+        listeners[type] = fn;
         if (simpleEventCenter[type]) {
             fn(simpleEventCenter[type]);
             delete simpleEventCenter[type];
-            return;
         }
-        listeners[type] = fn;
     }
 
     let loadingShowing = false;
@@ -213,6 +220,7 @@ let utils = (function () {
         ajax: ajax,
         readCache: readCache,
         writeCache: writeCache,
+        removeCache: removeCache,
         publishEvent: publishEvent,
         subscribeEvent: subscribeEvent,
         showLoading: function (text) {
@@ -230,7 +238,7 @@ let utils = (function () {
             if (!loadingShowing) {
                 throw '加载层尚未显示，无法关闭';
             }
-            loadingShowing = true;
+            loadingShowing = false;
             $('#loadingLayer').fadeOut();
         },
         whenIs: function (targetDate) {

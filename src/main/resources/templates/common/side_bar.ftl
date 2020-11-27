@@ -15,7 +15,7 @@
 
     <!-- 导航选项 - 仪表盘 -->
     <li class="nav-item active">
-        <a class="nav-link" href="/key3/admin/page/dashboard">
+        <a class="nav-link token-tag" href="/key3/admin/page/dashboard">
             <i class="fas fa-fw fa-tachometer-alt"></i>
             <span>Dashboard</span></a>
     </li>
@@ -33,10 +33,10 @@
         </a>
         <div id="collapseClub" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
             <div class="py-2 collapse-inner rounded">
-                <a class="collapse-item" href="#"><i class="fas fa-info-circle mr-2"></i>基本信息</a>
-                <a class="collapse-item" href="#"><i class="fas fa-coins mr-2"></i>财务管理</a>
-                <a class="collapse-item" href="#"><i class="fas fa-bell mr-2"></i>通知公告</a>
-                <a class="collapse-item" href="#"><i class="fas fa-calendar-day mr-2"></i>活动管理</a>
+                <a class="collapse-item token-tag" href="/key3/admin/page/club-info"><i class="fas fa-info-circle mr-2"></i>基本信息</a>
+                <a class="collapse-item token-tag" href="#"><i class="fas fa-coins mr-2"></i>财务管理</a>
+                <a class="collapse-item token-tag" href="#"><i class="fas fa-bell mr-2"></i>通知公告</a>
+                <a class="collapse-item token-tag" href="#"><i class="fas fa-calendar-day mr-2"></i>活动管理</a>
             </div>
         </div>
     </li>
@@ -51,8 +51,8 @@
         <div id="collapseRoom" class="collapse" aria-labelledby="headingUtilities"
              data-parent="#accordionSidebar">
             <div class="py-2 collapse-inner rounded">
-                <a class="collapse-item" href="#"><i class="fas fa-info-circle mr-2"></i>基本信息</a>
-                <a class="collapse-item" href="#"><i class="fas fa-table mr-2"></i>预约管理</a>
+                <a class="collapse-item token-tag" href="#"><i class="fas fa-info-circle mr-2"></i>基本信息</a>
+                <a class="collapse-item token-tag" href="#"><i class="fas fa-table mr-2"></i>预约管理</a>
             </div>
         </div>
     </li>
@@ -67,7 +67,7 @@
         <div id="collapseUser" class="collapse" aria-labelledby="headingUtilities"
              data-parent="#accordionSidebar">
             <div class="py-2 collapse-inner rounded">
-                <a class="collapse-item" href="#"><i class="fas fa-info-circle mr-2"></i>基本信息</a>
+                <a class="collapse-item token-tag" href="#"><i class="fas fa-info-circle mr-2"></i>基本信息</a>
             </div>
         </div>
     </li>
@@ -78,7 +78,7 @@
 
     <!-- 系统日志查看 -->
     <li class="nav-item">
-        <a class="nav-link collapsed" href="#">
+        <a class="nav-link collapsed token-tag" href="#">
             <i class="fas fa-fw fa-clipboard"></i>
             <span>系统日志</span>
         </a>
@@ -86,7 +86,7 @@
 
     <!-- 系统参数设置 -->
     <li class="nav-item">
-        <a class="nav-link" href="#">
+        <a class="nav-link token-tag" href="#">
             <i class="fas fa-fw fa-th-list"></i>
             <span>系统参数</span></a>
     </li>
@@ -109,3 +109,5 @@
     </#if>
 
 </ul>
+
+<script type="text/javascript" src="/key3/js/side_bar.min.js"></script>

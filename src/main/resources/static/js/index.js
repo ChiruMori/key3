@@ -1,6 +1,9 @@
 $().ready(function () {
 
-    const getLiItemFromDTO = function (head, info, who, createTime) {
+    const getLiItemFromDTO = function (head, info, who, createTime, change) {
+        let bill = change !== undefined;
+        let billClass = bill && change > 0 ? 'text-danger' : 'text-success';
+        change = change > 0 ? ('+' + change) : (change + '');
         return '<li class="list-group-item d-flex align-items-center">\n' +
             '    <div class="img-profile mr-3">\n' +
             '        <img class="w-100 rounded-circle"\n' +
@@ -8,10 +11,11 @@ $().ready(function () {
             '             alt="头像而已">\n' +
             '        <div class="status-indicator"></div>\n' +
             '    </div>\n' +
-            '    <div class="w-100">\n' +
+            '    <div class="w-100' + (bill ? 'pr-rem-5' : '') + '">\n' +
             '        <div class="text-truncate">' + info + '</div>\n' +
             '        <div class="small text-gray-500">' + who + ' · ' + utils.whenIs(createTime) + '</div>\n' +
             '    </div>\n' +
+            (bill ? ('<p class="bill font-weight-bold ' + billClass + '">' + change + '</p>\n') : '') +
             '</li>';
     }
 
@@ -19,7 +23,6 @@ $().ready(function () {
         utils.showLoading();
         utils.ajax('/admin/api/dashboard/' + club.id, {}, 'GET', function (res) {
             let resData = res.data;
-            console.log(resData);
             $('#pageTitle').text(club.name);
             $('#enrollNumber').text(resData.enrollMembers);
             $('#activeMembers').text(resData.activeMembers);
@@ -28,6 +31,7 @@ $().ready(function () {
             $('#roomUsage').text(resData.usage + '%');
             $('#usageBar').attr('style', 'width: ' + resData.usage + '%');
             let logUlContainer = $('#logArea');
+            logUlContainer.html('');  // 清空原内容
             let logATag = $('#allLogATag');
             if (resData.logs.content.length !== 0) {
                 resData.logs.content.forEach(function (logDTO) {
@@ -40,13 +44,15 @@ $().ready(function () {
                 logATag.attr('href', '#');
             }
             let billUlContainer = $('#billArea');
+            billUlContainer.html('');  // 清空原内容
             let billATag = $('#allBillATag');
             if (resData.bills.content.length !== 0) {
                 resData.bills.content.forEach(function (billDTO) {
-                    billUlContainer.append($(getLiItemFromDTO(billDTO.showHead, billDTO.info, billDTO.who, billDTO.createTime)));
+                    billUlContainer.append($(getLiItemFromDTO(billDTO.showHead, billDTO.info, billDTO.who,
+                        billDTO.createTime, billDTO.cost)));
                 });
-                logATag.text('全部收支');
-                logATag.attr('href', ''); // TODO 跳转到收支页面
+                billATag.text('全部收支');
+                billATag.attr('href', ''); // TODO 跳转到收支页面
             } else {
                 billATag.text('什么都没有...');
                 billATag.attr('href', '#');

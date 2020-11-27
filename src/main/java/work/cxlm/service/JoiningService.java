@@ -82,4 +82,10 @@ public interface JoiningService extends CrudService<Joining, JoiningId> {
      * 获取指定社团的所有 Joining 实体
      */
     List<Joining> listAllJoiningByClubId(Integer clubId);
+
+    /**
+     * 删除社团相关的全部信息
+     * @param clubId 社团 ID
+     */
+    void removeByIdClubId(Integer clubId);
 }
