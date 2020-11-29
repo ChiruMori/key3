@@ -175,4 +175,20 @@ public class ServiceUtils {
         return new PageImpl<>(targetList, pageable, srcPage.getTotalElements());
     }
 
+    /**
+     * 使用转换函数转换列表中元素的类型
+     * @param srcList 原始列表
+     * @param converter 转换函数
+     * @param <SRC> 原始元素类型
+     * @param <TAR> 目标元素类型
+     */
+    @NonNull
+    public static <SRC, TAR> List<TAR> convertList(@Nullable List<SRC> srcList, @NonNull Function<SRC, TAR> converter) {
+        Assert.notNull(converter, "转换函数");
+        if (CollectionUtils.isEmpty(srcList)) {
+            return Collections.emptyList();
+        }
+        return srcList.stream().map(converter).collect(Collectors.toList());
+    }
+
 }

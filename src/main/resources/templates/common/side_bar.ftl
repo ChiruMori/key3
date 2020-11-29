@@ -34,7 +34,7 @@
         <div id="collapseClub" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
             <div class="py-2 collapse-inner rounded">
                 <a class="collapse-item token-tag" href="/key3/admin/page/club-info"><i class="fas fa-info-circle mr-2"></i>基本信息</a>
-                <a class="collapse-item token-tag" href="#"><i class="fas fa-coins mr-2"></i>财务管理</a>
+                <a class="collapse-item token-tag" href="/key3/admin/page/club-bill"><i class="fas fa-coins mr-2"></i>财务管理</a>
                 <a class="collapse-item token-tag" href="#"><i class="fas fa-bell mr-2"></i>通知公告</a>
                 <a class="collapse-item token-tag" href="#"><i class="fas fa-calendar-day mr-2"></i>活动管理</a>
             </div>

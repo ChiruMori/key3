@@ -17,8 +17,8 @@ import java.util.Date;
  */
 @Data
 @ToString
-@EqualsAndHashCode
-public class LogDTO implements OutputConverter<LogDTO, Log> {
+@EqualsAndHashCode(callSuper = true)
+public class LogDTO extends DashboardListItem implements OutputConverter<LogDTO, Log> {
 
     private Long id;
 
@@ -29,10 +29,4 @@ public class LogDTO implements OutputConverter<LogDTO, Log> {
     private String ip;
 
     private Integer logKey;
-
-    private Date createTime;
-
-    private String showHead;
-
-    private String who;
 }

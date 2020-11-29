@@ -7,7 +7,6 @@ import work.cxlm.model.dto.base.OutputConverter;
 import work.cxlm.model.entity.Bill;
 
 import java.math.BigDecimal;
-import java.util.Date;
 
 /**
  * created 2020/11/26 14:35
@@ -16,7 +15,10 @@ import java.util.Date;
  */
 @Data
 @ToString(callSuper = true)
-public class BillDTO implements OutputConverter<BillDTO, Bill> {
+@EqualsAndHashCode(callSuper = true)
+public class BillDTO extends DashboardListItem implements OutputConverter<BillDTO, Bill> {
+
+    private Integer id;
 
     private BigDecimal cost;
 
@@ -25,9 +27,4 @@ public class BillDTO implements OutputConverter<BillDTO, Bill> {
     private Integer clubId;
 
     private Integer authorId;
-
-    private String who;
-    private String showHead;
-
-    private Date createTime;
 }

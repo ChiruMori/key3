@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.hibernate.annotations.GenericGenerator;
+import work.cxlm.model.enums.OptionType;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -36,4 +37,9 @@ public class Bill extends BaseEntity {
 
     @Column(name = "authorId")
     private Integer authorId;
+
+    @PrePersist  // 必须添加本方法，否则父类的方法将失效
+    public void prePersist() {
+        super.prePersist();
+    }
 }

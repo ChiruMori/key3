@@ -94,7 +94,7 @@ let utils = (function () {
         return formObj;
     }
 
-    const server = "http://127.0.0.1:8520/key3/";
+    const server = "/key3/";
 
     /**
      * 使用 JQuery 通过递归将对象转化为 URL Param
@@ -128,7 +128,8 @@ let utils = (function () {
         if (!complete) complete = function () {
         };
         if (method === 'GET' || method === 'DELETE') {
-            url += parseParam(data);
+            let connector = /\?.+=/.test(url) ? '&' : '?'; // 判断 URL 中是否已经带有参数
+            url = url + connector + parseParam(data);
             data = '';
         } else {
             data = JSON.stringify(data);
@@ -265,6 +266,13 @@ let utils = (function () {
                 return ~~(timeDiff / 60) + '分钟前';
             }
             return '刚刚';
+        },
+        /**
+         * 将 URL 包装为带有 token 的 URL
+         */
+        wrapUrlWithToken: function (url) {
+            let connector = /\?.+=/.test(url) ? '&' : '?'; // 判断 URL 中是否已经带有参数
+            return url + connector + CONST_VAL.tokenQueryName + '=' + readCache(CONST_VAL.tokenKey);
         }
     }
 })();

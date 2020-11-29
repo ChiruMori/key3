@@ -48,4 +48,11 @@ public class ContentController {
         return "pages/club-info";
     }
 
+    @GetMapping("club-bill")
+    public String clubBill(Model model) {
+        adminModel.wrapBaseData(model, false);
+        return "pages/club-bill";
+    }
+
+
 }

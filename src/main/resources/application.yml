@@ -23,5 +23,5 @@ qfzs:
   cache: level
   version: @app_version@
   app-id: wx037c071037531864
-  app-secret: "9999999"
+  app-secret: "********"
   app-request-url: "https://api.weixin.qq.com/sns/jscode2session"

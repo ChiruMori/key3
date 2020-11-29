@@ -6,6 +6,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import work.cxlm.model.entity.Bill;
 
+import java.util.List;
+
 /**
  * created 2020/11/26 14:44
  *
@@ -18,7 +20,8 @@ public interface BillRepository extends BaseRepository<Bill, Integer> {
      * @param clubId 社团 ID
      * @param latestPageable 分页请求
      */
-    Page<Bill> findAllyByClubId(Integer clubId, Pageable latestPageable);
+    Page<Bill> findAllByClubId(Integer clubId, Pageable latestPageable);
+    List<Bill> findAllByClubId(Integer clubId);
 
     /**
      * 删除社团全部财务信息

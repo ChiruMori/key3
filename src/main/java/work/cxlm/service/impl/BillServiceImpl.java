@@ -1,19 +1,31 @@
 package work.cxlm.service.impl;
 
 import cn.hutool.core.lang.Assert;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import work.cxlm.exception.ForbiddenException;
 import work.cxlm.model.dto.BillDTO;
-import work.cxlm.model.dto.LogDTO;
 import work.cxlm.model.entity.Bill;
+import work.cxlm.model.entity.Club;
 import work.cxlm.model.entity.User;
+import work.cxlm.model.params.BillParam;
 import work.cxlm.model.support.QfzsConst;
+import work.cxlm.model.vo.BillTableVO;
+import work.cxlm.model.vo.BillVO;
 import work.cxlm.repository.BillRepository;
+import work.cxlm.security.context.SecurityContextHolder;
 import work.cxlm.service.BillService;
+import work.cxlm.service.ClubService;
 import work.cxlm.service.UserService;
 import work.cxlm.service.base.AbstractCrudService;
+import work.cxlm.utils.ServiceUtils;
+
+import java.util.List;
 
 /**
  * created 2020/11/26 14:39
@@ -25,6 +37,7 @@ public class BillServiceImpl extends AbstractCrudService<Bill, Integer> implemen
 
     private final BillRepository billRepository;
     private final UserService userService;
+    private ClubService clubService;
 
     protected BillServiceImpl(BillRepository repository,
                               UserService userService) {
@@ -33,12 +46,17 @@ public class BillServiceImpl extends AbstractCrudService<Bill, Integer> implemen
         this.userService = userService;
     }
 
+    @Autowired
+    public void setClubService(ClubService clubService) {
+        this.clubService = clubService;
+    }
+
     @Override
     public Page<BillDTO> pageClubLatest(int top, Integer clubId, boolean showHead) {
         Assert.isTrue(top > 0, "每页条目必须大于 0");
         // 按创建时间降序排序，并取第一页
         PageRequest latestPageable = PageRequest.of(0, top, Sort.by(Sort.Direction.DESC, "createTime"));
-        return billRepository.findAllyByClubId(clubId, latestPageable).map(b -> wrapLogWithHeadAndWho(new BillDTO().convertFrom(b), showHead));
+        return billRepository.findAllByClubId(clubId, latestPageable).map(b -> wrapLogWithHeadAndWho(new BillDTO().convertFrom(b), showHead));
     }
 
 
@@ -60,5 +78,72 @@ public class BillServiceImpl extends AbstractCrudService<Bill, Integer> implemen
     @Override
     public void removeByClubId(Integer clubId) {
         billRepository.deleteByClubId(clubId);
+    }
+
+    @Override
+    public BillTableVO listClubAllBill(Integer clubId) {
+        User admin = SecurityContextHolder.ensureUser();
+        Club targetClub = clubService.getById(clubId);
+        if (!userService.managerOfClub(admin, targetClub)) {
+            throw new ForbiddenException("您的权限不足，禁止操作");
+        }
+        List<BillDTO> billDTOs = ServiceUtils.convertList(billRepository.findAllByClubId(clubId),
+                bill -> wrapLogWithHeadAndWho(new BillDTO().convertFrom(bill), true));
+        BillTableVO tableVO = new BillTableVO();
+        tableVO.setBills(billDTOs);
+        tableVO.setClubAssets(targetClub.getAssets());
+        return tableVO;
+    }
+
+    @Override
+    @Transactional
+    public BillVO saveBillBy(@NonNull BillParam param) {
+        Assert.notNull(param, "BillParam 不能为 null");
+        // 验证
+        Club targetClub = clubService.getById(param.getClubId());
+        User admin = SecurityContextHolder.ensureUser();
+        if (!userService.managerOfClub(admin, targetClub)) {
+            throw new ForbiddenException("您的权限不足，无法操作");
+        }
+        // 存储
+        Bill newBill = param.convertTo();
+        newBill.setAuthorId(admin.getId());
+        if (newBill.getId() != null) {  // 更新模式，需要删除原账单导致的经费变化
+            Bill oldBill = getById(newBill.getId());
+            targetClub.setAssets(targetClub.getAssets().subtract(oldBill.getCost()));
+            param.update(oldBill);
+            newBill = oldBill;
+        }
+        targetClub.setAssets(targetClub.getAssets().add(newBill.getCost()));
+        update(newBill);
+        clubService.update(targetClub);
+        // 响应
+        BillVO billVO = new BillVO().convertFrom(newBill);
+        billVO.setWho(admin.getRealName());
+        billVO.setShowHead(admin.getHead());
+        billVO.setClubAssets(targetClub.getAssets());
+        return billVO;
+    }
+
+    @Override
+    @Transactional
+    public BillVO deleteBill(Integer billId) {
+        // 验证
+        User admin = SecurityContextHolder.ensureUser();
+        Bill targetBill = getById(billId);
+        Club targetClub = clubService.getById(targetBill.getClubId());
+        if (!userService.managerOfClub(admin, targetClub)) {
+            throw new ForbiddenException("您的权限不足，无法操作");
+        }
+        // 移除、更新社团经费
+        targetClub.setAssets(targetClub.getAssets().subtract(targetBill.getCost()));
+        clubService.update(targetClub);
+        removeById(billId);
+        // 响应
+        BillVO billVO = new BillVO().convertFrom(targetBill);
+        billVO.setWho(admin.getRealName());
+        billVO.setShowHead(admin.getHead());
+        billVO.setClubAssets(targetClub.getAssets());
+        return billVO;
     }
 }

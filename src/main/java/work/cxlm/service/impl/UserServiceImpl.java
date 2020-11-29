@@ -33,6 +33,7 @@ import work.cxlm.repository.UserRepository;
 import work.cxlm.security.context.SecurityContextHolder;
 import work.cxlm.security.token.AuthToken;
 import work.cxlm.security.util.SecurityUtils;
+import work.cxlm.service.ClubService;
 import work.cxlm.service.JoiningService;
 import work.cxlm.service.UserService;
 import work.cxlm.service.base.AbstractCrudService;
@@ -58,6 +59,7 @@ import static work.cxlm.service.AdminService.REFRESH_TOKEN_EXPIRED_DAYS;
 public class UserServiceImpl extends AbstractCrudService<User, Integer> implements UserService {
 
     private JoiningService joiningService;
+    private ClubService clubService;
 
     private final UserRepository userRepository;
     private final QfzsProperties qfzsProperties;
@@ -78,6 +80,11 @@ public class UserServiceImpl extends AbstractCrudService<User, Integer> implemen
     @Autowired
     public void setJoiningService(JoiningService joiningService) {
         this.joiningService = joiningService;
+    }
+
+    @Autowired
+    public void setClubService(ClubService clubService) {
+        this.clubService = clubService;
     }
 
     @Override
@@ -241,6 +248,12 @@ public class UserServiceImpl extends AbstractCrudService<User, Integer> implemen
         JoiningId jid = new JoiningId(admin.getId(), club.getId());
         Joining joining = joiningService.getByIdOfNullable(jid);
         return joining != null && joining.getAdmin();
+    }
+
+    @Override
+    public boolean managerOfClub(User admin, Integer clubId) {
+        Club targetClub = clubService.getById(clubId);
+        return managerOfClub(admin, targetClub);
     }
 
     @Override

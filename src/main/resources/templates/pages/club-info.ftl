@@ -59,7 +59,7 @@
 
             </div>
         </div>
-        <!-- 内容区域结束 -->
+        <#-- 内容区域结束 -->
 
         <#include "../common/copyright.ftl">
     </div>
