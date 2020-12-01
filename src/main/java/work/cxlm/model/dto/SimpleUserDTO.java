@@ -22,8 +22,6 @@ public class SimpleUserDTO {
 
     private String major;
 
-    private Integer enrollYear;
-
     private String realName;
 
     private UserGender gender;

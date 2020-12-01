@@ -32,8 +32,18 @@ public class LogEvent extends ApplicationEvent {
         this.param = param;
     }
 
+    /**
+     * 系统级别日志事件
+     */
     public LogEvent(Object source, Integer logKey, LogType type, String content) {
         this(source, new LogParam(logKey, type, content));
+    }
+
+    /**
+     * 社团级别日志事件
+     */
+    public LogEvent(Object source, Integer logKey, Integer groupId, String content) {
+        this(source, new LogParam(logKey, groupId, content));
     }
 
     public LogParam getParam() {

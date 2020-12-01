@@ -30,11 +30,9 @@ import javax.validation.Valid;
 public class AdminController {
 
     private final AdminService adminService;
-    private final UserService userService;
 
-    public AdminController(AdminService adminService, UserService userService) {
+    public AdminController(AdminService adminService) {
         this.adminService = adminService;
-        this.userService = userService;
     }
 
     @PostMapping("login")
@@ -68,37 +66,6 @@ public class AdminController {
     @ApiOperation("收回指定学号的用户授权，授权的角色、管理的社团需要通过参数指定")
     public void revoke(@Valid @RequestBody AuthorityParam param) {
         adminService.revoke(param);
-    }
-
-    @PutMapping("user")
-    @ApiOperation("管理员更新用户信息")
-    public void updateUser(@Valid @RequestBody UserParam userParam) {
-        adminService.updateBy(userParam);
-    }
-
-    @PostMapping("user")
-    @ApiOperation("管理员新建用户")
-    public void newUser(@Valid @RequestBody UserParam userParam) {
-        adminService.createBy(userParam);
-    }
-
-    @DeleteMapping("user/{userId}")
-    @ApiOperation("系统管理员删除用户，会销毁改用户相关的全部信息，包括历史信息")
-    public void deleteUser(@PathVariable("userId") Integer userId) {
-        adminService.delete(userId);
-    }
-
-    @GetMapping("user/list/{clubId}")
-    @ApiOperation("分页获取社团成员列表，与 User 接口用法、参数相同")
-    public Page<PageUserVO> pageClubUsers(@ApiParam(value = "社团 ID", required = true, example = "1") @PathVariable("clubId") Integer clubId,
-                                          @PageableDefault(sort = "total", direction = Sort.Direction.DESC) Pageable pageable) {
-        return userService.getClubUserPage(clubId, pageable);
-    }
-
-    @GetMapping("user/listAll")
-    @ApiOperation("分页获取全部用户信息")
-    public Page<UserDTO> pageUsers(@PageableDefault(sort = "studentNo", direction = Sort.Direction.DESC) Pageable pageable) {
-        return adminService.pageUsers(pageable);
     }
 
     @GetMapping("dashboard/{clubId}")

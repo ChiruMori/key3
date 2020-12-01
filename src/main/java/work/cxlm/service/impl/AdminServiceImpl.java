@@ -12,9 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import work.cxlm.cache.AbstractStringCacheStore;
 import work.cxlm.event.logger.LogEvent;
-import work.cxlm.exception.BadRequestException;
-import work.cxlm.exception.ForbiddenException;
-import work.cxlm.exception.NotFoundException;
+import work.cxlm.exception.*;
 import work.cxlm.model.dto.UserDTO;
 import work.cxlm.model.entity.Club;
 import work.cxlm.model.entity.Joining;
@@ -36,7 +34,9 @@ import work.cxlm.utils.ServiceUtils;
 import work.cxlm.utils.ServletUtils;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -87,11 +87,11 @@ public class AdminServiceImpl implements AdminService {
         String requirePasscode = cacheStore.getAny(passcodeCacheKey, String.class).
                 orElseThrow(() -> new ForbiddenException("请使用小程序中生成的合法登录口令登录"));
         if (!Objects.equals(loginParam.getPasscode(), requirePasscode)) {
-            eventPublisher.publishEvent(new LogEvent(this, targetUser.getId(), LogType.CLUB_EVENT, ServletUtils.getRequestIp() + "登录失败"));
+            eventPublisher.publishEvent(new LogEvent(this, targetUser.getId(), LogType.LOGGED_FAILED, "作为[" + targetUser.getRealName() + "]登录失败"));
             throw new ForbiddenException("错误的登录口令");
         }
         cacheStore.delete(passcodeCacheKey);  // 清除用完的 passcode key
-        eventPublisher.publishEvent(new LogEvent(this, targetUser.getId(), LogType.CLUB_EVENT, ServletUtils.getRequestIp() + "登录系统"));
+        eventPublisher.publishEvent(new LogEvent(this, targetUser.getId(), LogType.LOGGED_IN, targetUser.getRealName() + "登录后台"));
         return userService.buildAuthToken(targetUser, User::getId);
     }
 
@@ -116,7 +116,6 @@ public class AdminServiceImpl implements AdminService {
             cacheStore.delete(SecurityUtils.buildRefreshTokenKey(refreshToken));
             cacheStore.delete(SecurityUtils.buildRefreshTokenKey(admin));
         });
-        eventPublisher.publishEvent(new LogEvent(this, admin.getId(), LogType.LOGGED_OUT, ServletUtils.getRequestIp() + "登录管理后台"));
     }
 
     @Override
@@ -177,11 +176,17 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public void updateBy(@NonNull UserParam userParam) {
+    public UserDTO updateBy(@NonNull UserParam userParam) {
         Assert.notNull(userParam, "user param 不能为 null");
         User admin = SecurityContextHolder.ensureUser();
-        User targetUser = userRepository.findByStudentNo(userParam.getStudentNo())
-                .orElseThrow(() -> new NotFoundException("不存在该用户"));
+        if (userParam.getId() == null) {
+            throw new MissingPropertyException("管理员更新用户信息时，user id 必传");
+        }
+        User targetUser = userService.getById(userParam.getId());
+        Optional<User> mustNotExistOtherUser = userService.getByStudentNo(userParam.getStudentNo());
+        if (mustNotExistOtherUser.isPresent() && !Objects.equals(mustNotExistOtherUser.get().getId(), targetUser.getId())) {
+            throw new DataConflictException("该学号的用户已存在，无法修改");
+        }
         // 系统管理员、合法的社团管理员、自己
         boolean myself;
         if ((myself = Objects.equals(admin.getId(), targetUser.getId())) ||
@@ -192,13 +197,13 @@ public class AdminServiceImpl implements AdminService {
             }
             userParam.update(targetUser);
             userService.update(targetUser);
-            return;
+            return new UserDTO().convertFrom(targetUser);
         }
         throw new ForbiddenException("您的权限不足，无法修改该用户信息");
     }
 
     @Override
-    public void createBy(@NonNull UserParam userParam) {
+    public UserDTO createBy(@NonNull UserParam userParam) {
         Assert.notNull(userParam, "user param 不能为 null");
 
         User admin = SecurityContextHolder.ensureUser();
@@ -206,13 +211,16 @@ public class AdminServiceImpl implements AdminService {
             log.error("没有管理员权限的用户发送了合法的管理员请求");
             throw new ForbiddenException("您的权限不足，无法创建用户信息");
         }
+        if (userService.getByStudentNo(userParam.getStudentNo()).isPresent()) {
+            throw new DataConflictException("该学号的用户已存在，无法创建");
+        }
         User newUser = userParam.convertTo();
-        userRepository.save(newUser);
+        return new UserDTO().convertFrom(userRepository.save(newUser));
     }
 
     @Override
     @Transactional
-    public void delete(@NonNull Integer userId) {
+    public UserDTO delete(@NonNull Integer userId) {
         Assert.notNull(userId, "user param 不能为 null");
 
         User admin = SecurityContextHolder.ensureUser();
@@ -220,9 +228,10 @@ public class AdminServiceImpl implements AdminService {
             throw new ForbiddenException("删除用户只能由系统管理员完成");
         }
         try {
-            userRepository.deleteById(userId);
+            User targetUser = userService.removeById(userId);
             joiningService.deleteByUserId(userId);
             // TODO：删除预定相关信息
+            return new UserDTO().convertFrom(targetUser);
         } catch (EmptyResultDataAccessException e) {
             throw new NotFoundException("没有该用户，请核对后重试");
         }
@@ -254,15 +263,23 @@ public class AdminServiceImpl implements AdminService {
 
         DashboardVO dashboardVO = new DashboardVO();
         dashboardVO.setBills(billService.pageClubLatest(5, clubId, true));
-        UserRole role = SecurityContextHolder.ensureUser().getRole();
-        if (role.isSystemAdmin()) {
-            clubId = -1;
-        }
         dashboardVO.setEnrollMembers(clubMembers.size());
-        dashboardVO.setLogs(logService.pageClubLatest(5, clubId, true));
+        // LOG
+        dashboardVO.setLogs(logService.pageClubLatest(5, clubId));
         dashboardVO.setAssets(targetClub.getAssets());
         dashboardVO.setActiveMembers((int) activeUserCount);
         dashboardVO.setUsage(79.24f); // TODO 计算活动室使用率
         return dashboardVO;
+    }
+
+    @Override
+    public List<UserDTO> listClubUsers(Integer clubId) {
+        // 不做任何校验，因为该信息本身公开
+        List<User> allUsers = userService.listAll();
+        Map<Integer, User> userMap = ServiceUtils.convertToMap(allUsers, User::getId);
+        return joiningService.listAllJoiningByClubId(clubId).stream().
+                map(joining -> (UserDTO) new UserDTO().
+                        convertFrom(userMap.get(joining.getId().getUserId()))).
+                collect(Collectors.toList());
     }
 }

@@ -18,11 +18,6 @@ public enum LogType implements ValueEnum<Integer> {
     LOGGED_FAILED(11),
 
     /**
-     * 管理后台登出
-     */
-    LOGGED_OUT(12),
-
-    /**
      * 指定了新的社团管理员
      */
     NEW_CLUB_ADMIN(20),
@@ -34,10 +29,14 @@ public enum LogType implements ValueEnum<Integer> {
 
     AUTH_REVOKE(22),
 
+    NEW_CLUB(30),
+
+    DELETE_CLUB(31),
+
     /**
      * 社团级日志
      */
-    CLUB_EVENT(30),
+    CLUB_EVENT(100),
 
     ;
     private final Integer value;

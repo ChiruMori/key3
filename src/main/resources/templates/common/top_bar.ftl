@@ -129,3 +129,6 @@
 </div>
 
 <script src="/key3/js/top_bar.min.js" type="text/javascript"></script>
+<script>
+    GLOBAL_VAL.systemAdmin = ${base.systemAdmin?c};
+</script>

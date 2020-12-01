@@ -69,20 +69,20 @@ public interface AdminService {
      *
      * @param userParam 用户信息表单
      */
-    void updateBy(@NonNull UserParam userParam);
+    UserDTO updateBy(@NonNull UserParam userParam);
 
     /**
      * 使用用户信息表单创建用户
      *
      * @param userParam 用户信息表单
      */
-    void createBy(@NonNull UserParam userParam);
+    UserDTO createBy(@NonNull UserParam userParam);
 
     /**
      * 清除与该用户相关的全部信息
      */
     @Transactional
-    void delete(@NonNull Integer userId);
+    UserDTO delete(@NonNull Integer userId);
 
     /**
      * 查询所有用户
@@ -98,4 +98,9 @@ public interface AdminService {
      * 获取仪表盘页面数据
      */
     DashboardVO dashboardDataOf(Integer clubId);
+
+    /**
+     * 列出指定社团的全部成员（不一定包含系统管理员）
+     */
+    List<UserDTO> listClubUsers(Integer clubId);
 }

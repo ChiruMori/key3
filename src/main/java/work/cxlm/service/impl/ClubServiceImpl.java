@@ -80,7 +80,7 @@ public class ClubServiceImpl extends AbstractCrudService<Club, Integer> implemen
             throw new ForbiddenException("只有系统管理员可以执行本操作");
         }
         Club newClub = create(clubParam.convertTo());
-        eventPublisher.publishEvent(new LogEvent(this, admin.getId(), LogType.CLUB_EVENT,
+        eventPublisher.publishEvent(new LogEvent(this, admin.getId(), LogType.NEW_CLUB,
                 "创建了新的社团：" + newClub.getName()));
         return new ClubDTO().convertFrom(newClub);
     }
@@ -127,7 +127,7 @@ public class ClubServiceImpl extends AbstractCrudService<Club, Integer> implemen
         // TODO 删除公告信息
         // TODO 删除活动室归属信息
         removeById(clubId);  // 删除社团
-        eventPublisher.publishEvent(new LogEvent(this, admin.getId(), LogType.CLUB_EVENT,
+        eventPublisher.publishEvent(new LogEvent(this, admin.getId(), LogType.DELETE_CLUB,
                 "删除了社团：" + clubId));
     }
 }

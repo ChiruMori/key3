@@ -23,6 +23,7 @@ import javax.validation.constraints.Size;
 public class LogParam implements InputConverter<Log> {
 
     private Integer logKey;
+    private Integer groupId;
 
     @NotNull(message = "日志类型不能为 null")
     private LogType type;
@@ -37,5 +38,12 @@ public class LogParam implements InputConverter<Log> {
         this.logKey = logKey;
         this.type = type;
         this.content = content;
+    }
+
+    public LogParam(Integer logKey, Integer groupId, String content) {
+        this.logKey = logKey;
+        this.groupId = groupId;
+        this.content = content;
+        this.type = LogType.CLUB_EVENT;
     }
 }

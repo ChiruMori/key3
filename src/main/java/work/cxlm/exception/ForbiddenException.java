@@ -1,8 +1,7 @@
 package work.cxlm.exception;
 
 import org.springframework.http.HttpStatus;
-
-import javax.annotation.Nonnull;
+import org.springframework.lang.NonNull;
 
 /**
  * created 2020/10/22 15:51
@@ -21,7 +20,7 @@ public class ForbiddenException extends AbstractQfzsException {
     }
 
     @Override
-    @Nonnull
+    @NonNull
     public HttpStatus getStatus() {
         return HttpStatus.FORBIDDEN;
     }

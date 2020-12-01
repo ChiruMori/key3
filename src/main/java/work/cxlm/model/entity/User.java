@@ -20,8 +20,8 @@ import javax.persistence.*;
  */
 @Data
 @Entity
-@Table(name = "users", uniqueConstraints = { // 唯一键约束（改为BIGINT，作为索引会更快一些），学号必须唯一
-        @UniqueConstraint(name = "uni_stu_no", columnNames = "student_no")
+@Table(name = "users", indexes = { // 学号作为索引使用，不使用唯一键约束，因为学号可能被修改，在程序中保证唯一性
+        @Index(name = "uni_stu_no", columnList = "student_no")
 })
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
@@ -61,12 +61,6 @@ public class User extends BaseEntity {
      */
     @Column(name = "major", length = 60)
     private String major;
-
-    /**
-     * 入学年份
-     */
-    @Column(name = "enroll_year")
-    private Integer enrollYear;
 
     /**
      * 真实姓名

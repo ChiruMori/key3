@@ -54,5 +54,15 @@ public class ContentController {
         return "pages/club-bill";
     }
 
+    @GetMapping("club-users")
+    public String clubUsers(Model model) {
+        adminModel.wrapBaseData(model, false);
+        return "pages/club-users";
+    }
 
+    @GetMapping("system-log")
+    public String systemLog(Model model) {
+        adminModel.wrapBaseData(model, false);
+        return "pages/system-log";
+    }
 }

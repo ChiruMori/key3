@@ -67,7 +67,8 @@
         <div id="collapseUser" class="collapse" aria-labelledby="headingUtilities"
              data-parent="#accordionSidebar">
             <div class="py-2 collapse-inner rounded">
-                <a class="collapse-item token-tag" href="#"><i class="fas fa-info-circle mr-2"></i>基本信息</a>
+                <a class="collapse-item token-tag" href="/key3/admin/page/club-users"><i class="fas fa-info-circle mr-2"></i>基本信息</a>
+                <a class="collapse-item token-tag" href="#"><i class="fas fa-link mr-2"></i>社团关系</a>
             </div>
         </div>
     </li>
@@ -78,7 +79,7 @@
 
     <!-- 系统日志查看 -->
     <li class="nav-item">
-        <a class="nav-link collapsed token-tag" href="#">
+        <a class="nav-link collapsed token-tag" href="/key3/admin/page/system-log">
             <i class="fas fa-fw fa-clipboard"></i>
             <span>系统日志</span>
         </a>

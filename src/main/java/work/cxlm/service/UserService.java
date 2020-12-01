@@ -14,6 +14,7 @@ import work.cxlm.model.vo.PasscodeVO;
 import work.cxlm.security.token.AuthToken;
 import work.cxlm.service.base.CrudService;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -108,5 +109,10 @@ public interface UserService extends CrudService<User, Integer> {
      * @param other 另一用户
      */
     boolean managerOf(@NonNull User admin, @NonNull User other);
+
+    /**
+     * 获取全部的用户信息，以 id, user 映射的方式返回
+     */
+    Map<Integer, User> getAllUserMap();
 
 }

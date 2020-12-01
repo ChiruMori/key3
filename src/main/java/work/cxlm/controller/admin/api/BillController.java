@@ -3,7 +3,6 @@ package work.cxlm.controller.admin.api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import work.cxlm.model.dto.BillDTO;
 import work.cxlm.model.params.BillParam;
 import work.cxlm.model.vo.BillTableVO;
 import work.cxlm.model.vo.BillVO;

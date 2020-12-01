@@ -283,4 +283,9 @@ public class UserServiceImpl extends AbstractCrudService<User, Integer> implemen
                 )
         );
     }
+
+    @Override
+    public Map<Integer, User> getAllUserMap() {
+        return ServiceUtils.convertToMap(listAll(), User::getId);
+    }
 }

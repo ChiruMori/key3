@@ -17,6 +17,8 @@ import javax.validation.constraints.*;
 @Data
 public class UserParam implements InputConverter<User> {
 
+    private Integer id;
+
     @Size(max = 30, message = "openId 长度不能超过 {max}")
     private String wxId;
 

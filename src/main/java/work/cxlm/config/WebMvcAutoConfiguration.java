@@ -72,7 +72,7 @@ public class WebMvcAutoConfiguration extends WebMvcConfigurationSupport {
                     Jackson2ObjectMapperBuilder builder = Jackson2ObjectMapperBuilder.json();
                     JsonComponentModule module = new JsonComponentModule();
                     module.addSerializer(PageImpl.class, new PageJacksonSerializer());  // 定制分页的 json 序列化行为
-                    ObjectMapper objectMapper = builder.modules(module).build();
+                    ObjectMapper objectMapper = builder.modules(module, new EmojiSupportSimpleModule()).build();
                     mappingJackson2HttpMessageConverter.setObjectMapper(objectMapper);
                 });
     }

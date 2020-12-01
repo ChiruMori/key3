@@ -10,11 +10,6 @@ const CONST_VAL = {
     newClubLockKey: 'new_club_lock'
 };
 
-// 全局变量
-const GLOBAL_VAL = {
-    nowClubId: null,
-};
-
 (function ($) {
     "use strict"; // Start of use strict
 
@@ -129,7 +124,10 @@ let utils = (function () {
         };
         if (method === 'GET' || method === 'DELETE') {
             let connector = /\?.+=/.test(url) ? '&' : '?'; // 判断 URL 中是否已经带有参数
-            url = url + connector + parseParam(data);
+            let paramParsed = parseParam(data);
+            if (paramParsed) {
+                url = url + connector + parseParam(data);
+            }
             data = '';
         } else {
             data = JSON.stringify(data);

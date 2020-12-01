@@ -1,3 +1,10 @@
+
+// 全局变量
+const GLOBAL_VAL = {
+    nowClubId: null,
+    systemAdmin: false,
+};
+
 $().ready(function () {
     let clubNameDiv = $('#now-club-name');
     let managingClub = utils.readCache(CONST_VAL.managingClubKey);

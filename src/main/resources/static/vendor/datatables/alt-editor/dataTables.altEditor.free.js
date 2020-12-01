@@ -898,11 +898,15 @@
                   var selector = this.modal_selector;
                   $(selector + ' .modal-body .alert').remove();
                   var errstr = this.language.error.message;
-                  if (error.responseJSON && error.responseJSON.errors) {
-                      errstr = "";
-                      for (var key in error.responseJSON.errors) {
-                          errstr += error.responseJSON.errors[key][0];
-                      }
+                  if (error.responseJSON) {
+                    errstr = "";
+                    if (error.responseJSON.errors) {
+                        for (var key in error.responseJSON.errors) {
+                            errstr += error.responseJSON.errors[key][0];
+                        }
+                    } else if (error.responseJSON.msg) {
+                        errstr = error.responseJSON.msg;
+                    }
                   }
                   var message = '<div class="alert alert-danger" role="alert">' +
                       '<strong>' + this.language.error.label + '</strong> ' + (error.status == null ? "" : this.language.error.responseCode + error.status) + " " + errstr +
