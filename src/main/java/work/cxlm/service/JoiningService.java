@@ -6,6 +6,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.annotation.Transactional;
 import work.cxlm.model.dto.JoiningDTO;
+import work.cxlm.model.entity.Club;
 import work.cxlm.model.entity.Joining;
 import work.cxlm.model.entity.User;
 import work.cxlm.model.entity.id.JoiningId;
@@ -109,4 +110,10 @@ public interface JoiningService extends CrudService<Joining, JoiningId> {
      * 判断指定的用户是否管理了某个社团
      */
     boolean adminOfAny(@NonNull User targetUser);
+
+    /*
+    * 用userId判断用户参加了哪些社团
+    * */
+    @NonNull
+    List<Club> userJoinClubs(@NonNull Integer userId);
 }

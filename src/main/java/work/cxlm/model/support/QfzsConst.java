@@ -83,4 +83,6 @@ public class QfzsConst {
     public final static String DEFAULT_ERROR_PATH = "error/error";
 
     public static final String SYSTEM_HEAD = "https://upload.cc/i1/2020/11/26/HSBol9.png";
+    // 占位图 URL
+    public static final String ERROR_HEAD_URL = "https://upload.cc/i1/2020/11/30/561A98.png";
 }

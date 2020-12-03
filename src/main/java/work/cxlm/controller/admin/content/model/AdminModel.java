@@ -5,12 +5,15 @@ import org.springframework.ui.Model;
 import work.cxlm.exception.ForbiddenException;
 import work.cxlm.model.entity.User;
 import work.cxlm.model.enums.UserRole;
+import work.cxlm.model.support.QfzsConst;
 import work.cxlm.model.vo.AdminBaseVO;
 import work.cxlm.security.context.SecurityContextHolder;
 import work.cxlm.service.AdminService;
 import work.cxlm.service.BillService;
 import work.cxlm.service.LogService;
 import work.cxlm.service.UserService;
+
+import java.util.Collections;
 
 /**
  * 管理员页面数据的包装工具类
@@ -46,6 +49,17 @@ public class AdminModel {
         baseVO.setSystemAdmin(role.isSystemAdmin());
         baseVO.setClubAdmin(role.isAdminRole());
         baseVO.setClubs(adminService.listManagedClubs(admin));
+        model.addAttribute("base", baseVO);
+    }
+
+    public void wrapEmptyData(Model model) {
+        AdminBaseVO baseVO = new AdminBaseVO();
+        baseVO.setHead(QfzsConst.ERROR_HEAD_URL);
+        baseVO.setShowSideBarCard(false);
+        baseVO.setUserName("我是谁");
+        baseVO.setSystemAdmin(false);
+        baseVO.setClubAdmin(false);
+        baseVO.setClubs(Collections.emptyList());
         model.addAttribute("base", baseVO);
     }
 }

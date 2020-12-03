@@ -16,6 +16,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.util.NestedServletException;
+import work.cxlm.controller.admin.content.model.AdminModel;
 import work.cxlm.exception.AbstractQfzsException;
 import work.cxlm.exception.NotFoundException;
 
@@ -42,14 +43,18 @@ import static work.cxlm.model.support.QfzsConst.DEFAULT_ERROR_PATH;
 @RequestMapping("${server.error.path:${error.path:/error}}")
 public class ErrorController extends AbstractErrorController {
 
+    private final AdminModel adminModel;
+
     private static final String COULD_NOT_RESOLVE_VIEW_WITH_NAME_PREFIX = "Could not resolve view with name '";
 
     private final ErrorProperties errorProperties;
 
     public ErrorController(ErrorAttributes errorAttributes,
-                           ServerProperties serverProperties) {
+                           ServerProperties serverProperties,
+                           AdminModel adminModel) {
         super(errorAttributes);
         this.errorProperties = serverProperties.getError();
+        this.adminModel = adminModel;
     }
 
     /**
@@ -70,6 +75,7 @@ public class ErrorController extends AbstractErrorController {
         model.addAttribute("error", errorDetail);
         log.debug("错误详情: [{}]", errorDetail);
 
+        adminModel.wrapEmptyData(model);
         return defaultErrorHandler();
     }
 

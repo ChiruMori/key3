@@ -6,6 +6,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import work.cxlm.exception.NotFoundException;
 import work.cxlm.model.entity.Club;
+import work.cxlm.model.entity.Room;
 import work.cxlm.model.entity.User;
 import work.cxlm.model.params.UserLoginParam;
 import work.cxlm.model.params.UserParam;
@@ -15,6 +16,7 @@ import work.cxlm.security.token.AuthToken;
 import work.cxlm.service.base.CrudService;
 
 import java.util.Map;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -114,5 +116,14 @@ public interface UserService extends CrudService<User, Integer> {
      * 获取全部的用户信息，以 id, user 映射的方式返回
      */
     Map<Integer, User> getAllUserMap();
+
+
+    /*
+    * 判断用户能否去使用这个活动室
+    *
+    * @Param user
+    * @Param room
+    * */
+    List<Club> userOrderRoom(@NonNull User user, @NonNull Room room);
 
 }

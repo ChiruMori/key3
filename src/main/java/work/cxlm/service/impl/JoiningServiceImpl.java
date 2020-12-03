@@ -269,4 +269,16 @@ public class JoiningServiceImpl extends AbstractCrudService<Joining, JoiningId> 
         List<Joining> userJoining = joiningRepository.findAllByIdUserId(targetUser.getId());
         return userJoining.stream().anyMatch(Joining::getAdmin);
     }
+
+    @Override
+    @NonNull
+    public List<Club> userJoinClubs(@NonNull Integer userId) {
+        List<Joining> joinings = joiningRepository.findAllByIdUserId(userId);
+        List<Club> clubs=new ArrayList<>();
+        for (Joining joining : joinings) {
+            Club club = clubService.allClubsByClubId(joining.getId().getClubId());
+            clubs.add(club);
+        }
+        return clubs;
+    }
 }

@@ -17,6 +17,7 @@ import work.cxlm.config.QfzsProperties;
 import work.cxlm.exception.*;
 import work.cxlm.model.entity.Club;
 import work.cxlm.model.entity.Joining;
+import work.cxlm.model.entity.Room;
 import work.cxlm.model.entity.User;
 import work.cxlm.model.entity.id.JoiningId;
 import work.cxlm.model.enums.UserRole;
@@ -34,6 +35,7 @@ import work.cxlm.security.context.SecurityContextHolder;
 import work.cxlm.security.token.AuthToken;
 import work.cxlm.security.util.SecurityUtils;
 import work.cxlm.service.ClubService;
+import work.cxlm.service.BelongService;
 import work.cxlm.service.JoiningService;
 import work.cxlm.service.UserService;
 import work.cxlm.service.base.AbstractCrudService;
@@ -60,11 +62,18 @@ public class UserServiceImpl extends AbstractCrudService<User, Integer> implemen
 
     private JoiningService joiningService;
     private ClubService clubService;
+    private BelongService belongService;
+
+    @Autowired
+    public void setBelongService(BelongService belongService) {
+        this.belongService = belongService;
+    }
 
     private final UserRepository userRepository;
     private final QfzsProperties qfzsProperties;
     private final ApplicationEventPublisher eventPublisher;
     private final AbstractStringCacheStore cacheStore;
+
 
     public UserServiceImpl(UserRepository userRepository,
                            ApplicationEventPublisher eventPublisher,
@@ -287,5 +296,13 @@ public class UserServiceImpl extends AbstractCrudService<User, Integer> implemen
     @Override
     public Map<Integer, User> getAllUserMap() {
         return ServiceUtils.convertToMap(listAll(), User::getId);
+    }
+
+    @Override
+    public List<Club> userOrderRoom(@NonNull User user,@NonNull Room room) {
+        List<Club> clubs = belongService.listAllRoomsBelongClub(room.getId());
+        List<Club> clubs1 = joiningService.userJoinClubs(user.getId());
+
+        return clubs.stream().filter(clubs1::contains).collect(Collectors.toList());
     }
 }

@@ -3,6 +3,7 @@ package work.cxlm.service.impl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -23,6 +24,8 @@ import work.cxlm.service.base.AbstractCrudService;
 import work.cxlm.utils.ValidationUtils;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * created 2020/11/21 15:24
@@ -36,6 +39,7 @@ public class ClubServiceImpl extends AbstractCrudService<Club, Integer> implemen
     private UserService userService;
     private JoiningService joiningService;
     private BillService billService;
+    private final ClubRepository clubRepository;
 
     private final ApplicationEventPublisher eventPublisher;
 
@@ -43,6 +47,7 @@ public class ClubServiceImpl extends AbstractCrudService<Club, Integer> implemen
                            ApplicationEventPublisher eventPublisher) {
         super(repository);
         this.eventPublisher = eventPublisher;
+        clubRepository = repository;
     }
 
     @Autowired
@@ -84,6 +89,15 @@ public class ClubServiceImpl extends AbstractCrudService<Club, Integer> implemen
         eventPublisher.publishEvent(new LogEvent(this, admin.getId(), LogType.NEW_CLUB,
                 "创建了新的社团：" + newClub.getName()));
         return new ClubDTO().convertFrom(newClub);
+    }
+
+    @Override
+    @NonNull
+    public Club allClubsByClubId(@NonNull Integer clubId) {
+        Club club=clubRepository.findById(clubId).orElseThrow();
+        List<Club> clubs=new ArrayList<>();
+
+        return null;
     }
 
     @Override

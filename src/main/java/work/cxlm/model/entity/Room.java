@@ -104,9 +104,6 @@ public class Room extends BaseEntity {
     @Column(name = "roomState")
     private RoomState roomState;
 
-    @Column(name = "timePeriod")
-    @OneToMany(targetEntity = TimePeriod.class)
-    private List<TimePeriod> timePeriod;
 
 
 }

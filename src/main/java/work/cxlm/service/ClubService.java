@@ -1,10 +1,13 @@
 package work.cxlm.service;
 
+import org.springframework.lang.NonNull;
 import org.springframework.transaction.annotation.Transactional;
 import work.cxlm.model.dto.ClubDTO;
 import work.cxlm.model.entity.Club;
 import work.cxlm.model.params.ClubParam;
 import work.cxlm.service.base.CrudService;
+
+import java.util.List;
 
 /**
  * created 2020/11/21 15:31
@@ -12,6 +15,9 @@ import work.cxlm.service.base.CrudService;
  * @author Chiru
  */
 public interface ClubService extends CrudService<Club, Integer> {
+
+    @NonNull
+    Club allClubsByClubId(@NonNull Integer clubId);
 
     /**
      * 查询社团信息，如果用户权限不足则抛出异常

@@ -23,4 +23,5 @@ public class Belong extends BaseEntity {
     @Id
     private BelongId id;
 
+
 }

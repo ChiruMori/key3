@@ -14,19 +14,19 @@ public enum TimeState implements ValueEnum<Integer> {
      * 时间段已经被预定
      *
      */
-    Time_ORDER(10),
+    Time_ORDER(1),
 
     /*
      * 时间段已经被预定且被关注
      *
      */
-    Time_ATT(11),
+    Time_ATT(2),
 
     /*
      * 时间段已经被管理员禁用
      *
      */
-    Time_STOP(1);
+    Time_STOP(3);
 
 
     private Integer value;
@@ -59,7 +59,7 @@ public enum TimeState implements ValueEnum<Integer> {
      */
     public boolean isAtt(){
 
-        return this == Time_ATT;
+        return this == Time_ATT || this == Time_IDLE;
 
     }
 
@@ -77,9 +77,22 @@ public enum TimeState implements ValueEnum<Integer> {
         this.value=Time_ORDER.value;
     }
 
+    /*
+    * 将时间段设置空闲
+    * */
+    public void setTime_IDLE(){
+        this.value=Time_IDLE.value;
+    }
+    /*
+     * 将时间段设置禁用
+     * */
+    public void setBan(){
+        this.value=Time_STOP.value;
+    }
 
     @Override
     public Integer getValue() {
         return null;
     }
+
 }

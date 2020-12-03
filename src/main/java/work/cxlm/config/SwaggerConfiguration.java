@@ -97,7 +97,7 @@ public class SwaggerConfiguration {
         }
 
         return buildApiDocket("时段相关 API 文档",
-                "work.cxlm.controller.time",
+                "work.cxlm.controller.mini.api",
                 "/key3/time/api/**")
                 .securitySchemes(adminApiKeys())
                 .securityContexts(adminSecurityContext())

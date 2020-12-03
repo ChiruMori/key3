@@ -16,4 +16,8 @@ import java.util.Optional;
 public interface RoomRepository extends BaseRepository<Room,Integer>  {
 
 
+    @NonNull
+    Optional<Room> findById(@NonNull Integer roomId);
+
+
 }
