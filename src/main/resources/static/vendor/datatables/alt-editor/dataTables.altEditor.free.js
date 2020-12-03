@@ -5,6 +5,7 @@
  * @file dataTables.editor.free.js
  * @author kingkode (www.kingkode.com)
  *  Modified by: Kasper Olesen (https://github.com/KasperOlesen), Luca Vercelli (https://github.com/luca-vercelli), Zack Hable (www.cobaltdevteam.com)
+ *  Modified by: Chiru (cxlm.work) 修改若干 BUG，增强部分功能
  * @contact www.kingkode.com/contact
  * @contact zack@cobaltdevteam.com
  * @copyright Copyright 2016 Kingkode
@@ -15,7 +16,12 @@
  * This source file is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the license files for details.
- *
+ * 
+ * 增强功能：
+ * 
+ * 1. 支持在点击按钮打开弹窗时执行函数，在 Button 的配置中指定 beforeShow(formNode) 方法使用
+ *    formNode 参数为弹窗中表格的 JQuery 对象
+ * 2. 支持自定义 editor 的 render 函数，即可以将原始值转换后显示在编辑器中，需要在 columnDef 中定义 altEditorRender 属性
  *
  */
 (function (factory) {
@@ -193,8 +199,13 @@
               if (dt.button('edit:name')) {
                   dt.button('edit:name').action(function (e, dt, node, config) {
                       that._openEditModal();
+                      let formJQueryNode = $('#altEditor-edit-form-' + that.random_id);
+                      
+                      if (config.beforeShow && typeof config.beforeShow === 'function') {
+                          config.beforeShow(formJQueryNode);
+                      }
 
-                      $('#altEditor-edit-form-' + that.random_id)
+                      formJQueryNode
                       .off('submit')
                       .on('submit', function (e) {
                           e.preventDefault();
@@ -208,8 +219,13 @@
               if (dt.button('delete:name')) {
                   dt.button('delete:name').action(function (e, dt, node, config) {
                       that._openDeleteModal();
+                      let formJQueryNode = $('#altEditor-delete-form-' + that.random_id);
+                      
+                      if (config.beforeShow && typeof config.beforeShow === 'function') {
+                          config.beforeShow(formJQueryNode);
+                      }
 
-                      $('#altEditor-delete-form-' + that.random_id)
+                      formJQueryNode
                       .off('submit')
                       .on('submit', function (e) {
                           e.preventDefault();
@@ -223,8 +239,13 @@
               if (dt.button('add:name')) {
                   dt.button('add:name').action(function (e, dt, node, config) {
                       that._openAddModal();
+                      let formJQueryNode = $('#altEditor-add-form-' + that.random_id);
+                      
+                      if (config.beforeShow && typeof config.beforeShow === 'function') {
+                          config.beforeShow(formJQueryNode);
+                      }
 
-                      $('#altEditor-add-form-' + that.random_id)
+                      formJQueryNode
                       .off('submit')
                       .on('submit', function (e) {
                           e.preventDefault();
@@ -303,6 +324,10 @@
                       var selectedValue = adata.data()[0];
                       for (var index = 0; index < arrIndex.length; index++) {
                           if (selectedValue) selectedValue = selectedValue[arrIndex[index]];
+                      }
+                      let assertRender = columnDefs[j].altEditorRender;
+                      if (assertRender && typeof assertRender === 'function') {
+                          selectedValue = assertRender(selectedValue);
                       }
                       var jquerySelector = "#" + columnDefs[j].name.toString().replace(/\./g, "\\.");
                       $(selector).find(jquerySelector).val(selectedValue);    // this._quoteattr or not? see #121
@@ -574,7 +599,8 @@
                       editorOnChange: (obj.editorOnChange ? obj.editorOnChange : null),
                       style: (obj.style ? obj.style : ''),
                       dateFormat: (obj.dateFormat ? obj.dateFormat : ''),
-                      optionsSortByLabel: (obj.optionsSortByLabel ? obj.optionsSortByLabel : false)
+                      optionsSortByLabel: (obj.optionsSortByLabel ? obj.optionsSortByLabel : false),
+                      altEditorRender: obj.altEditorRender,
                   }
               }
               return columnDefs;

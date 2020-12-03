@@ -25,12 +25,9 @@
             <div class="container-fluid">
 
                 <!-- Page Heading -->
-                <h1 class="h3 mb-2 text-gray-800">社团成员基本信息管理</h1>
-                <p class="mb-2">您可以在此页面的表格中修改社团成员的基本信息，如果需要为当前社团增加用户或者删除用户，请在<a class="token-tag" href="/key3/admin/page/club-relation">社团关系页面</a>进行操作。</p>
-                <#if base.systemAdmin>
-                    <p class="mb-2 text-warning">因为您是系统管理员，所以在这里提供删除、新建功能，但是注意，您新建的用户是与社团没有任何关联的；
-                    您删除用户时，会一并删除用户所有的关键信息，包括在社团内的信息，如贡献点数、社团职务、预定信息等</p>
-                </#if>
+                <h1 class="h3 mb-2 text-gray-800">社团成员关系管理</h1>
+                <p class="mb-2">您可以在此页面的表格中修改成员加入社团后产生的数据，您可以从当前社团中添加或删除成员。</p>
+                <p class="mb-2">如果您需要修改成员的基本信息，请移步<a class="token-tag" href="/key3/admin/page/club-users">成员基本信息管理</a>页面</p>
 
 
                 <!-- 经费一览表 -->
@@ -43,30 +40,24 @@
                             <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                                 <thead>
                                 <tr>
-                                    <th>ID</th>
                                     <th>头像</th>
                                     <th>姓名</th>
-                                    <th>微信名</th>
                                     <th>学号</th>
-                                    <th>学院</th>
-                                    <th>专业</th>
-                                    <th>邮箱</th>
-                                    <th>个性签名</th>
-                                    <th>系统管理</th>
+                                    <th>职务</th>
+                                    <th>时长</th>
+                                    <th>贡献值</th>
+                                    <th>管理员</th>
                                 </tr>
                                 </thead>
                                 <tfoot>
                                 <tr>
-                                    <th>ID</th>
                                     <th>头像</th>
                                     <th>姓名</th>
-                                    <th>微信名</th>
                                     <th>学号</th>
-                                    <th>学院</th>
-                                    <th>专业</th>
-                                    <th>邮箱</th>
-                                    <th>个性签名</th>
-                                    <th>系统管理</th>
+                                    <th>职务</th>
+                                    <th>时长</th>
+                                    <th>贡献值</th>
+                                    <th>管理员</th>
                                 </tr>
                                 </tfoot>
                             </table>
@@ -89,6 +80,6 @@
 <!-- End of Page Wrapper -->
 
 <#include "../common/table-footer.ftl">
-<script src="/key3/js/club-users.min.js"></script>
+<script src="/key3/js/club-relation.min.js"></script>
 </body>
 </html>

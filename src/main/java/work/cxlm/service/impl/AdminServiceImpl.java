@@ -196,6 +196,19 @@ public class AdminServiceImpl implements AdminService {
                 targetUser = admin;
             }
             userParam.update(targetUser);
+            // 企图修改系统管理员权限
+            if (userParam.isSystemAdmin() != targetUser.getRole().isSystemAdmin()) {
+                if (!admin.getRole().isSystemAdmin()) {
+                    throw new ForbiddenException("权限不足，无法授权系统管理员");
+                }
+                if (userParam.isSystemAdmin()) {
+                    targetUser.setRole(UserRole.SYSTEM_ADMIN);
+                } else if (joiningService.adminOfAny(targetUser)) {
+                    targetUser.setRole(UserRole.CLUB_ADMIN);
+                } else {
+                    targetUser.setRole(UserRole.NORMAL);
+                }
+            }
             userService.update(targetUser);
             return new UserDTO().convertFrom(targetUser);
         }
@@ -215,6 +228,13 @@ public class AdminServiceImpl implements AdminService {
             throw new DataConflictException("该学号的用户已存在，无法创建");
         }
         User newUser = userParam.convertTo();
+        if (userParam.isSystemAdmin()) {
+            if (admin.getRole().isSystemAdmin()) {
+                newUser.setRole(UserRole.SYSTEM_ADMIN);
+            } else {
+                throw new ForbiddenException("权限不足，无法授权系统管理员");
+            }
+        }
         return new UserDTO().convertFrom(userRepository.save(newUser));
     }
 

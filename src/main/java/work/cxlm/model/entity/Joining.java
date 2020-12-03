@@ -44,9 +44,17 @@ public class Joining extends BaseEntity {
     @Override
     public void prePersist() {
         super.prePersist();
-        position = "社员";
-        admin = false;
-        total = 0;
-        point = 0;
+        if (position == null) {
+            position = "社员";
+        }
+        if (admin == null) {
+            admin = false;
+        }
+        if (total == null) {
+            total = 0;
+        }
+        if (point == null) {
+            point = 0;
+        }
     }
 }

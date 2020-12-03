@@ -60,6 +60,12 @@ public class ContentController {
         return "pages/club-users";
     }
 
+    @GetMapping("club-relation")
+    public String clubUserRelation(Model model) {
+        adminModel.wrapBaseData(model, false);
+        return "pages/club-relation";
+    }
+
     @GetMapping("system-log")
     public String systemLog(Model model) {
         adminModel.wrapBaseData(model, false);

@@ -50,4 +50,5 @@ public class UserParam implements InputConverter<User> {
     @Size(max = 60, message = "邮箱地址长度不能超过 {max}")
     private String email;
 
+    private boolean systemAdmin;
 }

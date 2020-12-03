@@ -68,7 +68,7 @@
              data-parent="#accordionSidebar">
             <div class="py-2 collapse-inner rounded">
                 <a class="collapse-item token-tag" href="/key3/admin/page/club-users"><i class="fas fa-info-circle mr-2"></i>基本信息</a>
-                <a class="collapse-item token-tag" href="#"><i class="fas fa-link mr-2"></i>社团关系</a>
+                <a class="collapse-item token-tag" href="/key3/admin/page/club-relation"><i class="fas fa-link mr-2"></i>社团关系</a>
             </div>
         </div>
     </li>

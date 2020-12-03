@@ -36,6 +36,7 @@ public class ClubServiceImpl extends AbstractCrudService<Club, Integer> implemen
     private UserService userService;
     private JoiningService joiningService;
     private BillService billService;
+
     private final ApplicationEventPublisher eventPublisher;
 
     public ClubServiceImpl(ClubRepository repository,

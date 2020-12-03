@@ -8,6 +8,7 @@ import org.hibernate.validator.constraints.Range;
 import work.cxlm.model.dto.base.OutputConverter;
 import work.cxlm.model.entity.User;
 import work.cxlm.model.enums.UserGender;
+import work.cxlm.model.enums.UserRole;
 
 import javax.persistence.Column;
 import java.util.Date;
@@ -30,4 +31,5 @@ public class UserDTO extends SimpleUserDTO implements OutputConverter<UserDTO, U
 
     private String email;
 
+    private UserRole role;
 }

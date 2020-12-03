@@ -2,10 +2,11 @@ package work.cxlm.controller.admin.api;
 
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
-import work.cxlm.model.params.NewMemberParam;
+import work.cxlm.model.dto.JoiningDTO;
+import work.cxlm.model.params.JoiningParam;
 import work.cxlm.service.JoiningService;
 
-import javax.validation.Valid;
+import java.util.List;
 
 /**
  * 成员管理、成员相关信息统计等
@@ -25,13 +26,26 @@ public class JoiningController {
 
     @ApiOperation("加入社团")
     @PostMapping("joining")
-    public void addMember(@RequestBody NewMemberParam param) {
-        joiningService.addMember(param);
+    public JoiningDTO addMember(@RequestBody JoiningParam param) {
+        return joiningService.newJoiningBy(param);
     }
 
     @ApiOperation("退出社团")
-    @DeleteMapping("joining")
-    public void removeMember(@RequestBody NewMemberParam param) {
-        joiningService.removeMember(param);
+    @DeleteMapping("joining/{clubId}/{studentNo}")
+    public JoiningDTO removeMember(@PathVariable("clubId") Integer clubId, @PathVariable("studentNo") Long studentNo) {
+        return joiningService.removeMember(clubId, studentNo);
     }
+
+    @ApiOperation("获取某社团的全部成员加入信息")
+    @GetMapping("joining/{clubId}")
+    public List<JoiningDTO> listAllJoining(@PathVariable Integer clubId) {
+        return joiningService.listAllJoiningDTOByClubId(clubId);
+    }
+
+    @ApiOperation("更新社团加入信息")
+    @PutMapping("joining")
+    public JoiningDTO updateJoining(@RequestBody JoiningParam param) {
+        return joiningService.updateJoiningBy(param);
+    }
+
 }

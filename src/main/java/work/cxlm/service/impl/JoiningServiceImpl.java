@@ -10,15 +10,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import work.cxlm.exception.BadRequestException;
+import work.cxlm.exception.DataConflictException;
 import work.cxlm.exception.ForbiddenException;
 import work.cxlm.exception.NotFoundException;
+import work.cxlm.model.dto.JoiningDTO;
 import work.cxlm.model.entity.Club;
 import work.cxlm.model.entity.Joining;
 import work.cxlm.model.entity.User;
 import work.cxlm.model.entity.id.JoiningId;
 import work.cxlm.model.enums.UserRole;
-import work.cxlm.model.params.NewMemberParam;
+import work.cxlm.model.params.JoiningParam;
 import work.cxlm.model.support.CreateCheck;
 import work.cxlm.model.support.UpdateCheck;
 import work.cxlm.repository.JoiningRepository;
@@ -27,11 +28,11 @@ import work.cxlm.service.ClubService;
 import work.cxlm.service.JoiningService;
 import work.cxlm.service.UserService;
 import work.cxlm.service.base.AbstractCrudService;
+import work.cxlm.utils.ServiceUtils;
 import work.cxlm.utils.ValidationUtils;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import javax.validation.ValidationException;
+import java.util.*;
 
 /**
  * created 2020/11/18 13:13
@@ -43,9 +44,9 @@ import java.util.Optional;
 public class JoiningServiceImpl extends AbstractCrudService<Joining, JoiningId> implements JoiningService {
 
     private UserService userService;
+    private ClubService clubService;
 
     private final JoiningRepository joiningRepository;
-    private ClubService clubService;
 
     protected JoiningServiceImpl(JoiningRepository joiningRepository) {
         super(joiningRepository);
@@ -135,47 +136,71 @@ public class JoiningServiceImpl extends AbstractCrudService<Joining, JoiningId> 
         }
     }
 
-    @Override
-    @Transactional
-    public void addMember(@NonNull NewMemberParam param) {
-        ValidationUtils.validate(param, CreateCheck.class);  // 表单校验
-        Optional<User> userOptional = userService.getByStudentNo(param.getStudentNo());
-        Club targetClub = clubService.getById(param.getClubId());  // 确保社团存在
-        if (userOptional.isPresent()) {
-            JoiningId jid = new JoiningId(userOptional.get().getId(), param.getClubId());
-            Joining joining = getByIdOfNullable(jid);
-            if (joining != null) { // 已存在
-                throw new BadRequestException("用户" + userOptional.get().getRealName() + "已为" + targetClub.getName() + "社团成员");
-            }
-        } else { // 用户不存在的情况，要首先新建用户
-            User newUser = new User();
-            newUser.setRole(param.getAdmin() ? UserRole.CLUB_ADMIN : UserRole.NORMAL);
-            newUser.setRealName(param.getRealName());
-            newUser.setStudentNo(param.getStudentNo());
-        }
-        Joining newJoining = new Joining();
-        newJoining.setAdmin(param.getAdmin());
-        if (!StringUtils.isEmpty(param.getPosition())) {
-            newJoining.setPosition(param.getPosition());
-        }
-        joiningRepository.save(newJoining);
+    // 构造返回值
+    private JoiningDTO buildResult(Joining joining, User targetUser) {
+        JoiningDTO res = new JoiningDTO().convertFrom(joining);
+        res.setHead(targetUser.getHead());
+        res.setRealName(targetUser.getRealName());
+        res.setStudentNo(targetUser.getStudentNo());
+        return res;
     }
 
     @Override
     @Transactional
-    public void removeMember(@NonNull NewMemberParam param) {
-        ValidationUtils.validate(param, UpdateCheck.class);  // 表单校验
+    public JoiningDTO newJoiningBy(@NonNull JoiningParam param) {
+        ValidationUtils.validate(param, CreateCheck.class);  // 表单校验
         Optional<User> userOptional = userService.getByStudentNo(param.getStudentNo());
-        clubService.getById(param.getClubId());  // 确保社团存在
+        User targetUser;
+        Club targetClub = clubService.getById(param.getClubId());  // 确保社团存在
+        // 用户已存在时
         if (userOptional.isPresent()) {
             JoiningId jid = new JoiningId(userOptional.get().getId(), param.getClubId());
-            getById(jid);  // 确保加入该社团
-            if (userService.managerOf(SecurityContextHolder.getCurrentUser()
-                    .orElseThrow(() -> new ForbiddenException("未登录")), userOptional.get())) {
+            Joining joining = getByIdOfNullable(jid);
+            if (joining != null) { // 该用户已经加入社团，抛
+                throw new DataConflictException("用户" + userOptional.get().getRealName() +
+                        "已为" + targetClub.getName() + "社团成员");
+            }
+            targetUser = userOptional.get();
+        } else { // 用户不存在的情况，要首先新建用户
+            if (StringUtils.isEmpty(param.getRealName())) {
+                throw new ValidationException("新建用户时必须同时指定用户姓名");
+            }
+            targetUser = new User();
+            targetUser.setRole(param.getAdmin() ? UserRole.CLUB_ADMIN : UserRole.NORMAL);
+            targetUser.setRealName(param.getRealName());
+            targetUser.setStudentNo(param.getStudentNo());
+            // 存储
+            targetUser = userService.create(targetUser);
+        }
+        // 新建用户与社团的联系
+        Joining newJoining = param.convertTo();
+        JoiningId joiningId = new JoiningId(targetUser.getId(), targetClub.getId());
+        newJoining.setId(joiningId);
+        newJoining = joiningRepository.save(newJoining);
+        // 构造返回值
+        return buildResult(newJoining, targetUser);
+    }
+
+    @Override
+    @Transactional
+    public JoiningDTO removeMember(@NonNull Integer clubId, @NonNull Long studentNo) {
+        Assert.notNull(clubId, "社团 ID 不能为 null");
+        Assert.notNull(studentNo, "学号不能为 null");
+
+        Optional<User> userOptional = userService.getByStudentNo(studentNo);
+        clubService.getById(clubId);  // 确保社团存在
+        User admin = SecurityContextHolder.ensureUser();
+        if (userOptional.isPresent()) {
+            User targetUser = userOptional.get();
+            JoiningId jid = new JoiningId(targetUser.getId(), clubId);
+            Joining toDelete = getById(jid);  // 确保加入该社团
+            if (!userService.managerOf(admin, targetUser)) {
                 throw new ForbiddenException("权限不足，无法操作该用户");
             }
-            joiningRepository.deleteById(jid);
             // TODO：删除社团活动室未来时段占用
+            joiningRepository.deleteById(jid);
+            // 构造返回值
+            return buildResult(toDelete, targetUser);
         } else {
             throw new NotFoundException("用户不存在");
         }
@@ -197,5 +222,51 @@ public class JoiningServiceImpl extends AbstractCrudService<Joining, JoiningId> 
     @Override
     public void removeByIdClubId(Integer clubId) {
         joiningRepository.deleteByIdClubId(clubId);
+    }
+
+    @Override
+    public List<JoiningDTO> listAllJoiningDTOByClubId(Integer clubId) {
+        Map<Integer, User> allUserMap = userService.getAllUserMap();
+        return ServiceUtils.convertList(listAllJoiningByClubId(clubId), joining -> {
+            User targetUser = allUserMap.get(joining.getId().getUserId());
+            // 构造返回值
+            return buildResult(joining, targetUser);
+        });
+    }
+
+    @Override
+    @NonNull
+    public Joining getByIds(@NonNull Integer userId, @NonNull Integer clubId) {
+        Assert.notNull(userId, "用户 ID 不能为 Null");
+        Assert.notNull(clubId, "社团 ID 不能为 null");
+
+        JoiningId joiningId = new JoiningId(userId, clubId);
+        return getById(joiningId);
+    }
+
+    @Override
+    @Transactional
+    public JoiningDTO updateJoiningBy(JoiningParam param) {
+        ValidationUtils.validate(param, UpdateCheck.class);
+        User targetUser = userService.getByStudentNo(param.getStudentNo()).orElseThrow(
+                () -> new NotFoundException("学号不存在，您可以通过用户基本信息维护修改学号"));
+        // 查询并存储
+        Joining targetJoining = getByIds(targetUser.getId(), param.getClubId());
+        param.update(targetJoining);
+        targetJoining = update(targetJoining);
+        // 如果用户姓名发生了改变需要在这里进行更新
+        if (!Objects.equals(param.getRealName(), targetUser.getRealName())) {
+            targetUser.setRealName(param.getRealName());
+            userService.update(targetUser);
+        }
+        // 返回值构建
+        return buildResult(targetJoining, targetUser);
+    }
+
+    @Override
+    public boolean adminOfAny(@NonNull User targetUser) {
+        Assert.notNull(targetUser, "目标用户不能为 null");
+        List<Joining> userJoining = joiningRepository.findAllByIdUserId(targetUser.getId());
+        return userJoining.stream().anyMatch(Joining::getAdmin);
     }
 }

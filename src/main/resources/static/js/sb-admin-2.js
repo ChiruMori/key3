@@ -99,12 +99,15 @@ let utils = (function () {
      */
     const parseParam = function (obj, key) {
         let paramStr = "";
-        if (obj instanceof String || obj instanceof Number || obj instanceof Boolean) {
+        let objType = typeof obj;
+        if (objType === 'string' || objType === 'number' || objType === 'boolean') {
             paramStr += "&" + key + "=" + encodeURIComponent(obj);
         } else {
-            $.each(obj, function (i) {
-                let k = key == null ? i : key + (obj instanceof Array ? "[" + i + "]" : "." + i);
-                paramStr += '&' + parseParam(this, k);
+            $.each(obj, function (i, v) {
+                let k = key == null ?
+                    i :
+                    key + (obj instanceof Array ? "[" + i + "]" : "." + i);
+                paramStr += '&' + parseParam(v, k);
             });
         }
         return paramStr.substr(1);
