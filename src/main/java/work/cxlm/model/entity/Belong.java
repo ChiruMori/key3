@@ -1,8 +1,6 @@
 package work.cxlm.model.entity;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import work.cxlm.model.entity.id.BelongId;
 
 import javax.persistence.*;
@@ -18,10 +16,15 @@ import javax.persistence.*;
 @ToString
 @Entity
 @Table(name = "belong")
+@AllArgsConstructor
+@NoArgsConstructor
 public class Belong extends BaseEntity {
 
     @Id
     private BelongId id;
 
+    public Belong(Integer clubId, Integer roomId) {
+        this.id = new BelongId(clubId, roomId);
+    }
 
 }

@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.lang.NonNull;
@@ -300,7 +299,7 @@ public class UserServiceImpl extends AbstractCrudService<User, Integer> implemen
 
     @Override
     public List<Club> userOrderRoom(@NonNull User user,@NonNull Room room) {
-        List<Club> clubs = belongService.listAllRoomsBelongClub(room.getId());
+        List<Club> clubs = belongService.listRoomClubs(room.getId());
         List<Club> clubs1 = joiningService.userJoinClubs(user.getId());
 
         return clubs.stream().filter(clubs1::contains).collect(Collectors.toList());

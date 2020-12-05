@@ -1,10 +1,13 @@
 package work.cxlm.model.dto;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import work.cxlm.model.dto.base.OutputConverter;
 import work.cxlm.model.entity.Room;
+
+import java.math.BigDecimal;
 
 /**
  * @program: myfont
@@ -18,10 +21,12 @@ import work.cxlm.model.entity.Room;
 @EqualsAndHashCode(callSuper = true)
 public class RoomDTO extends RoomSimpleDTO implements OutputConverter<RoomDTO, Room> {
 
-    private Integer roomId;
+    @ApiModelProperty("经度")
+    private BigDecimal longitude;
 
+    @ApiModelProperty("纬度")
+    private BigDecimal latitude;
 
-    private Integer hour;
-
+    private Integer cost;
 
 }

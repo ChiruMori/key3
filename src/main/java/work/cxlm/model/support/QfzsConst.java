@@ -85,4 +85,6 @@ public class QfzsConst {
     public static final String SYSTEM_HEAD = "https://upload.cc/i1/2020/11/26/HSBol9.png";
     // 占位图 URL
     public static final String ERROR_HEAD_URL = "https://upload.cc/i1/2020/11/30/561A98.png";
+    // 活动室位置缓存键
+    public static final String LOCATION_KEY = "room_locate";
 }

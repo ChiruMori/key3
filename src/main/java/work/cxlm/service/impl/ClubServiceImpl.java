@@ -21,11 +21,13 @@ import work.cxlm.repository.ClubRepository;
 import work.cxlm.security.context.SecurityContextHolder;
 import work.cxlm.service.*;
 import work.cxlm.service.base.AbstractCrudService;
+import work.cxlm.utils.ServiceUtils;
 import work.cxlm.utils.ValidationUtils;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * created 2020/11/21 15:24
@@ -36,11 +38,13 @@ import java.util.List;
 @Slf4j
 public class ClubServiceImpl extends AbstractCrudService<Club, Integer> implements ClubService {
 
+    // ------------------ Autowired -------------------------
+
     private UserService userService;
     private JoiningService joiningService;
     private BillService billService;
-    private final ClubRepository clubRepository;
 
+    private final ClubRepository clubRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     public ClubServiceImpl(ClubRepository repository,
@@ -64,6 +68,8 @@ public class ClubServiceImpl extends AbstractCrudService<Club, Integer> implemen
     public void setBillService(BillService billService) {
         this.billService = billService;
     }
+
+    // --------------------------- Override ---------------------------------------
 
     @Override
     public ClubDTO getManagedClubInfo(Integer clubId) {
@@ -89,15 +95,6 @@ public class ClubServiceImpl extends AbstractCrudService<Club, Integer> implemen
         eventPublisher.publishEvent(new LogEvent(this, admin.getId(), LogType.NEW_CLUB,
                 "创建了新的社团：" + newClub.getName()));
         return new ClubDTO().convertFrom(newClub);
-    }
-
-    @Override
-    @NonNull
-    public Club allClubsByClubId(@NonNull Integer clubId) {
-        Club club=clubRepository.findById(clubId).orElseThrow();
-        List<Club> clubs=new ArrayList<>();
-
-        return null;
     }
 
     @Override
@@ -144,5 +141,11 @@ public class ClubServiceImpl extends AbstractCrudService<Club, Integer> implemen
         removeById(clubId);  // 删除社团
         eventPublisher.publishEvent(new LogEvent(this, admin.getId(), LogType.DELETE_CLUB,
                 "删除了社团：" + clubId));
+    }
+
+    @Override
+    public Map<Integer, Club> getAllClubMap() {
+        List<Club> allClubs = listAll();
+        return ServiceUtils.convertToMap(allClubs, Club::getId);
     }
 }

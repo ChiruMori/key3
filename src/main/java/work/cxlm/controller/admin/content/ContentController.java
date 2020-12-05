@@ -71,4 +71,10 @@ public class ContentController {
         adminModel.wrapBaseData(model, false);
         return "pages/system-log";
     }
+
+    @GetMapping("club-room")
+    public String clubRoomInfo(Model model) {
+        adminModel.wrapBaseData(model, false);
+        return "pages/club-room";
+    }
 }

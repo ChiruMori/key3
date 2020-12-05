@@ -10,8 +10,6 @@ import work.cxlm.model.enums.RoomState;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
-import java.util.Date;
-import java.util.List;
 
 /**
  * 活动室实体类
@@ -60,21 +58,14 @@ public class Room extends BaseEntity {
      * 每天结束预订的时间（小时、几点）
      */
     @Column(name = "end_hour")
-    @Range(min = 0, max = 24)
+    @Range(min = 1, max = 24)
     private Integer endHour;
 
-    /**
-     * 当前时间表格显示的起始日期，日期后的精度无意义
-     */
-    @Column(name = "show_start")
-    @Temporal(TemporalType.TIMESTAMP) // 自动封装为 yyyy-MM-dd hh:MM:ss
-    private Date showStart;
-
-    /**
+    /*
      * 重设周期，CRON 表达式
      */
-    @Column(name = "reset_cron", length = 50)
-    private String resetCron;
+//    @Column(name = "reset_cron", length = 50)
+//    private String resetCron;
 
     /**
      * 使用当前活动室是否需要签到
@@ -104,6 +95,27 @@ public class Room extends BaseEntity {
     @Column(name = "roomState")
     private RoomState roomState;
 
-
-
+    @Override
+    @PrePersist
+    protected void prePersist() {
+        super.prePersist();
+        if (cost == null) {
+            cost = 0;
+        }
+        if (needSign == null) {
+            needSign = false;
+        }
+        if (startHour == null) {
+            startHour = 8;
+        }
+        if (endHour == null) {
+            endHour = 21;
+        }
+        if (dayLimit == null) {
+            dayLimit = 2;
+        }
+        if (weekLimit == null) {
+            weekLimit = 4;
+        }
+    }
 }

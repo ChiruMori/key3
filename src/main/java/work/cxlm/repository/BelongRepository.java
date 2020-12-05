@@ -2,6 +2,7 @@ package work.cxlm.repository;
 
 import org.springframework.lang.NonNull;
 import work.cxlm.model.entity.Belong;
+import work.cxlm.model.entity.id.BelongId;
 
 import java.util.List;
 
@@ -12,17 +13,15 @@ import java.util.List;
  * @application :
  * @Version 1.0
  **/
-public interface BelongRepository extends BaseRepository<Belong,Integer> {
+public interface BelongRepository extends BaseRepository<Belong, BelongId> {
 
     /*
-    * 通过联合主键查询拥有roomId的belong实例
-    *
-    * */
+     * 通过联合主键查询拥有roomId的belong实例
+     */
     List<Belong> findAllByIdRoomId(@NonNull Integer roomId);
 
     /*
-    * 通过联合主键查询拥有clubId的belong实例
-    *
-    * */
+     * 通过联合主键查询拥有clubId的belong实例
+     */
     List<Belong> findAllByIdClubId(@NonNull Integer clubId);
 }

@@ -95,7 +95,7 @@ public class ControllerExceptionHandler {
     public BaseResponse<?> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
         BaseResponse<?> baseResponse = handleBaseException(e);
         baseResponse.setStatus(HttpStatus.BAD_REQUEST.value());
-        baseResponse.setMsg("缺失请求主体");
+        baseResponse.setMsg("解析请求错误，您发送的数据貌似有很大问题");
         return baseResponse;
     }
 

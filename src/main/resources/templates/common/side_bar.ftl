@@ -51,7 +51,7 @@
         <div id="collapseRoom" class="collapse" aria-labelledby="headingUtilities"
              data-parent="#accordionSidebar">
             <div class="py-2 collapse-inner rounded">
-                <a class="collapse-item token-tag" href="#"><i class="fas fa-info-circle mr-2"></i>基本信息</a>
+                <a class="collapse-item token-tag" href="/key3/admin/page/club-room"><i class="fas fa-info-circle mr-2"></i>基本信息</a>
                 <a class="collapse-item token-tag" href="#"><i class="fas fa-table mr-2"></i>预约管理</a>
             </div>
         </div>

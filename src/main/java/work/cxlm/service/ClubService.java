@@ -8,6 +8,7 @@ import work.cxlm.model.params.ClubParam;
 import work.cxlm.service.base.CrudService;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * created 2020/11/21 15:31
@@ -15,9 +16,6 @@ import java.util.List;
  * @author Chiru
  */
 public interface ClubService extends CrudService<Club, Integer> {
-
-    @NonNull
-    Club allClubsByClubId(@NonNull Integer clubId);
 
     /**
      * 查询社团信息，如果用户权限不足则抛出异常
@@ -44,4 +42,9 @@ public interface ClubService extends CrudService<Club, Integer> {
      * @param clubId 社团 ID
      */
     void deleteClub(Integer clubId);
+
+    /**
+     * 获取全部社团的 ID -> Club 映射
+     */
+    Map<Integer, Club> getAllClubMap();
 }
