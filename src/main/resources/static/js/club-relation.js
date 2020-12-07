@@ -48,11 +48,14 @@ $(document).ready(function () {
                     defaultContent: '-'
                 }, {
                     data: 'total',
-                    type: "number"
+                    type: 'number'
                 }, {
                     data: 'point',
-                    type: "number",
+                    type: 'number',
                     defaultContent: '-',
+                }, {
+                    data: 'absentCounter',
+                    type: 'number'
                 }, {
                     data: 'admin',
                     defaultContent: '-',

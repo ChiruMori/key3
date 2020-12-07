@@ -25,4 +25,6 @@ public class ClubDTO implements OutputConverter<ClubDTO, Club> {
     private Boolean billEnabled;
 
     private Date createTime;
+
+    private Integer absentLimit;
 }

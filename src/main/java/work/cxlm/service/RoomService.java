@@ -5,6 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 import work.cxlm.model.dto.LocationDTO;
 import work.cxlm.model.dto.RoomDTO;
 import work.cxlm.model.entity.Room;
+import work.cxlm.model.entity.User;
 import work.cxlm.model.params.RoomParam;
 import work.cxlm.service.base.CrudService;
 
@@ -13,12 +14,9 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * program: myfont
  * @author beizi
  * @author Chiru
  * create: 2020-11-23 15:52
- * application :
- * Version 1.0
  **/
 public interface RoomService extends CrudService<Room, Integer> {
 
@@ -59,4 +57,15 @@ public interface RoomService extends CrudService<Room, Integer> {
      */
     @NonNull
     List<LocationDTO> getLocations(@NonNull Integer clubId);
+
+    /**
+     * 通过 ID 查找某活动室的详细信息
+     */
+    @NonNull
+    RoomDTO getOne(@NonNull Integer roomId);
+
+    /**
+     * 校验用户是否可以使用该活动室
+     */
+    boolean roomAvailableToUser(@NonNull Room room, @NonNull User user);
 }

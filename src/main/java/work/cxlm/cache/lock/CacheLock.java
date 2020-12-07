@@ -31,6 +31,12 @@ public @interface CacheLock {
     String value() default "";
 
     /**
+     * 使用方法的参数建立缓存键，默认为使用方法签名
+     * 如果设置了值，则会使用参数，可用于与其他方法互斥
+     */
+    String[] argSuffix() default "";
+
+    /**
      * 缓存过期时间，默认 5
      */
     long expired() default 5;
@@ -54,4 +60,6 @@ public @interface CacheLock {
      * 是否回溯请求信息
      */
     boolean traceRequest() default false;
+
+    String msg() default "访问过于频繁，请稍后重试";
 }

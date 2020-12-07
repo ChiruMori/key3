@@ -7,9 +7,9 @@ import org.springframework.util.Assert;
 import work.cxlm.config.QfzsProperties;
 import work.cxlm.utils.QfzsDateUtils;
 
-import java.util.Date;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 /**
  * 提供部分方法的默认实现
@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 public abstract class AbstractCacheStore<K, V> implements CacheStore<K, V> {
 
     protected QfzsProperties qfzsProperties;
+    protected HashSet<Consumer<K>> deleteInfoSubscriber = null;
 
     /**
      * 通过缓存键获取被包装（CacheWrapper）的缓存值
@@ -40,15 +41,28 @@ public abstract class AbstractCacheStore<K, V> implements CacheStore<K, V> {
     abstract void putInternal(@NonNull K key, @NonNull CacheWrapper<V> value);
 
     /**
+     * 删除缓存，由子类实现
+     *
+     * @param key   缓存键
+     */
+    abstract void deleteInternal(@NonNull K key);
+
+    public void delete(@NonNull K key) {
+        deleteInternal(key);
+        inform(key);
+    }
+
+    /**
      * 如果不存在则设置
      *
      * @param key   缓存键
      * @param value 缓存值
-     * @return 如果键已存在且已经设置了值，则返回 true，键不存在或已过期则返回 false，其他原因则返回 null
+     * @return 如果键已存在且已经设置了值，则返回 false，键不存在或已过期则返回 true，其他原因则返回 null
      */
     abstract Boolean putInternalIfAbsent(@NonNull K key, @NonNull CacheWrapper<V> value);
 
     @Override
+    @NonNull
     public Optional<V> get(@NonNull K key) {
         Assert.notNull(key, "缓存键不能为 null");
 
@@ -63,17 +77,21 @@ public abstract class AbstractCacheStore<K, V> implements CacheStore<K, V> {
     }
 
     @Override
-    public void put(K key, V value, long timeout, TimeUnit timeUnit) {
+    public void put(@NonNull K key, @NonNull V value, long timeout, @NonNull TimeUnit timeUnit) {
         putInternal(key, wrapCacheValue(value, timeout, timeUnit));
     }
 
     @Override
-    public Boolean putIfAbsent(K key, V value, long timeout, TimeUnit timeUnit) {
+    public Boolean putIfAbsent(@NonNull K key, @NonNull V value, long timeout, @NonNull TimeUnit timeUnit) {
         return putInternalIfAbsent(key, wrapCacheValue(value, timeout, timeUnit));
     }
 
+    public Boolean putIfAbsent(@NonNull K cacheIdKey, @NonNull V value) {
+        return putInternalIfAbsent(cacheIdKey, wrapCacheValue(value, 0, null));
+    }
+
     @Override
-    public void put(K key, V value) {
+    public void put(@NonNull K key, @NonNull V value) {
         putInternal(key, wrapCacheValue(value, 0, null));
     }
 
@@ -102,5 +120,29 @@ public abstract class AbstractCacheStore<K, V> implements CacheStore<K, V> {
         cacheWrapper.setExpireAt(expireAt);
         cacheWrapper.setData(value);
         return cacheWrapper;
+    }
+
+    /**
+     * 添加缓存删除时间的监听器
+     */
+    public synchronized void subscribeDeleteInfo(Consumer<K> consumer) {
+        if (deleteInfoSubscriber == null) {
+            deleteInfoSubscriber = new HashSet<>();
+        }
+        deleteInfoSubscriber.add(consumer);
+    }
+
+    public synchronized void unsubscribeDeleteInfo(Consumer<K> consumer) {
+        deleteInfoSubscriber.remove(consumer);
+    }
+
+    /**
+     * 将消息删除的通知发给所有的监听者
+     */
+    protected void inform(K key) {
+        if (deleteInfoSubscriber == null) {
+            return;
+        }
+        deleteInfoSubscriber.forEach(cons -> cons.accept(key));
     }
 }

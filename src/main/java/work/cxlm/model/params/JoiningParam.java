@@ -38,4 +38,7 @@ public class JoiningParam implements InputConverter<Joining> {
 
     @ApiModelProperty("活动室使用总时长")
     private Integer total;
+
+    @ApiModelProperty("未签到的计数（倒数计数）")
+    private Integer absentCounter;
 }

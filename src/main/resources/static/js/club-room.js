@@ -30,6 +30,7 @@ $().ready(function () {
                     clearError();
                 });
             });
+            deleteBtn.hide();
             return;
         }
         // 编辑模式，ID 不允许修改
@@ -42,6 +43,7 @@ $().ready(function () {
         submitBtn.on('click', function () {
             uploadRoomData('PUT', clearError);
         });
+        deleteBtn.show();
     };
 
     const clearError = function () {
@@ -52,6 +54,8 @@ $().ready(function () {
     const uploadRoomData = function (method, fn) {
         utils.showLoading('Uploading...');
         let dataToSend = utils.formToObj('roomForm');
+        dataToSend.available = (Boolean)(dataToSend.available);
+        dataToSend.needSign = (Boolean)(dataToSend.needSign);
         dataToSend.clubId = GLOBAL_VAL.nowClubId;
         utils.ajax(url, dataToSend, method, function (res) {
             selectingRoom = res.data;

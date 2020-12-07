@@ -34,4 +34,7 @@ public class ClubParam implements InputConverter<Club> {
 
     @ApiModelProperty("是否开启财务功能")
     private Boolean billEnabled;
+
+    @ApiModelProperty("社团允许每周不签到的次数")
+    private Integer absentLimit;
 }

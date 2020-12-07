@@ -4,7 +4,6 @@ import lombok.Data;
 import work.cxlm.model.dto.base.InputConverter;
 import work.cxlm.model.entity.User;
 import work.cxlm.model.enums.UserGender;
-import work.cxlm.model.support.CreateCheck;
 
 import javax.validation.constraints.*;
 

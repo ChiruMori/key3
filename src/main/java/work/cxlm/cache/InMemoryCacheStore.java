@@ -89,7 +89,7 @@ public class InMemoryCacheStore extends AbstractStringCacheStore {
     }
 
     @Override
-    public void delete(@NonNull String key) {
+    public void deleteInternal(@NonNull String key) {
         Assert.hasText(key, "缓存键不能为空");
 
         CACHE_CONTAINER.remove(key);

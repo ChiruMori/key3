@@ -15,6 +15,7 @@ import work.cxlm.exception.ServiceException;
 import work.cxlm.utils.ServletUtils;
 
 import java.lang.annotation.Annotation;
+import java.util.Objects;
 
 /**
  * CacheLock 注解的解释器
@@ -56,7 +57,7 @@ public class CacheLockInterceptor {
                 throw new ServiceException("未知的缓存状态：" + cacheLockKey).setErrorData(cacheLockKey);
             }
             if (!cacheResult) {
-                throw new FrequentAccessException("访问过于频繁，请稍候重试").setErrorData(cacheLockKey);
+                throw new FrequentAccessException(cacheLock.msg()).setErrorData(cacheLockKey);
             }
 
             return joinPoint.proceed();
@@ -72,11 +73,26 @@ public class CacheLockInterceptor {
         Assert.notNull(cacheLock, "缓存锁不能为 null");
         Assert.notNull(joinPoint, "切入点不能为 null");
 
+        StringBuilder cachedKeyBuilder = new StringBuilder(CACHE_LOCK_PREFIX);
+        final String delimiter = cacheLock.delimiter();
+
         // 方法签名
         final MethodSignature signature = (MethodSignature) joinPoint.getSignature();
 
-        StringBuilder cachedKeyBuilder = new StringBuilder(CACHE_LOCK_PREFIX);
-        final String delimiter = cacheLock.delimiter();
+        // 如果使用参数建立互斥锁，这种锁适用于分布式互斥的场景
+        if (cacheLock.argSuffix().length != 0) {
+            String[] parameterNames = signature.getParameterNames();
+            Object[] values = joinPoint.getArgs();
+            // 使用注解中标注的值构建缓存键
+            for (String useParam : cacheLock.argSuffix()) {
+                for (int i = 0; i < parameterNames.length; i++) {
+                    if (Objects.equals(parameterNames[i], useParam)) {
+                        cachedKeyBuilder.append(delimiter).append(values[i].toString());
+                    }
+                }
+            }
+            return cachedKeyBuilder.toString();
+        }
 
         if (StringUtils.isNotBlank(cacheLock.prefix())) {
             cachedKeyBuilder.append(cacheLock.prefix());

@@ -20,7 +20,7 @@ import java.io.IOException;
  */
 public class EmojiSupportSimpleModule extends SimpleModule {
     {
-        addDeserializer(String.class, new StdDeserializer<>(String.class) {
+        addDeserializer(String.class, new StdDeserializer<String>(String.class) {
             @Override
             public String deserialize(JsonParser p, DeserializationContext
                     ctxt) throws IOException, JsonProcessingException {
@@ -28,7 +28,7 @@ public class EmojiSupportSimpleModule extends SimpleModule {
             }
         });
 
-        addSerializer(String.class, new StdSerializer<>(String.class) {
+        addSerializer(String.class, new StdSerializer<String>(String.class) {
             @Override
             public void serialize(String value, JsonGenerator gen, SerializerProvider provider) throws IOException {
                 gen.writeString(EmojiUtil.toUnicode(value));

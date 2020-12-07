@@ -12,11 +12,13 @@ import java.util.Optional;
  *
  * @author Chiru
  */
-public interface TimeRepository extends BaseRepository<TimePeriod, Integer> {
+public interface TimeRepository extends BaseRepository<TimePeriod, Long> {
 
     @NonNull
-    Optional<TimePeriod> findById(@NonNull Integer timeId);
+    Optional<TimePeriod> findById(@NonNull Long timeId);
 
     List<TimePeriod> findAllByRoomId(@NonNull Integer roomId);
+
+    List<TimePeriod> findAllByRoomIdAndIdBetween(@NonNull Integer roomId, @NonNull Long minId, @NonNull Long maxId);
 
 }

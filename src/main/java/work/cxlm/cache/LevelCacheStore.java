@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.iq80.leveldb.*;
 import org.iq80.leveldb.impl.Iq80DBFactory;
+import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import work.cxlm.config.QfzsProperties;
@@ -90,7 +91,7 @@ public class LevelCacheStore extends AbstractStringCacheStore {
     }
 
     @Override
-    Optional<CacheWrapper<String>> gerInternal(String key) {
+    Optional<CacheWrapper<String>> gerInternal(@NonNull String key) {
         Assert.hasText(key, "缓存键不能为空");
         byte[] valueBytes = LEVEL_DB.get(key.getBytes());
         if (valueBytes != null) {
@@ -103,7 +104,7 @@ public class LevelCacheStore extends AbstractStringCacheStore {
     }
 
     @Override
-    void putInternal(String key, CacheWrapper<String> value) {
+    void putInternal(@NonNull String key, @NonNull CacheWrapper<String> value) {
         Assert.notNull(value, "缓存值不能为 null");
         Assert.notNull(key, "缓存键不能为 null");
 
@@ -118,7 +119,7 @@ public class LevelCacheStore extends AbstractStringCacheStore {
     }
 
     @Override
-    Boolean putInternalIfAbsent(String key, CacheWrapper<String> value) {
+    Boolean putInternalIfAbsent(@NonNull String key, @NonNull CacheWrapper<String> value) {
         Assert.hasText(key, "缓存键不能为空");
 
         boolean res = get(key).isPresent();
@@ -129,7 +130,7 @@ public class LevelCacheStore extends AbstractStringCacheStore {
     }
 
     @Override
-    public void delete(String key) {
+    public void deleteInternal(@NonNull String key) {
         LEVEL_DB.delete(stringToBytes(key));
         log.debug("从缓存中移除键：[{}]", key);
     }

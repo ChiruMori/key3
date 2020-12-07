@@ -4,9 +4,11 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.validator.constraints.Length;
+import work.cxlm.model.entity.support.TimeIdGenerator;
 import work.cxlm.model.enums.TimeState;
 
 import javax.persistence.*;
@@ -21,15 +23,18 @@ import java.util.Date;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
-@Table(name = "time_period")
+@Table(name = "time_period", indexes = @Index(name = "room_id_index", columnList = "room_id"))
 @ToString
 @NoArgsConstructor
 public class TimePeriod extends BaseEntity {
 
+    /**
+     * ID 编码方式：年年年年月月日日时时分分活动室ID
+     * 如：2020123021120001 表示 2020.12.30 21:12，活动室 0001 的时段
+     * 注意，本版本实现中，分钟数只有 00，日后可能有其他实现，所以预留两位分钟位
+     */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY, generator = "custom-id")
-    @GenericGenerator(name = "custom-id", strategy = "work.cxlm.model.entity.support.CustomIdGenerator")
-    private Integer id;
+    private Long id;
 
     /**
      * 时段开始时间
@@ -38,12 +43,12 @@ public class TimePeriod extends BaseEntity {
     @Temporal(TemporalType.TIMESTAMP)
     private Date startTime;
 
-    /**
+    /*
      * 时段结束时间
      */
-    @Column(name = "end_time")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date endTime;
+//    @Column(name = "end_time")
+//    @Temporal(TemporalType.TIMESTAMP)
+//    private Date endTime;
 
     /**
      * 关联的活动室 ID
@@ -78,10 +83,28 @@ public class TimePeriod extends BaseEntity {
     @ColumnDefault("1")
     private Boolean late;
 
-    /*
-    * 当前时间段的状态：空闲  预定  预定且被关注  禁用
-    * */
+    /**
+     * 当前时间段的状态：空闲、预定、预定且被关注、禁用
+     */
     @Column(name = "state")
-    @ColumnDefault("0") //默认空闲
-    private TimeState timeState;
+    @ColumnDefault("0") // 默认空闲
+    private TimeState state;
+
+    @Override
+    protected void prePersist() {
+        super.prePersist();
+        if (showText == null) {
+            showText = StringUtils.EMPTY;
+        }
+    }
+
+    public TimePeriod(Long id, Date startTime) {
+        this.id = id;
+        this.startTime = startTime;
+    }
+
+    public TimePeriod(Long id) {
+        this.id = id;
+        this.startTime = TimeIdGenerator.decodeIdToDate(id);
+    }
 }

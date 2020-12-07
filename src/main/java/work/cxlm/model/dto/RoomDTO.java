@@ -10,11 +10,9 @@ import work.cxlm.model.entity.Room;
 import java.math.BigDecimal;
 
 /**
- * @program: myfont
- * @author: beizi
- * @create: 2020-11-20 12:53
- * @application :
- * @Version 1.0
+ * @author beizi
+ * @author Chiru
+ * create: 2020-11-20 12:53
  **/
 @Data
 @ToString(callSuper = true)
@@ -28,5 +26,7 @@ public class RoomDTO extends RoomSimpleDTO implements OutputConverter<RoomDTO, R
     private BigDecimal latitude;
 
     private Integer cost;
+
+    private Boolean available;
 
 }

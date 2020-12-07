@@ -54,4 +54,6 @@ public class RoomParam implements InputConverter<Room> {
 
     @Digits(message = "超出范围", integer = Integer.MAX_VALUE, fraction = Integer.MAX_VALUE, groups = {UpdateCheck.class, CreateCheck.class})
     private Integer cost;
+
+    private Boolean available;
 }

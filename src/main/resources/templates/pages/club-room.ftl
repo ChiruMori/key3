@@ -2,7 +2,7 @@
 <html lang="zh">
 
 <head>
-    <title>管理后台 - 社团</title>
+    <title>管理后台 - 活动室</title>
     <#include "../common/header.ftl">
 </head>
 
@@ -103,6 +103,11 @@
                                 <input type="checkbox" class="form-check-input" id="needSign" name="needSign">
                                 <label class="form-check-label"
                                        for="enableAssets">启用签到限制，这会通过限制用户使用来强制成员进行签到，请在活动室中使用小程序获取坐标后开启此功能</label>
+                            </div>
+                            <div class="form-group form-check">
+                                <input type="checkbox" class="form-check-input" id="available" name="available">
+                                <label class="form-check-label"
+                                       for="available">活动室是否开放，关闭后，活动室将不可预约，但现有预约信息将保留</label>
                             </div>
                             <button class="btn btn-primary" id="submitBtn">提交</button>
                             <button class="btn btn-danger" id="deleteBtn">删除</button>

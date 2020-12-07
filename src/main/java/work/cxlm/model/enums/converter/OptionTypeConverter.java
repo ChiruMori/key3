@@ -10,6 +10,7 @@ import javax.persistence.Converter;
  *
  * @author Chiru
  */
+@Deprecated
 @Converter(autoApply = true)
 public class OptionTypeConverter extends AbstractConverter<OptionType, Integer> {
 

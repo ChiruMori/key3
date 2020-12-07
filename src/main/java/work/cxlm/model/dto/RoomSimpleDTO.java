@@ -4,13 +4,10 @@ import lombok.Data;
 
 
 /**
- * @program: myfont
- * @author: beizi
+ * @author beizi
  * @author Chiru
- * @create: 2020-11-20 14:13
- * @application :
- * @Version 1.0
- **/
+ * create: 2020-11-20 14:13
+ */
 @Data
 public class RoomSimpleDTO {
 

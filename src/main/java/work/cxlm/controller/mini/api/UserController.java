@@ -8,7 +8,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 import work.cxlm.cache.lock.CacheLock;
-import work.cxlm.exception.AuthenticationException;
 import work.cxlm.model.dto.UserDTO;
 import work.cxlm.model.entity.User;
 import work.cxlm.model.params.UserLoginParam;
@@ -40,9 +39,14 @@ public class UserController {
     @ApiOperation(value = "获取用户信息", notes = "获取用户详细信息，包含用户的全部字段\n需要 accessToken 且必填，标识用户会话")
     @GetMapping("/info")
     public UserDTO getProfile() {
-        User nowUser = SecurityContextHolder.getCurrentUser().orElseThrow(
-                () -> new AuthenticationException("用户登录凭证无效"));
+        User nowUser = SecurityContextHolder.ensureUser();
         return new UserDTO().convertFrom(nowUser);
+    }
+
+    @ApiOperation(value = "获取用户信息", notes = "获取指定用户的详细信息，包含用户的全部字段\n需要 accessToken 且必填，标识用户会话")
+    @GetMapping("/info/{userId}")
+    public UserDTO getUserInfo(@PathVariable("userId") Integer uid) {
+        return new UserDTO().convertFrom(userService.getById(uid));
     }
 
     @ApiOperation(value = "更新用户信息", notes = "用户与微信相关的信息，在本方法调用后完成绑定\n需要 accessToken ，首次更新可缺省，标识用户会话")

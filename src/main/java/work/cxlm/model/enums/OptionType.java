@@ -6,7 +6,9 @@ package work.cxlm.model.enums;
  *
  * @author Chiru
  * @author ryanwang
+ * @deprecated 本系统中不涉及复杂的 Option 状态
  */
+@Deprecated
 public enum OptionType implements ValueEnum<Integer> {
     INTERNAL(0),  // 内部选项
     CUSTOM(1)  // 用户选项

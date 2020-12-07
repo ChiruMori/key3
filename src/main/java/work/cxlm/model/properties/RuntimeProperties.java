@@ -1,28 +1,24 @@
 package work.cxlm.model.properties;
 
+import org.springframework.lang.NonNull;
+
 /**
- * 邮件相关配置
- * created 2020/11/13 17:14
+ * 包含系统运行需要的其他参数
+ * created 2020/12/6 21:53
  *
- * @author johnniang
  * @author Chiru
  */
-public enum EmailProperties implements PropertyEnum {
+public enum RuntimeProperties implements PropertyEnum {
 
-    HOST("email_host", String.class, ""),  // 服务器
-    PROTOCOL("email_protocol", String.class, "smtp"),  // 协议
-    SSL_PORT("email_ssl_port", Integer.class, "465"),  // 端口
-    USERNAME("email_username", String.class, ""),  // 邮件用户名
-    PASSWORD("email_password", String.class, ""),  // 邮件密码
-    FROM_NAME("email_from_name", String.class, "");  // 发件人
-
+    WEEK_START_DATE("week_start_stamp", Long.class, "0")
+    ;
     private final String value;
 
     private final Class<?> type;
 
     private final String defaultValue;
 
-    EmailProperties(String value, Class<?> type, String defaultValue) {
+    RuntimeProperties(String value, Class<?> type, String defaultValue) {
         this.defaultValue = defaultValue;
         if (!PropertyEnum.isSupportedType(type)) {
             throw new IllegalArgumentException("不支持的参数类型: " + type);
@@ -38,6 +34,7 @@ public enum EmailProperties implements PropertyEnum {
     }
 
     @Override
+    @NonNull
     public String defaultValue() {
         return defaultValue;
     }

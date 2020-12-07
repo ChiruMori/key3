@@ -20,6 +20,7 @@ $().ready(function () {
                 let clubDTO = res.data;
                 document.getElementById('enableAssets').checked = clubDTO.billEnabled;
                 $('#clubName').val(clubDTO.name);
+                $('#absentLimit').val(clubDTO.absentLimit);
                 $('#clubAssets').val(clubDTO.assets);
                 $('#clubId').val(clubDTO.id);
                 $('#removeClubBtn').remove();

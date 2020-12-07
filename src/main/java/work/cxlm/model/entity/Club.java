@@ -43,12 +43,21 @@ public class Club extends BaseEntity {
     @ColumnDefault("1")
     private Boolean billEnabled;
 
+    /**
+     * 每周允许的最大未打卡次数
+     */
+    @Column(name = "absent_limit")
+    private Integer absentLimit;
+
     // 保存之前执行
     @Override
     public void prePersist() {
         super.prePersist();
         if (assets == null) { // 必须加这个条件，否则将导致新建 Club 时传入的初始经费被覆盖
             assets = new BigDecimal(0);
+        }
+        if (absentLimit == null) {
+            absentLimit = 0;
         }
     }
 }

@@ -2,6 +2,7 @@ package work.cxlm.cache;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import redis.clients.jedis.HostAndPort;
@@ -87,14 +88,14 @@ public class RedisCacheStore extends AbstractStringCacheStore {
     // ******** 方法实现 *********
 
     @Override
-    Optional<CacheWrapper<String>> gerInternal(String key) {
+    Optional<CacheWrapper<String>> gerInternal(@NonNull String key) {
         Assert.hasText(key, "缓存键不能为空");
         String val = REDIS.get(key);
         return StringUtils.isEmpty(val) ? Optional.empty() : jsonToCacheWrapper(val);
     }
 
     @Override
-    void putInternal(String key, CacheWrapper<String> value) {
+    void putInternal(@NonNull String key, @NonNull CacheWrapper<String> value) {
         // putInternalIfAbsent(key, value);
         Assert.hasText(key, "缓存键不能为空");
         Assert.notNull(value, "缓存值不能为 null");
@@ -111,7 +112,7 @@ public class RedisCacheStore extends AbstractStringCacheStore {
     }
 
     @Override
-    Boolean putInternalIfAbsent(String key, CacheWrapper<String> value) {
+    Boolean putInternalIfAbsent(@NonNull String key, @NonNull CacheWrapper<String> value) {
         Assert.hasText(key, "缓存键不能为空");
         Assert.notNull(value, "缓存值不能为 null");
         try {
@@ -132,7 +133,7 @@ public class RedisCacheStore extends AbstractStringCacheStore {
     }
 
     @Override
-    public void delete(String key) {
+    public void deleteInternal(@NonNull String key) {
         Assert.hasText(key, "缓存键不能为空");
         REDIS.del(key);
         log.debug("移除缓存键: [{}]", key);

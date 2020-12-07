@@ -28,34 +28,11 @@ public class Option extends BaseEntity {
     @GenericGenerator(name = "custom-id", strategy = "work.cxlm.model.entity.support.CustomIdGenerator")
     private Integer id;
 
-    // 选项类型
-    @Column(name = "type")
-    @ColumnDefault("0")
-    private OptionType type;
-
     @Column(name = "option_key", length = 100, nullable = false)
     private String key;
 
-    @Column(name = "option_value", nullable = false)
     @Lob
+    @Column(name = "option_value", nullable = false)
     private String value;
 
-    private Option(String key, String value) {
-        this.key = key;
-        this.value = value;
-    }
-
-    private Option(OptionType type, String key, String value) {
-        this.type = type;
-        this.key = key;
-        this.value = value;
-    }
-
-    @PrePersist
-    public void prePersist() {
-        super.prePersist();
-        if (type == null) {
-            type = OptionType.INTERNAL;
-        }
-    }
 }

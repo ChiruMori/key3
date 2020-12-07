@@ -42,6 +42,12 @@
                                 <small id="clubNameHelp" class="form-text text-muted">社团名称，不可超过 50 个字符</small>
                             </div>
                             <div class="form-group">
+                                <label for="absentLimit">每周最大不签到次数</label>
+                                <input type="text" class="form-control" id="absentLimit" name="absentLimit"
+                                       aria-describedby="clubNameHelp">
+                                <small id="clubNameHelp" class="form-text text-muted">在活动室中启用签到功能后，会根据该值进行限定</small>
+                            </div>
+                            <div class="form-group">
                                 <label for="clubAssets">可用社团经费</label>
                                 <input type="text" class="form-control" id="clubAssets" name="assets"
                                        aria-describedby="clubAssetsHelp">

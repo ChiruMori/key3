@@ -1,49 +1,48 @@
 package work.cxlm.service.impl;
 
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
-import work.cxlm.cache.AbstractStringCacheStore;
-import work.cxlm.config.QfzsProperties;
-import work.cxlm.exception.AuthenticationException;
-import work.cxlm.exception.BadRequestException;
+import org.springframework.util.Assert;
+import work.cxlm.cache.lock.CacheLock;
 import work.cxlm.exception.ForbiddenException;
-import work.cxlm.model.entity.Club;
+import work.cxlm.model.dto.TimePeriodSimpleDTO;
 import work.cxlm.model.entity.Room;
 import work.cxlm.model.entity.TimePeriod;
 import work.cxlm.model.entity.User;
-import work.cxlm.model.params.TimeParam;
-import work.cxlm.repository.RoomRepository;
+import work.cxlm.model.entity.support.TimeIdGenerator;
+import work.cxlm.model.properties.RuntimeProperties;
+import work.cxlm.model.vo.TimeTableVO;
 import work.cxlm.repository.TimeRepository;
 import work.cxlm.security.context.SecurityContextHolder;
 import work.cxlm.service.*;
 import work.cxlm.service.base.AbstractCrudService;
+import work.cxlm.utils.DateUtils;
+import work.cxlm.utils.ServiceUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static work.cxlm.model.enums.TimeState.*;
 
-
 /**
- * @program: myfont
- * @author: beizi
- * @create: 2020-11-20 12:52
- * @application :
- * @Version 1.0
- **/
+ * @author beizi
+ * @author Chiru
+ * <p>
+ * create: 2020-11-20 12:52
+ */
 @Slf4j
 @Service
-public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Integer> implements TimeService {
+public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> implements TimeService {
 
     private RoomService roomService;
     private UserService userService;
     private TimeService timeService;
     private BelongService belongService;
 
+
+    private final TimeRepository timeRepository;
+    private final OptionService optionService;
 
     @Autowired
     public void setBelongService(BelongService belongService) {
@@ -65,346 +64,172 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Integer> im
         this.userService = userService;
     }
 
-    private final RoomRepository roomRepository;
-    private final QfzsProperties qfzsProperties;
-    private final ApplicationEventPublisher eventPublisher;
-    private final AbstractStringCacheStore cacheStore;
-    private final JoiningService joiningService;
-    private final TimeRepository timeRepository;
 
-
-    public TimeServiceImpl(RoomRepository roomRepository,
-                           QfzsProperties qfzsProperties,
-                           ApplicationEventPublisher eventPublisher,
-                           AbstractStringCacheStore cacheStore,
-                           JoiningService joiningService,
-                           TimeRepository timeRepository
-    ) {
+    public TimeServiceImpl(TimeRepository timeRepository,
+                           OptionService optionService) {
         super(timeRepository);
-        this.roomRepository = roomRepository;
-        this.qfzsProperties = qfzsProperties;
-        this.eventPublisher = eventPublisher;
-        this.cacheStore = cacheStore;
-        this.joiningService = joiningService;
         this.timeRepository = timeRepository;
-
+        this.optionService = optionService;
     }
 
+    // ***************** Private ***********************************
 
-    /*
-     *
-     *
-     * @description: 判断进入预约模块的成员信息是否过期
-     * @param null
-     * @return:
-     * @time: 2020/11/21 19:47
-     */
-    public @NonNull User getUser() {
-        return SecurityContextHolder.getCurrentUser().orElseThrow(
-                () -> new AuthenticationException("用户登录凭证无效"));
+    // 获得指定周、活动室的全部时间段
+    private List<TimePeriod> getWeekTimePeriods(@NonNull Integer roomId, @NonNull Integer week) {
+        Assert.notNull(roomId, "roomId 不能为 null");
+        Assert.notNull(week, "请求的周次不能为 null");
+
+        DateUtils du = new DateUtils(new Date()).weekStart().changeWeek(week + 1);
+        Long endTimeId = TimeIdGenerator.encodeId(du, roomId);
+        Long startTimeId = TimeIdGenerator.encodeId(du.changeWeek(-1), roomId);
+        return timeRepository.findAllByRoomIdAndIdBetween(roomId, startTimeId, endTimeId);
     }
 
-    public @NonNull Room getRoom(@NonNull Integer roomId) {
-        /*
-         *
-         *
-         * @description:  通过roomId找到活动室
-         * @param roomId  活动室编号
-         * @return: work.cxlm.model.entity.Room
-         * @time: 2020/11/21 21:39
-         */
-        return roomRepository.findById(roomId).orElseThrow(() -> new BadRequestException("找不到给定编号的活动室，请输入正确的活动室编号"));
-    }
-
-    public @NonNull TimePeriod getTimePeriod(@NonNull Integer timeId) {
-        /*
-         *
-         *
-         * @description: 通过时间段编号找到时间段
-         * @param timeId
-         * @return: work.cxlm.model.entity.TimePeriod
-         * @time: 2020/11/21 21:38
-         */
-        return timeRepository.findById(timeId).orElseThrow(() -> new BadRequestException("找不到该时间段，请输入正确的时间段编号"));
-    }
-
-    public @NonNull Room getRoomByTimeId(@NonNull Integer timeId) {
-        /*
-         *
-         *
-         * @description:  通过timeId确定活动室
-         * @param timeId
-         * @return: work.cxlm.model.entity.Room
-         * @time: 2020/11/21 21:38
-         */
-        TimePeriod timePeriod = timeRepository.findById(timeId).orElseThrow(() -> new BadRequestException("找不到该时间段，请输入正确的时间段编号"));
-        Integer roomId = timePeriod.getRoomId();
-        return roomRepository.findById(roomId).orElseThrow(() -> new BadRequestException("找不到给定编号的活动室，请输入正确的活动室编号"));
-
-    }
+    //******************* Override ******************************************
 
     @Override
-    /*
-     *
-     *
-     * @description:
-     * @param roomId  活动室的id
-     * @param timeId  活动室某一时间段的id
-     * @return: work.cxlm.model.entity.TimePeriod  返回时间段
-     * @time: 2020/11/21 16:48
-     */
-    public @NonNull TimePeriod querryRoomTime(@NonNull Integer timeId) {
-        TimePeriod timePeriod = timeRepository.findById(timeId).orElseThrow();
-        return timePeriod;
+    public TimeTableVO getTimeTable(@NonNull Integer roomId, @NonNull Integer week) {
+        Room targetRoom = roomService.getById(roomId);
+        User nowUser = SecurityContextHolder.ensureUser();
 
-    }
+        // 获得活动室指定周的全部时段
+        List<TimePeriod> weekTimePeriods = getWeekTimePeriods(roomId, week);
 
-    @Override
-    public List listAllPeriod(@NonNull Integer roomId) {
-        List<TimePeriod> allByRoomId = timeRepository.findAllByRoomId(roomId);
-        List<TimePeriod> timePeriods = new ArrayList<>();
-        for (TimePeriod timePeriod : allByRoomId) {
-            if (timePeriod.getRoomId().equals(roomId)) {
-                timePeriods.add(timePeriod);
+        // 整理数据，并标记自己占用的时间段
+        Map<Long, TimePeriod> timePeriodMap = ServiceUtils.convertToMap(weekTimePeriods, TimePeriod::getId, time -> {
+            if (Objects.equals(time.getUserId(), nowUser.getId())) {
+                time.setState(MINE);
             }
-        }
-        return listAllWeek(timePeriods);
-    }
+            return time;
+        });
+        LinkedList<List<TimePeriodSimpleDTO>> timeTable = new LinkedList<>();
+        LinkedList<String> timeTitleList = new LinkedList<>();
+        int startHour = targetRoom.getStartHour();
+        int endHour = targetRoom.getEndHour();
 
-    public List listAllWeek(List<TimePeriod> timePeriods){
-        ArrayList list=new ArrayList();
-        for(int i = 0;i<7;i++){
+        DateUtils du = new DateUtils(new Date());
+        long nowTimeId = TimeIdGenerator.encodeId(du, 0);  // 获得当前时间点的 ID
+        du.changeWeek(week).weekStart();  // 移动到指定周周一
+        for (int i = startHour; i < endHour; i++) {
+            // 生成行标题
+            du.setHour(i + 1);
+            String endTimeTitle = du.generateTitleTitle();
+            String startTimeTitle = du.setHour(i).generateTitleTitle();
+            timeTitleList.add(String.format("%s %2s", startTimeTitle, endTimeTitle));
 
-                list.add(timePeriods);
+            // 行数据整理
+            LinkedList<TimePeriodSimpleDTO> hourRow = new LinkedList<>();
+            for (int j = 0; j < 7; j++) {
+                Long timeId = TimeIdGenerator.encodeId(du, roomId);
 
-        }
-            return list;
-    }
-
-    @Override
-    /*
-     *
-     *
-     * @description: 成员预订活动室某一个时间段
-     * @param roomId
-     * @param timeId
-     * @return: work.cxlm.model.entity.TimePeriod
-     * @time: 2020/11/21 19:46
-     */
-    public void orderRoom(@NonNull Integer timeId) {
-
-        @NonNull User user = getUser();
-        if (user != null) {
-            @NonNull TimePeriod timePeriod = timeRepository.findById(timeId).orElseThrow();
-            if (timePeriod != null) {
-                if (timePeriod.getTimeState().isIdle()) {  //是空闲
-                    timePeriod.setTimeState(Time_ORDER);  // 活动室状态变为已经被预约
-                    timePeriod.setUserId(user.getId());
-                    updateTime(timePeriod);
-                    log.info("[{}]--预约--[{}]----[{}]<<<>>>[{}] ", user.getRealName(), timePeriod.getId(), timePeriod.getStartTime(), timePeriod.getTimeState());
+                // 数据库中存在该 ID，将其放入时间表格
+                if (timePeriodMap.containsKey(timeId)) {
+                    hourRow.add(new TimePeriodSimpleDTO().convertFrom(timePeriodMap.get(timeId)));
                 } else {
-                    log.debug("该时间段已经被预定，不能预定!");
+
+                    // 数据库中不存在，生成占位时间段实例
+                    TimePeriod emptyTime = new TimePeriod(timeId, du.get());
+                    // 状态变更
+                    if(nowTimeId > timeId) {
+                        emptyTime.setState(PASSED);
+                    } else if (week > 0) {
+                        emptyTime.setState(NOT_OPEN);
+                    } else {
+                        emptyTime.setState(IDLE);
+                    }
+                    emptyTime.setShowText("");
+                    hourRow.add(new TimePeriodSimpleDTO().convertFrom(emptyTime));
                 }
+                du.tomorrow();  // 下移一天
             }
-        } else {
-            throw new ForbiddenException("登录信息已丢失!");
+            timeTable.add(hourRow);
+            du.changeWeek(-1);  // 前移一周
         }
 
+        // 返回值构建
+        Date weekNumberStart = new Date(optionService.getByProperty(RuntimeProperties.WEEK_START_DATE, Long.class).
+                orElse(Long.valueOf(RuntimeProperties.WEEK_START_DATE.defaultValue())));
+        TimeTableVO res = new TimeTableVO();
+        res.setTimeTable(timeTable);
+        res.setTimeTitle(timeTitleList);
+        res.setWeek(DateUtils.weekNumberOf(weekNumberStart, du.get()));
+        return res;
     }
 
     @Override
-    /*
-     *
-     *
-     * @description: 成员关注某一个活动室的时间段
-     * @param roomId
-     * @param timeId
-     * @return: work.cxlm.model.entity.TimePeriod
-     * @time: 2020/11/21 19:46
-     */
-    public TimePeriod attRoom(@NonNull Integer timeId) {
-        @NonNull User user = getUser();
-        if (user != null) {
-            @NonNull TimePeriod timePeriod = querryRoomTime(timeId);
-            timePeriod.setTimeState(Time_ATT);
-            updateTime(timePeriod);
-            log.info("[{}]--关注----活动室的--[{}]<<<>>>[{}] ", user.getRealName(), timePeriod.getStartTime(), timePeriod.getEndTime());
-            return timePeriod;
+    @CacheLock(prefix = "time_dis_lock", expired = 0, msg = "因为操作冲突，您的请求被取消取消，请重试", argSuffix = "timeId")
+    public void occupyTimePeriod(@NonNull Long timeId) {
+        Assert.notNull(timeId, "timeId 不能为 null");
+        // 得到目标时段实体
+        TimePeriod timeInDB = getByIdOfNullable(timeId);
+        if (timeInDB == null) {
+            timeInDB = new TimePeriod(timeId);
         }
-        return null;
 
-    }
+        // 得到活动室
+        Integer roomId = (int) (timeId % 10000);
+        Room targetRoom = roomService.getById(roomId);
 
-    @Override
-    /*
-     *
-     *
-     * @description: 成员取消预订活动室的某一个时间段
-     * @param roomId
-     * @param timeId
-     * @return: work.cxlm.model.entity.TimePeriod
-     * @time: 2020/11/21 19:45
-     */
-    public TimePeriod noOrderRoom(@NonNull Integer timeId) {
-
-        @NonNull User user = getUser();
-        @NonNull TimePeriod timePeriod = querryRoomTime(timeId);
-        timePeriod.setTimeState(Time_IDLE);
-        timePeriod.setUserId(null);
-        updateTime(timePeriod);
-        log.debug("[{}]--取消预约了--[{}]--时间段", user.getRealName(), timeId);
-        return timePeriod;
-
-    }
-
-    @Override
-    /*
-     *
-     *
-     * @description: 成员取消时间段的关注
-     * @param roomId
-     * @param timeId
-     * @return: work.cxlm.model.entity.TimePeriod
-     * @time: 2020/11/21 19:45
-     */
-    public TimePeriod noAttRoom(@NonNull Integer timeId) {
-
-        getUser();
-        @NonNull TimePeriod timePeriod = querryRoomTime(timeId);
-        timePeriod.setTimeState(Time_ORDER);
-        updateTime(timePeriod);
-        timePeriod.setUserId(null);
-        log.debug("123");
-        return timePeriod;
-
-    }
-
-
-    @Override
-    /*
-     *
-     *
-     * @description:  更新房间信息
-     * @param roomId
-     * @return: void
-     * @time: 2020/11/21 16:50
-     */
-    public void updateTime(@NonNull TimePeriod timePeriod) {
-        timeRepository.save(timePeriod);
-        log.debug("");
-    }
-
-
-    @Override
-    /*
-     *
-     *
-     * @description: 管理员禁用时间段
-     * @param timeId
-     * @return: boolean
-     * @time: 2020/11/23 22:02
-     */
-    public boolean adminStop(@NonNull Integer timeId) {
-        @NonNull User user = getUser();
-        TimePeriod timePeriod = timeRepository.findById(timeId).orElseThrow();
-        if (user.getRole().isAdminRole()) {
-            timePeriod.getTimeState().setBan();
-            log.debug("管理员--[{}]--禁用了-[{}]", user.getRealName(), timeId);
-            return true;
-        } else {
-            log.debug("管理员已经禁用了--[{}]", timePeriod.getId());
+        // 校验用户权限
+        User nowUser = SecurityContextHolder.ensureUser();
+        if (!nowUser.getRole().isSystemAdmin() &&
+                !roomService.roomAvailableToUser(targetRoom, nowUser)) {
+            throw new ForbiddenException("您的权限不足，无法对该活动室进行操作");
         }
-        return false;
-    }
 
-    @Override
-    /*
-     *
-     *
-     * @description: 管理员恢复时间段使用
-     * @param timeId
-     * @return: boolean
-     * @time: 2020/11/23 22:02
-     */
-    public boolean adminAllow(@NonNull Integer timeId) {
-        @NonNull User user = getUser();
-        TimePeriod timePeriod = timeRepository.findById(timeId).orElseThrow();
-        if (user.getRole().isAdminRole()) {
-            if (timePeriod.getTimeState().isStop()) {
-                timePeriod.getTimeState().setTime_IDLE();
-                updateTime(timePeriod);
-                log.debug("管理员--[{}]恢复了-[{}]", user.getRealName(), timeId);
-                return true;
+        // 校验时段是否合法（可预约，没过期，已开放）
+        Date targetDate = TimeIdGenerator.decodeIdToDate(timeId);
+        Date now = new Date();
+        if (targetDate.before(now)) {
+            throw new ForbiddenException("您无法改写历史");
+        } else if (DateUtils.weekStartOf(targetDate).after(now)) {
+            throw new ForbiddenException("该时段尚未开放预订");
+        }
+
+        // 检验是否超出了时长限制
+        List<TimePeriod> weekTimePeriods = getWeekTimePeriods((int) (timeId % 10000), 0);
+        int[] statistic = new int[8];  // 统计，0 为周占用，1~7 为周日到周六
+        weekTimePeriods.forEach(time -> {
+            if (!Objects.equals(time.getUserId(), nowUser.getId())) {
+                return;
             }
+            statistic[0]++;  // 周统计
+            statistic[DateUtils.whatDayIs(time.getStartTime())]++;  // 日统计
+        });
+        if (statistic[0] >= targetRoom.getWeekLimit() ||
+                statistic[DateUtils.whatDayIs(timeInDB.getStartTime())] >= targetRoom.getDayLimit()) {
+            throw new ForbiddenException("超出限定时长：周限定: [" + targetRoom.getWeekLimit() + "]，日限定: [" + targetRoom.getDayLimit() + "]");
         }
-        return false;
+
+        // 签到继承
+        Long previousTimeId = timeId - 100_0000L;
+        TimePeriod previousTime = getByIdOfNullable(previousTimeId);
+        if (previousTime != null && // 前移时段不为 null
+                Objects.equals(previousTime.getUserId(), nowUser.getId()) && // 前一时段同为当前用户占用
+                previousTime.getSigned()) { // 前一时段已签到
+            timeInDB.setSigned(true); // 本时段自动设为已签到状态
+        }
+
+        // 占用时段
+        timeInDB.setShowText(nowUser.getRealName());
+        timeInDB.setRoomId(roomId);
+        timeInDB.setUserId(nowUser.getId());
+        timeInDB.setState(OCCUPIED);
+        // 存储、应用修改（更新或新建）
+        timeRepository.save(timeInDB);
     }
 
     @Override
-    public @NonNull Optional<Room> findRoom(@NonNull TimeParam timeParam) {
-        return roomService.findByRoomId(timeParam.getRoomId());
-    }
-
-    @Override
-    public Optional<User> findUser(@NonNull TimeParam timeParam) {
-        return userService.getByStudentNo(timeParam.getStudentNo());
-    }
-
-    @Override
-    public void orderTimePeriod(@NonNull TimeParam timeParam) {
-        Room room = findRoom(timeParam).orElseThrow();
-        User user = findUser(timeParam).orElseThrow();
-        @NonNull TimePeriod timePeriod = timeService.querryRoomTime(timeParam.getId());
-        List<Club> clubs = userService.userOrderRoom(user, room);
-        if (clubs != null) {
-            if (timePeriod.getTimeState().isIdle()) {
-                timeService.orderRoom(timeParam.getId());
-            }
+    public void cancelTimePeriod(@NonNull Long timeId) {
+        Assert.notNull(timeId, "timeId 不能为 null");
+        TimePeriod target = getById(timeId);
+        User nowUser = SecurityContextHolder.ensureUser();
+        // 权限校验：只能解除自己的预约
+        if (!Objects.equals(target.getUserId(), nowUser.getId()) && !nowUser.getRole().isSystemAdmin()) {
+            throw new ForbiddenException("您没有权限取消该时段的预约");
         }
-    }
-
-    @Override
-    public void noOrderTimePeriod(@NonNull TimeParam timeParam) {
-        Room room = findRoom(timeParam).orElseThrow();
-        User user = findUser(timeParam).orElseThrow();
-        List<Club> clubs = userService.userOrderRoom(user, room);
-        @NonNull TimePeriod timePeriod = timeService.querryRoomTime(timeParam.getId());
-        if (clubs != null) {
-            int a = timeService.querryRoomTime(timeParam.getId()).getUserId();
-            if (a == user.getId()) {
-                if (timePeriod.getTimeState().isOrder()) {
-                    timeService.noOrderRoom(timeParam.getId());
-                }
-            }
-        }
-    }
-
-    @Override
-    public void attTimePeriod(@NonNull TimeParam timeParam) {
-        Room room = findRoom(timeParam).orElseThrow();
-        User user = findUser(timeParam).orElseThrow();
-        List<Club> clubs = userService.userOrderRoom(user, room);
-        @NonNull TimePeriod timePeriod = timeService.querryRoomTime(timeParam.getId());
-        if (clubs != null) {
-            if (timePeriod.getTimeState().isOrder()) {
-                timeService.attRoom(timeParam.getId());
-            }
-        }
-    }
-
-    public void banTimePeriod(@NonNull TimeParam timeParam) {
-
-        User user = findUser(timeParam).orElseThrow();
-        if (user.getRole().isAdminRole()) {
-            timeService.adminStop(timeParam.getId());
-        }
-    }
-
-    public void allowTimePeriod(@NonNull TimeParam timeParam) {
-        User user = findUser(timeParam).orElseThrow();
-        if (user.getRole().isAdminRole()) {
-            timeService.adminAllow(timeParam.getId());
-        }
+        // 从数据库中移除
+        remove(target);
     }
 
 }

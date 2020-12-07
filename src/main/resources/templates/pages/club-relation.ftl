@@ -46,6 +46,7 @@
                                     <th>职务</th>
                                     <th>时长</th>
                                     <th>贡献值</th>
+                                    <th>周缺勤数</th>
                                     <th>管理员</th>
                                 </tr>
                                 </thead>
@@ -57,6 +58,7 @@
                                     <th>职务</th>
                                     <th>时长</th>
                                     <th>贡献值</th>
+                                    <th>周缺勤数</th>
                                     <th>管理员</th>
                                 </tr>
                                 </tfoot>

@@ -300,7 +300,7 @@ public class UserServiceImpl extends AbstractCrudService<User, Integer> implemen
     @Override
     public List<Club> userOrderRoom(@NonNull User user,@NonNull Room room) {
         List<Club> clubs = belongService.listRoomClubs(room.getId());
-        List<Club> clubs1 = joiningService.userJoinClubs(user.getId());
+        List<Club> clubs1 = joiningService.getUserClubs(user.getId());
 
         return clubs.stream().filter(clubs1::contains).collect(Collectors.toList());
     }

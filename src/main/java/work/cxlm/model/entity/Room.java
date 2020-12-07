@@ -92,8 +92,8 @@ public class Room extends BaseEntity {
     @Column(name = "cost")
     private Integer cost;
 
-    @Column(name = "roomState")
-    private RoomState roomState;
+    @Column(name = "available")
+    private Boolean available;
 
     @Override
     @PrePersist
@@ -116,6 +116,9 @@ public class Room extends BaseEntity {
         }
         if (weekLimit == null) {
             weekLimit = 4;
+        }
+        if (available == null) {
+            available = true;
         }
     }
 }

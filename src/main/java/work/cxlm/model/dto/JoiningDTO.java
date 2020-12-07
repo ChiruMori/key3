@@ -26,4 +26,6 @@ public class JoiningDTO implements OutputConverter<JoiningDTO, Joining> {
 
     private Boolean admin;
 
+    private Integer absentCounter;
+
 }

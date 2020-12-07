@@ -272,7 +272,8 @@ public class JoiningServiceImpl extends AbstractCrudService<Joining, JoiningId> 
 
     @Override
     @NonNull
-    public List<Club> userJoinClubs(@NonNull Integer userId) {
+    // TODO: DELETE THIS IF UNNECESSARY
+    public List<Club> getUserClubs(@NonNull Integer userId) {
         List<Joining> joinings = joiningRepository.findAllByIdUserId(userId);
         List<Club> clubs=new ArrayList<>();
 //        for (Joining joining : joinings) {

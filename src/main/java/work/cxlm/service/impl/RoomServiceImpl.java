@@ -12,39 +12,24 @@ import work.cxlm.exception.ForbiddenException;
 import work.cxlm.exception.NotFoundException;
 import work.cxlm.model.dto.LocationDTO;
 import work.cxlm.model.dto.RoomDTO;
-import work.cxlm.model.entity.Belong;
-import work.cxlm.model.entity.Club;
-import work.cxlm.model.entity.Room;
-import work.cxlm.model.entity.User;
+import work.cxlm.model.entity.*;
 import work.cxlm.model.entity.id.BelongId;
 import work.cxlm.model.params.RoomParam;
-import work.cxlm.model.support.CreateCheck;
 import work.cxlm.model.support.QfzsConst;
-import work.cxlm.model.support.UpdateCheck;
 import work.cxlm.repository.RoomRepository;
 import work.cxlm.security.context.SecurityContextHolder;
-import work.cxlm.service.BelongService;
-import work.cxlm.service.ClubService;
-import work.cxlm.service.RoomService;
-import work.cxlm.service.UserService;
+import work.cxlm.service.*;
 import work.cxlm.service.base.AbstractCrudService;
 import work.cxlm.utils.ServiceUtils;
-import work.cxlm.utils.ValidationUtils;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
- * @author Chiru
- * program myfont
  * @author beizi
  * @author Chiru
  * create 2020-11-23 20:52
- * application :
- * Version 1.0
- **/
+ */
 @Service
 @Slf4j
 public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implements RoomService {
@@ -57,6 +42,7 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
     private ClubService clubService;
     private UserService userService;
     private BelongService belongService;
+    private JoiningService joiningService;
 
 
     protected RoomServiceImpl(RoomRepository roomRepository,
@@ -79,6 +65,11 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
     @Autowired
     public void setBelongService(BelongService belongService) {
         this.belongService = belongService;
+    }
+
+    @Autowired
+    public void setJoiningService(JoiningService joiningService) {
+        this.joiningService = joiningService;
     }
 
     // ----------- Override --------------------------------------
@@ -144,6 +135,7 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
         Assert.notNull(param, "RoomParam 不能为 null");
         ensureAuthority(param.getClubId());
         // 更新活动室信息
+        // TODO 可用时段调整对现有预定造成的影响
         Room targetRoom = getById(param.getId());
         param.update(targetRoom);
         return new RoomDTO().convertFrom(update(targetRoom));
@@ -178,7 +170,8 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
         // 如果该活动室只归属于一个社团
         boolean onlyOwner = belongService.listRoomClubs(roomId).size() == 1;
         belongService.removeById(bid);  // 删除归属关系
-        if (onlyOwner) {  // 删除活动室
+        if (onlyOwner) {  // 删除活动室，并删除预约历史记录
+            // TODO: 删除预约信息
             return new RoomDTO().convertFrom(removeById(roomId));
         }
         // 还有其他社团拥有该活动室时
@@ -190,9 +183,34 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
     @SuppressWarnings("rawtypes, unchecked")
     public List<LocationDTO> getLocations(@NonNull Integer clubId) {
         Optional<List> locations = cacheStore.getAny(QfzsConst.LOCATION_KEY, List.class);
-        if (locations.isEmpty()) {
-            return Collections.emptyList();
+        return (List<LocationDTO>) locations.  // 这里的转化不能删除，否则在 JDK8 环境将报错
+                <List<LocationDTO>>map(list -> ServiceUtils.convertList(list, o -> (LocationDTO) o)).
+                orElse(Collections.emptyList());
+    }
+
+    @Override
+    @NonNull
+    public RoomDTO getOne(@NonNull Integer roomId) {
+        Assert.notNull(roomId, "RoomId 不能为 null");
+        return new RoomDTO().convertFrom(getById(roomId));
+    }
+
+    @Override
+    public boolean roomAvailableToUser(@NonNull Room room, @NonNull User user) {
+        Assert.notNull(room, "room 不能为 null");
+        Assert.notNull(user, "user 不能为 null");
+        // 系统管理员无视权限
+        if (user.getRole().isSystemAdmin()) {
+            return true;
         }
-        return ServiceUtils.convertList(locations.get(), o -> (LocationDTO) o);
+        // 活动室所属的所有社团
+        List<Club> roomClubs = belongService.listRoomClubs(room.getId());
+        List<Joining> userJoining = joiningService.listAllJoiningByUserId(user.getId());
+        // 获得用户加入的全部社团
+        Set<Integer> userClubs = userJoining.stream().
+                map(joining -> joining.getId().getClubId()).
+                collect(Collectors.toSet());
+        // 用户加入的社团与活动室所属的社团有交集，则认为用户可以对该活动室进行操作
+        return roomClubs.stream().anyMatch(roomClub -> userClubs.contains(roomClub.getId()));
     }
 }

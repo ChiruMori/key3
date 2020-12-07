@@ -41,6 +41,9 @@ public class Joining extends BaseEntity {
     @Column(name = "point")
     private Integer point;
 
+    @Column(name = "absent_counter")
+    private Integer absentCounter;
+
     @Override
     public void prePersist() {
         super.prePersist();
@@ -55,6 +58,9 @@ public class Joining extends BaseEntity {
         }
         if (point == null) {
             point = 0;
+        }
+        if (absentCounter == null) {
+            absentCounter = 0;
         }
     }
 }
