@@ -20,11 +20,11 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/key3/admin/api/")
-public class RoomManagementController {
+public class RoomAdminController {
 
     private final RoomService roomService;
 
-    public RoomManagementController(RoomService roomService) {
+    public RoomAdminController(RoomService roomService) {
         this.roomService = roomService;
     }
 

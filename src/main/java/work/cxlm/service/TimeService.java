@@ -1,16 +1,13 @@
 package work.cxlm.service;
 
-import lombok.NonNull;
+import org.springframework.lang.NonNull;
 import work.cxlm.model.dto.TimePeriodSimpleDTO;
-import work.cxlm.model.entity.Room;
 import work.cxlm.model.entity.TimePeriod;
-import work.cxlm.model.entity.User;
 import work.cxlm.model.params.TimeParam;
 import work.cxlm.model.vo.TimeTableVO;
 import work.cxlm.service.base.CrudService;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * 预约时段业务处理接口
@@ -28,11 +25,25 @@ public interface TimeService extends CrudService<TimePeriod, Long> {
     /**
      * 预定时段
      */
-    void occupyTimePeriod(@NonNull Long timeId);
+    TimePeriodSimpleDTO occupyTimePeriod(@NonNull Long timeId);
 
     /**
      * 用户解除对时间段的占用
      */
-    void cancelTimePeriod(@NonNull Long timeId);
+    TimePeriodSimpleDTO cancelTimePeriod(@NonNull Long timeId);
 
+    /**
+     * 管理员禁用时段
+     */
+    TimeTableVO blockBy(@NonNull TimeParam param);
+
+    /**
+     * 管理员解除时段禁用
+     */
+    TimeTableVO clearBy(@NonNull TimeParam param);
+
+    /**
+     * 管理员修改时段文本显示
+     */
+    TimeTableVO changeTextBy(@NonNull TimeParam param);
 }

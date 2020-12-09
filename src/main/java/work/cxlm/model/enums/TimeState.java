@@ -21,11 +21,6 @@ public enum TimeState implements ValueEnum<Integer> {
     FOLLOWED(2),
 
     /**
-     * 时间段已经被管理员禁用
-     */
-    DISABLED(3),
-
-    /**
      * 被自己占用，数据库中不应该出现此状态，在传递给前端时需要
      */
     MINE(4),
@@ -39,6 +34,14 @@ public enum TimeState implements ValueEnum<Integer> {
      * 未开放的时间段，比如未来时段
      */
     NOT_OPEN(6),
+
+
+    /**
+     * 时间段已经被管理员禁用
+     */
+    DISABLED_RED(10),
+    DISABLED_WARM(11),
+    DISABLED_COOL(12),
     ;
 
     private final Integer value;
@@ -57,15 +60,22 @@ public enum TimeState implements ValueEnum<Integer> {
     /**
      * 判断当前活动室是否空闲
      */
-    public boolean isIdle(){
+    public boolean isIdle() {
         return this == IDLE;
     }
 
     /**
      * 判断当前活动室是否被禁止使用
      */
-    public boolean disabled(){
-        return this == DISABLED;
+    public boolean disabled() {
+        return this == DISABLED_RED;
+    }
+
+    /**
+     * 判断当前状态是否为禁用
+     */
+    public boolean isDisabledState() {
+        return this == DISABLED_COOL || this == DISABLED_RED || this == DISABLED_WARM;
     }
 
 

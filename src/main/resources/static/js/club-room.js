@@ -1,6 +1,6 @@
 $().ready(function () {
 
-    const url = '/admin/api/room/';
+    const url = 'admin/api/room/';
 
     const submitBtn = $('#submitBtn');
     const roomSelectTag = $('#roomSelectTag');
@@ -70,19 +70,19 @@ $().ready(function () {
         }, utils.hideLoading);
     };
 
-    deleteBtn.on('click', function(){
-        let confirmText = prompt("注意，这会同时删除该活动室有关的预约信息（含历史数据），如果您仍要这么做，请输入该活动室名称以确认", "");
-        if (confirmText !== selectingRoom.name) {
-            alert('您取消了操作，数据仍然是安全的');
-            return;
-        }
-        utils.showLoading('DELETING...');
-        utils.ajax(url + GLOBAL_VAL.nowClubId + '/' + selectingRoom.id, {}, 'DELETE', function() {
-            alert('完成删除，即将自动刷新页面');
-            location.reload();
-        }, function(res) {
-            console.debug(res);
-            errorHint.text(res.data.msg);
+    deleteBtn.on('click', function () {
+        utils.prompt('删除活动室？',
+            '注意，这会同时删除该活动室有关的预约信息（含历史数据），如果您仍要这么做，请输入该活动室名称以确认',
+            'text', selectingRoom.name).then(function (inputValue) {
+            if (inputValue === selectingRoom.name) {
+                utils.ajax(url + GLOBAL_VAL.nowClubId + '/' + selectingRoom.id, {}, 'DELETE', function () {
+                    utils.success("操作成功", "已删除活动室，即将刷新页面").then(location.reload);
+                }, function (res) {
+                    console.debug(res);
+                    errorHint.text(res.data.msg);
+                    utils.error('ERROR', res.data.msg);
+                });
+            }
         });
     });
 
@@ -126,6 +126,7 @@ $().ready(function () {
             }, function (res) {
                 console.error(res);
                 reject(res.responseJSON);
+                utils.error("获取失败", res.responseJSON.msg);
                 errorHint.text(res.responseJSON.msg);
             });
         });
@@ -137,6 +138,7 @@ $().ready(function () {
             }, function (res) {
                 console.error(res);
                 reject(res.responseJSON);
+                utils.error("失败", res.responseJSON.msg);
                 errorHint.text(res.responseJSON.msg);
             });
         });

@@ -77,4 +77,10 @@ public class ContentController {
         adminModel.wrapBaseData(model, false);
         return "pages/club-room";
     }
+
+    @GetMapping("room-time")
+    public String clubRoomTime(Model model) {
+        adminModel.wrapBaseData(model, false);
+        return "pages/room-time";
+    }
 }

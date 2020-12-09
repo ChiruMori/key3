@@ -24,13 +24,13 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/key3/admin/api/")
-public class UserManagementController {
+public class UserAdminController {
 
     private final UserService userService;
     private final AdminService adminService;
 
-    public UserManagementController(UserService userService,
-                                    AdminService adminService) {
+    public UserAdminController(UserService userService,
+                               AdminService adminService) {
         this.userService = userService;
         this.adminService = adminService;
     }

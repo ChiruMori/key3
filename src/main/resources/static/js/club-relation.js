@@ -99,15 +99,25 @@ $(document).ready(function () {
                     }, commonAjaxFailHandler(error), utils.hideLoading);
                 },
                 onDeleteRow: function (datatable, rowdata, success, error) {
-                    let confirmText = prompt('注意，这会同时删除用户加入社团后产生的全部信息全部信息，包括用户的贡献点数、活动室预约时长、职务信息等，如果您仍要删除，请输入该用户的姓名以进行确认', '');
-                    if (confirmText !== rowdata.realName) {
-                        alert('您取消了操作，用户数据仍然是安全的');
-                        return;
-                    }
-                    utils.ajax('admin/api/joining/' + GLOBAL_VAL.nowClubId + '/' + rowdata.studentNo, {}, 'DELETE', function (res) {
-                        utils.showLoading('DELETING...');
-                        success(res.data);
-                    }, commonAjaxFailHandler(error), utils.hideLoading);
+                    utils.prompt('删除成员？',
+                        '注意，这会同时删除用户加入社团后产生的全部信息全部信息，包括用户的贡献点数、活动室预约时长、职务信息等，如果您仍要删除，请输入该用户的姓名以进行确认',
+                        'text',
+                        rowdata.realName).then(function (inputName) {
+                        if (inputValue === rowdata.realName) {
+                            utils.ajax('admin/api/joining/' + GLOBAL_VAL.nowClubId + '/' + rowdata.studentNo, {}, 'DELETE', function (res) {
+                                success(res.data);
+                                utils.success("操作成功", "已删除社团成员");
+                            }, function (res) {
+                                error(res);
+                                console.error(res);
+                                utils.error('ERROR', res.responseJSON.msg);
+                                hintArea.text("删除失败：" + res.responseJSON.msg);
+                                hintArea.addClass('text-danger');
+                            });
+                        } else {
+                            utils.alert("您取消了操作");
+                        }
+                    });
                 },
                 onEditRow: function (datatable, rowdata, success, error) {
                     utils.showLoading('MODIFYING...');

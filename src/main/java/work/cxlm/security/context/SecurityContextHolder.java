@@ -60,4 +60,15 @@ public class SecurityContextHolder {
     public static User ensureUser() {
         return getCurrentUser().orElseThrow(() -> new ForbiddenException("未登录"));
     }
+
+    /**
+     * 确保是系统管理员在操作
+     */
+    public static User ensureSystemAdmin() {
+        User admin = ensureUser();
+        if (!admin.getRole().isSystemAdmin()) {
+            throw new ForbiddenException("该操作需要系统管理员权限，您的权限不足");
+        }
+        return admin;
+    }
 }

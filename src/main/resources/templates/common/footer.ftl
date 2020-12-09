@@ -19,5 +19,6 @@
 
 <script src="/key3/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="/key3/vendor/jquery-easing/jquery.easing.min.js"></script>
+<script src="/key3/vendor/sweetalert/sweetalert.min.js"></script>
 
 <script src="/key3/js/sb-admin-2.min.js"></script>

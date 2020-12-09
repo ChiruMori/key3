@@ -106,5 +106,6 @@ public class TimePeriod extends BaseEntity {
     public TimePeriod(Long id) {
         this.id = id;
         this.startTime = TimeIdGenerator.decodeIdToDate(id);
+        this.roomId = (int) (id % 10000);
     }
 }

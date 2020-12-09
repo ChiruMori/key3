@@ -6,12 +6,15 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import work.cxlm.cache.lock.CacheLock;
+import work.cxlm.exception.BadRequestException;
 import work.cxlm.exception.ForbiddenException;
+import work.cxlm.exception.NotFoundException;
 import work.cxlm.model.dto.TimePeriodSimpleDTO;
 import work.cxlm.model.entity.Room;
 import work.cxlm.model.entity.TimePeriod;
 import work.cxlm.model.entity.User;
 import work.cxlm.model.entity.support.TimeIdGenerator;
+import work.cxlm.model.params.TimeParam;
 import work.cxlm.model.properties.RuntimeProperties;
 import work.cxlm.model.vo.TimeTableVO;
 import work.cxlm.repository.TimeRepository;
@@ -22,6 +25,7 @@ import work.cxlm.utils.DateUtils;
 import work.cxlm.utils.ServiceUtils;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 import static work.cxlm.model.enums.TimeState.*;
 
@@ -37,7 +41,6 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
 
     private RoomService roomService;
     private UserService userService;
-    private TimeService timeService;
     private BelongService belongService;
 
 
@@ -47,11 +50,6 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
     @Autowired
     public void setBelongService(BelongService belongService) {
         this.belongService = belongService;
-    }
-
-    @Autowired
-    public void setTimeService(TimeService timeService) {
-        this.timeService = timeService;
     }
 
     @Autowired
@@ -85,15 +83,10 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
         return timeRepository.findAllByRoomIdAndIdBetween(roomId, startTimeId, endTimeId);
     }
 
-    //******************* Override ******************************************
-
-    @Override
-    public TimeTableVO getTimeTable(@NonNull Integer roomId, @NonNull Integer week) {
-        Room targetRoom = roomService.getById(roomId);
-        User nowUser = SecurityContextHolder.ensureUser();
-
+    // 构建指定活动室、周次、用户的预约表格
+    private TimeTableVO buildTable(@NonNull Room targetRoom, @NonNull Integer week, User nowUser) {
         // 获得活动室指定周的全部时段
-        List<TimePeriod> weekTimePeriods = getWeekTimePeriods(roomId, week);
+        List<TimePeriod> weekTimePeriods = getWeekTimePeriods(targetRoom.getId(), week);
 
         // 整理数据，并标记自己占用的时间段
         Map<Long, TimePeriod> timePeriodMap = ServiceUtils.convertToMap(weekTimePeriods, TimePeriod::getId, time -> {
@@ -120,26 +113,30 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
             // 行数据整理
             LinkedList<TimePeriodSimpleDTO> hourRow = new LinkedList<>();
             for (int j = 0; j < 7; j++) {
-                Long timeId = TimeIdGenerator.encodeId(du, roomId);
+                Long timeId = TimeIdGenerator.encodeId(du, targetRoom.getId());
 
+                TimePeriod nowTime;
                 // 数据库中存在该 ID，将其放入时间表格
                 if (timePeriodMap.containsKey(timeId)) {
-                    hourRow.add(new TimePeriodSimpleDTO().convertFrom(timePeriodMap.get(timeId)));
+                    nowTime = timePeriodMap.get(timeId);
                 } else {
-
                     // 数据库中不存在，生成占位时间段实例
-                    TimePeriod emptyTime = new TimePeriod(timeId, du.get());
-                    // 状态变更
-                    if(nowTimeId > timeId) {
-                        emptyTime.setState(PASSED);
-                    } else if (week > 0) {
-                        emptyTime.setState(NOT_OPEN);
-                    } else {
-                        emptyTime.setState(IDLE);
-                    }
-                    emptyTime.setShowText("");
-                    hourRow.add(new TimePeriodSimpleDTO().convertFrom(emptyTime));
+                    nowTime = new TimePeriod(timeId, du.get());
+                    nowTime.setShowText("");
                 }
+                // 状态变更
+                // TODO: 关注状态变更
+                if (nowTime.getState() == null) { // 空闲状态
+                    nowTime.setState(IDLE);
+                }
+                if (!nowTime.getState().isDisabledState()) {  // 禁用状态优先级更高
+                    if (nowTimeId > timeId) {
+                        nowTime.setState(PASSED);
+                    } else if (week > 0) {
+                        nowTime.setState(NOT_OPEN);
+                    }
+                }
+                hourRow.add(new TimePeriodSimpleDTO().convertFrom(nowTime));
                 du.tomorrow();  // 下移一天
             }
             timeTable.add(hourRow);
@@ -156,9 +153,52 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
         return res;
     }
 
+    private Room checkParamAndAuthority(@NonNull TimeParam param, @NonNull User admin) {
+        Assert.notNull(param, "TimeParam 不能为 null");
+
+        // 参数校验
+        ArrayList<Long> timeIds = param.getIds();
+        if (timeIds.size() == 0) {
+            throw new BadRequestException("请至少选择一个时段");
+        }
+        // 准备基础数据
+        int roomId = (int) (timeIds.get(0) % 10000);
+        Room targetRoom = roomService.getById(roomId);
+
+        if (!roomService.roomManagedBy(targetRoom, admin)) {
+            throw new ForbiddenException("权限不足，无法操作该活动室");
+        }
+        return targetRoom;
+    }
+
+    private TimeTableVO simpleModifyBy(@NonNull TimeParam param, @NonNull Consumer<List<TimePeriod>> dealer) {
+        Assert.notNull(dealer, "处理函数不能为 null");
+        // 校验、准备数据
+        User admin = SecurityContextHolder.ensureUser();
+        Room targetRoom = checkParamAndAuthority(param, admin);
+        ArrayList<Long> timeIds = param.getIds();
+        // 修改状态
+        List<TimePeriod> toModify = listAllByIds(timeIds);
+        if (toModify.size() < timeIds.size()) {
+            throw new NotFoundException("您不能直接操作空白时段，请检查您的选择");
+        }
+        dealer.accept(toModify);
+        // 返回更新后的表格
+        return buildTable(targetRoom, param.getWeek(), admin);
+    }
+
+    //******************* Override ******************************************
+
+    @Override
+    public TimeTableVO getTimeTable(@NonNull Integer roomId, @NonNull Integer week) {
+        Room targetRoom = roomService.getById(roomId);
+        User nowUser = SecurityContextHolder.ensureUser();
+        return buildTable(targetRoom, week, nowUser);
+    }
+
     @Override
     @CacheLock(prefix = "time_dis_lock", expired = 0, msg = "因为操作冲突，您的请求被取消取消，请重试", argSuffix = "timeId")
-    public void occupyTimePeriod(@NonNull Long timeId) {
+    public TimePeriodSimpleDTO occupyTimePeriod(@NonNull Long timeId) {
         Assert.notNull(timeId, "timeId 不能为 null");
         // 得到目标时段实体
         TimePeriod timeInDB = getByIdOfNullable(timeId);
@@ -169,6 +209,11 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
         // 得到活动室
         Integer roomId = (int) (timeId % 10000);
         Room targetRoom = roomService.getById(roomId);
+
+        // 活动室是否开放
+        if (!targetRoom.getAvailable()) {
+            throw new ForbiddenException("活动室暂未开放");
+        }
 
         // 校验用户权限
         User nowUser = SecurityContextHolder.ensureUser();
@@ -216,11 +261,12 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
         timeInDB.setUserId(nowUser.getId());
         timeInDB.setState(OCCUPIED);
         // 存储、应用修改（更新或新建）
-        timeRepository.save(timeInDB);
+        timeInDB = timeRepository.save(timeInDB);
+        return new TimePeriodSimpleDTO().convertFrom(timeInDB);
     }
 
     @Override
-    public void cancelTimePeriod(@NonNull Long timeId) {
+    public TimePeriodSimpleDTO cancelTimePeriod(@NonNull Long timeId) {
         Assert.notNull(timeId, "timeId 不能为 null");
         TimePeriod target = getById(timeId);
         User nowUser = SecurityContextHolder.ensureUser();
@@ -230,6 +276,48 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
         }
         // 从数据库中移除
         remove(target);
+        return new TimePeriodSimpleDTO().convertFrom(target);
     }
 
+    @Override
+    public TimeTableVO blockBy(@NonNull TimeParam param) {
+        // 校验、准备数据
+        User admin = SecurityContextHolder.ensureUser();
+        Room targetRoom = checkParamAndAuthority(param, admin);
+        // 整理数据
+        List<TimePeriod> toBlock = listAllByIds(param.getIds());
+        Map<Long, TimePeriod> toBlockMap = ServiceUtils.convertToMap(toBlock, TimePeriod::getId);
+        // 构建需要变更的实体集合
+        LinkedList<TimePeriod> toSave = new LinkedList<>();
+        param.getIds().forEach(timeId -> {
+            TimePeriod targetTime = toBlockMap.get(timeId);
+            if (targetTime == null) {  // 该时段为空白时段
+                targetTime = new TimePeriod(timeId);
+            }
+            targetTime.setShowText("");
+            targetTime.setUserId(null);
+            if (!param.getColorState().isDisabledState()) {
+                throw new BadRequestException("颜色不存在");
+            }
+            targetTime.setState(param.getColorState());
+            toSave.add(targetTime);
+        });
+        // 存储
+        updateInBatch(toSave);
+        // 返回更新后的表格
+        return buildTable(targetRoom, param.getWeek(), admin);
+    }
+
+    @Override
+    public TimeTableVO clearBy(@NonNull TimeParam param) {
+        return simpleModifyBy(param, this::removeAll);
+    }
+
+    @Override
+    public TimeTableVO changeTextBy(@NonNull TimeParam param) {
+        return simpleModifyBy(param, toModify -> {
+            toModify.forEach(time -> time.setShowText(param.getShowText()));
+            updateInBatch(toModify);
+        });
+    }
 }

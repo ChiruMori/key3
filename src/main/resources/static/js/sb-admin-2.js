@@ -274,6 +274,88 @@ let utils = (function () {
         wrapUrlWithToken: function (url) {
             let connector = /\?.+=/.test(url) ? '&' : '?'; // 判断 URL 中是否已经带有参数
             return url + connector + CONST_VAL.tokenQueryName + '=' + readCache(CONST_VAL.tokenKey);
+        },
+        // Sweetalert 的包装方法
+        alert: function (msg) {
+            return swal(msg);
+        },
+        success: function (title, msg) {
+            return swal(title, msg, 'success');
+        },
+        warning: function (title, msg) {
+            return swal(title, msg, 'warning');
+        },
+        error: function (title, msg) {
+            return swal(title, msg, 'error');
+        },
+        confirm: function (title, msg, okBtn, cancelBtn) {
+            return swal({
+                title: title,
+                text: msg,
+                buttons: {
+                    cancel: {
+                        text: cancelBtn,
+                        className: 'btn btn-danger',
+                        closeModal: true,
+                        value: false,
+                        visible: true,
+                    },
+                    confirm: {
+                        text: okBtn,
+                        className: 'btn btn-primary',
+                        closeModal: true,
+                        value: true,
+                        visible: true,
+                    }
+                }
+            });
+        },
+        prompt: function (title, msg, type, placeholder) {
+            return new Promise(function (res) {
+                let inp = document.createElement('input');
+                if (!placeholder) {
+                    placeholder = '';
+                }
+                if (!type) {
+                    type = 'text';
+                }
+                inp.setAttribute('type', type);
+                swal({
+                    title: title,
+                    text: msg,
+                    content: {
+                        element: "input",
+                        attributes: {
+                            placeholder: placeholder,
+                            type: type,
+                        },
+                    },
+                }).then(function (str) {
+                    res(str);
+                });
+            });
+        },
+        select: function (title, msg, options, selectClass, defaultText) {
+            let selectTag = document.createElement('select');
+            selectTag.className = selectClass;
+            let defaultOpt = document.createElement('option');
+            defaultOpt.setAttribute('disabled', true);
+            defaultOpt.text = defaultText;
+            selectTag.append(defaultOpt);
+            options.forEach(function (opt) {
+                let optTag = document.createElement('option');
+                optTag.text = opt.text;
+                optTag.value = opt.value;
+                selectTag.append(optTag);
+            });
+            selectTag.onchange = function () {
+                swal.setActionValue(selectTag.value);
+            }
+            return swal({
+                title: title,
+                text: msg,
+                content: selectTag
+            });
         }
     }
 })();

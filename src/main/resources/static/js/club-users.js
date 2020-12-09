@@ -65,10 +65,10 @@ $(document).ready(function () {
                 }, {
                     data: 'role',
                     type: GLOBAL_VAL.systemAdmin ? 'checkbox' : 'readonly',
-                    render: function(role) {
+                    render: function (role) {
                         return role === 'SYSTEM_ADMIN' ? '是' : '否';
                     },
-                    altEditorRender: function(role) {
+                    altEditorRender: function (role) {
                         return role === 'SYSTEM_ADMIN';
                     }
                 }],
@@ -90,7 +90,7 @@ $(document).ready(function () {
                 onAddRow: function (datatable, rowdata, success, error) {
                     utils.showLoading('ADDING...');
                     let systemAdmin = rowdata.role;
-                    delete(rowdata.role);
+                    delete (rowdata.role);
                     rowdata.systemAdmin = systemAdmin;
                     utils.ajax("admin/api/user", rowdata, 'POST', function (res) {
                         success(res.data);
@@ -106,11 +106,21 @@ $(document).ready(function () {
                         utils.showLoading('DELETING...');
                         success(res.data);
                     }, commonAjaxFailHandler(error), utils.hideLoading);
+                    utils.prompt("删除用户？",
+                        "注意，这会同时删除用户全部信息，包括社团的参加信息、活动的参加信息、所有该用户的预约；如果您不顾一切要这样做，请输入该用户的名字以进行确认",
+                        "input", rowdata.realName).then(function (inputValue) {
+                        if (inputValue === rowdata.realName) {
+                            utils.ajax("admin/api/user/" + rowdata.id, {}, 'DELETE', function (res) {
+                                success(res.data);
+                                utils.success("操作成功", "已删除指定的用户");
+                            }, commonAjaxFailHandler(error));
+                        }
+                    });
                 },
                 onEditRow: function (datatable, rowdata, success, error) {
                     utils.showLoading('MODIFYING...');
                     let systemAdmin = rowdata.role;
-                    delete(rowdata.role);
+                    delete (rowdata.role);
                     rowdata.systemAdmin = systemAdmin;
                     utils.ajax("admin/api/user", rowdata, 'PUT', function (res) {
                         success(res.data);

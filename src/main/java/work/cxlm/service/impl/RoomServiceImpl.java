@@ -197,6 +197,17 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
 
     @Override
     public boolean roomAvailableToUser(@NonNull Room room, @NonNull User user) {
+        return hasRelationBetweenRoomAndUser(room, user, false);
+    }
+
+    @Override
+    public boolean roomManagedBy(@NonNull Room room, @NonNull User admin) {
+        return hasRelationBetweenRoomAndUser(room, admin, true);
+    }
+
+    // ***************** Private *********************
+
+    private boolean hasRelationBetweenRoomAndUser(@NonNull Room room, @NonNull User user, boolean mustAdmin) {
         Assert.notNull(room, "room 不能为 null");
         Assert.notNull(user, "user 不能为 null");
         // 系统管理员无视权限
@@ -208,6 +219,7 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
         List<Joining> userJoining = joiningService.listAllJoiningByUserId(user.getId());
         // 获得用户加入的全部社团
         Set<Integer> userClubs = userJoining.stream().
+                filter(joining -> !mustAdmin || joining.getAdmin()).  // 在需要管理员权限时进行过滤
                 map(joining -> joining.getId().getClubId()).
                 collect(Collectors.toSet());
         // 用户加入的社团与活动室所属的社团有交集，则认为用户可以对该活动室进行操作

@@ -68,4 +68,9 @@ public interface RoomService extends CrudService<Room, Integer> {
      * 校验用户是否可以使用该活动室
      */
     boolean roomAvailableToUser(@NonNull Room room, @NonNull User user);
+
+    /**
+     * 判定活动室是否归某用户管理
+     */
+    boolean roomManagedBy(@NonNull Room targetRoom, @NonNull User admin);
 }
