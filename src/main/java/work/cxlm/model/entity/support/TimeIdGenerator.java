@@ -12,7 +12,8 @@ import java.util.Calendar;
 import java.util.Date;
 
 /**
- * 时段 ID 编码策略的实现
+ * 时段 ID 编码策略的实现，所有使用该编码进行转化、获取信息的方法均在这里定义
+ * 从 ID 中获取信息时，应该调用本类方法，而不在其他地方手动转化，如果编码规则发生改变将影响较小
  * created 2020/12/6 10:56
  *
  * @author Chiru
@@ -58,5 +59,19 @@ public class TimeIdGenerator extends IdentityGenerator {
                 setDate(year, month, day).
                 setTimeOfDay(hour, (int) (long) (id), 0).
                 build().getTime();
+    }
+
+    /**
+     * 获得前一时段的时间 ID，注意，不会跨越日期
+     */
+    public static Long previousTimeId(Long timeId) {
+        return timeId - 100_0000L;
+    }
+
+    /**
+     * 从 ID 中得到 roomId
+     */
+    public static int getRoomId(Long timeId) {
+        return (int) (timeId % 10000);
     }
 }

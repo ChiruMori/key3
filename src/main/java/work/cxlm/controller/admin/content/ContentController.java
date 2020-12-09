@@ -72,6 +72,12 @@ public class ContentController {
         return "pages/system-log";
     }
 
+    @GetMapping("system-opt")
+    public String systemOpt(Model model) {
+        adminModel.wrapBaseData(model, false);
+        return "pages/system-opt";
+    }
+
     @GetMapping("club-room")
     public String clubRoomInfo(Model model) {
         adminModel.wrapBaseData(model, false);

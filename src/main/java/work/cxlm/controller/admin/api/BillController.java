@@ -25,7 +25,7 @@ public class BillController {
     }
 
     @ApiOperation("获取指定社团的所有收支列表")
-    @GetMapping("bills/{clubId}")
+    @GetMapping("bills/{clubId:\\d+}")
     public BillTableVO getBillTableData(@PathVariable("clubId") Integer clubId) {
         return billService.listClubAllBill(clubId);
     }
@@ -43,7 +43,7 @@ public class BillController {
     }
 
     @ApiOperation("删除某个收支项")
-    @DeleteMapping("bills/{billId}")
+    @DeleteMapping("bills/{billId:\\d+}")
     public BillVO deleteBillById(@PathVariable("billId") Integer billId) {
         return billService.deleteBill(billId);
     }

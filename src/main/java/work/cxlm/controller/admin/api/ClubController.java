@@ -25,7 +25,7 @@ public class ClubController {
         this.clubService = clubService;
     }
 
-    @GetMapping("/club/{clubId}")
+    @GetMapping("/club/{clubId:\\d+}")
     @ApiOperation("获取社团信息")
     public ClubDTO clubInfo (@ApiParam("社团 ID") @PathVariable("clubId") Integer clubId) {
         return clubService.getManagedClubInfo(clubId);
@@ -43,7 +43,7 @@ public class ClubController {
         return clubService.updateByParam(clubParam);
     }
 
-    @DeleteMapping("/club/{clubId}")
+    @DeleteMapping("/club/{clubId:\\d+}")
     @ApiOperation("删除社团信息，会级联删除对应的用户加入信息、财务信息、公告信息、活动室归属信息，需要给用户强烈提示")
     public void deleteClub (@ApiParam("社团 ID") @PathVariable("clubId") Integer clubId) {
         clubService.deleteClub(clubId);

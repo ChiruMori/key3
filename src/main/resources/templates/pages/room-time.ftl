@@ -82,6 +82,6 @@
 </div>
 <!-- End of Page Wrapper -->
 <#include "../common/footer.ftl">
-<script type="text/javascript" src="/key3/js/room-time.js"></script>
+<script type="text/javascript" src="/key3/js/room-time.min.js"></script>
 </body>
 </html>

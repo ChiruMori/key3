@@ -187,4 +187,10 @@ public class DateUtils {
         return day;
     }
 
+    /**
+     * 获取小时，24 时制
+     */
+    public int getHour() {
+        return calendar.get(Calendar.HOUR_OF_DAY);
+    }
 }

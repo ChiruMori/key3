@@ -6,10 +6,6 @@ package work.cxlm.model.properties;
  * @author Chiru
  */
 public enum PrimaryProperties implements PropertyEnum {
-    /**
-     * 系统安装日期
-     */
-    START_TIME("start_time", Long.class, ""),
 
     /**
      * 图标

@@ -35,7 +35,7 @@ public class UserAdminController {
         this.adminService = adminService;
     }
 
-    @GetMapping("user/all/{clubId}")
+    @GetMapping("user/all/{clubId:\\d+}")
     @ApiOperation("管理员获取某社团成员列表，成员不一定包含系统管理员")
     public List<UserDTO> getAllLogs(@PathVariable Integer clubId) {
         return adminService.listClubUsers(clubId);
@@ -53,13 +53,13 @@ public class UserAdminController {
         return adminService.createBy(userParam);
     }
 
-    @DeleteMapping("user/{userId}")
+    @DeleteMapping("user/{userId:\\d+}")
     @ApiOperation("系统管理员删除用户，会销毁改用户相关的全部信息，包括历史信息")
     public UserDTO deleteUser(@PathVariable("userId") Integer userId) {
         return adminService.delete(userId);
     }
 
-    @GetMapping("user/list/{clubId}")
+    @GetMapping("user/list/{clubId:\\d+}")
     @ApiOperation("分页获取社团成员列表，与 User 接口用法、参数相同")
     public Page<PageUserVO> pageClubUsers(@ApiParam(value = "社团 ID", required = true, example = "1") @PathVariable("clubId") Integer clubId,
                                           @PageableDefault(sort = "total", direction = Sort.Direction.DESC) Pageable pageable) {

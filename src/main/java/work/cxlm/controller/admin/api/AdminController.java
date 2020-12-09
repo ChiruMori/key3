@@ -68,7 +68,7 @@ public class AdminController {
         adminService.revoke(param);
     }
 
-    @GetMapping("dashboard/{clubId}")
+    @GetMapping("dashboard/{clubId:\\d+}")
     @ApiOperation("请求仪表盘页面需要的数据")
     public DashboardVO getDashboardData(@PathVariable("clubId") Integer clubId) {
         return adminService.dashboardDataOf(clubId);

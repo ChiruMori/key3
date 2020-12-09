@@ -87,7 +87,7 @@
 
     <!-- 系统参数设置 -->
     <li class="nav-item">
-        <a class="nav-link token-tag" href="#">
+        <a class="nav-link token-tag" href="/key3/admin/page/system-opt">
             <i class="fas fa-fw fa-th-list"></i>
             <span>系统参数</span></a>
     </li>

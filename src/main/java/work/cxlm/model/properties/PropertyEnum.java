@@ -127,6 +127,7 @@ public interface PropertyEnum extends ValueEnum<String> {
         // 添加系统配置，增加配置类时需要在这里进行注册
         classes.add(EmailProperties.class);
         classes.add(PrimaryProperties.class);
+        classes.add(RuntimeProperties.class);
         Map <String, PropertyEnum> result = new HashMap<>();
         classes.forEach(cls -> {
             PropertyEnum[] propertyEnums = cls.getEnumConstants();

@@ -83,7 +83,7 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
                     optionToCreate.add(param.convertTo());
                 } else {
                     param.update(oldOption);
-                    optionToUpdate.add(param.convertTo());
+                    optionToUpdate.add(oldOption);
                 }
             }
         });
@@ -335,7 +335,7 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
 
     private void publishOptionUpdateEvent() {
         flush();
-        cleanCache();
+        cleanCache();  // 别删这个，注意，与事件监听器中的 clearCache 并不是一个东西
         eventPublisher.publishEvent(new OptionUpdatedEvent(this));
     }
 

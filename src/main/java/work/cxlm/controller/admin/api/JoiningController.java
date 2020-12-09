@@ -31,13 +31,13 @@ public class JoiningController {
     }
 
     @ApiOperation("退出社团")
-    @DeleteMapping("joining/{clubId}/{studentNo}")
+    @DeleteMapping("joining/{clubId:\\d+}/{studentNo:\\d+}")
     public JoiningDTO removeMember(@PathVariable("clubId") Integer clubId, @PathVariable("studentNo") Long studentNo) {
         return joiningService.removeMember(clubId, studentNo);
     }
 
     @ApiOperation("获取某社团的全部成员加入信息")
-    @GetMapping("joining/{clubId}")
+    @GetMapping("joining/{clubId:\\d+}")
     public List<JoiningDTO> listAllJoining(@PathVariable Integer clubId) {
         return joiningService.listAllJoiningDTOByClubId(clubId);
     }

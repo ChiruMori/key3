@@ -1,6 +1,7 @@
 package work.cxlm.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
@@ -101,6 +102,12 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
         int endHour = targetRoom.getEndHour();
 
         DateUtils du = new DateUtils(new Date());
+        boolean nextFlag = false;
+        // 周日，而且超过了活动室的当日关闭时间
+        if (du.whatDayIsIt() == 7 && du.getHour() >= targetRoom.getEndHour()) {
+            week += 1;
+            nextFlag = true;
+        }
         long nowTimeId = TimeIdGenerator.encodeId(du, 0);  // 获得当前时间点的 ID
         du.changeWeek(week).weekStart();  // 移动到指定周周一
         for (int i = startHour; i < endHour; i++) {
@@ -122,7 +129,7 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
                 } else {
                     // 数据库中不存在，生成占位时间段实例
                     nowTime = new TimePeriod(timeId, du.get());
-                    nowTime.setShowText("");
+                    nowTime.setShowText(StringUtils.EMPTY);
                 }
                 // 状态变更
                 // TODO: 关注状态变更
@@ -132,7 +139,7 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
                 if (!nowTime.getState().isDisabledState()) {  // 禁用状态优先级更高
                     if (nowTimeId > timeId) {
                         nowTime.setState(PASSED);
-                    } else if (week > 0) {
+                    } else if (week > 1 || (week == 1 && !nextFlag)) { // 请求未来的周，且未到切换周的时间点
                         nowTime.setState(NOT_OPEN);
                     }
                 }
@@ -162,7 +169,7 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
             throw new BadRequestException("请至少选择一个时段");
         }
         // 准备基础数据
-        int roomId = (int) (timeIds.get(0) % 10000);
+        int roomId = TimeIdGenerator.getRoomId(timeIds.get(0));
         Room targetRoom = roomService.getById(roomId);
 
         if (!roomService.roomManagedBy(targetRoom, admin)) {
@@ -207,7 +214,7 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
         }
 
         // 得到活动室
-        Integer roomId = (int) (timeId % 10000);
+        Integer roomId = TimeIdGenerator.getRoomId(timeId);
         Room targetRoom = roomService.getById(roomId);
 
         // 活动室是否开放
@@ -232,7 +239,7 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
         }
 
         // 检验是否超出了时长限制
-        List<TimePeriod> weekTimePeriods = getWeekTimePeriods((int) (timeId % 10000), 0);
+        List<TimePeriod> weekTimePeriods = getWeekTimePeriods(roomId, 0);
         int[] statistic = new int[8];  // 统计，0 为周占用，1~7 为周日到周六
         weekTimePeriods.forEach(time -> {
             if (!Objects.equals(time.getUserId(), nowUser.getId())) {
@@ -247,7 +254,7 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
         }
 
         // 签到继承
-        Long previousTimeId = timeId - 100_0000L;
+        Long previousTimeId = TimeIdGenerator.previousTimeId(timeId);
         TimePeriod previousTime = getByIdOfNullable(previousTimeId);
         if (previousTime != null && // 前移时段不为 null
                 Objects.equals(previousTime.getUserId(), nowUser.getId()) && // 前一时段同为当前用户占用

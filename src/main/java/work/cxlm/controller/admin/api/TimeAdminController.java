@@ -24,7 +24,7 @@ public class TimeAdminController {
     }
 
     @ApiOperation(value = "获取活动室当前时间段表格，与用户同名接口完全相同", notes = "返回数据包括当前周次信息、时间表、时间标题信息。用于预约列表页的显示。")
-    @GetMapping("table/{roomId}/{week}")
+    @GetMapping("table/{roomId:\\d+}/{week:\\d+}")
     public TimeTableVO getTimePeriod(@ApiParam("活动室 ID") @PathVariable("roomId") Integer roomId,
                                      @ApiParam("周次，当前周为 0，前一周为 -1，后一周为1") @PathVariable("week") Integer week){
         return timeService.getTimeTable(roomId, week);
