@@ -76,4 +76,20 @@ public class DateUtilsTester {
         assertEquals(DateUtils.whatDayIs(date20201130), 1);
         assertEquals(DateUtils.whatDayIs(date20201205), 6);
     }
+
+    @Test
+    public void nextHourTest() {
+        Date date202012122333 = new Date(1607787213000L);  // 12.12 23:33
+        Date date202012130000 = new Date(1607788800000L);  // 12.13 00:00
+        Date date202012130100 = new Date(1607792400000L);  // 12.13 01:00
+
+        assertEquals(new DateUtils(date202012122333).nextTopHour().getTime(), date202012130000.getTime());
+        assertEquals(new DateUtils(date202012130000).nextTopHour().getTime(), date202012130100.getTime());
+    }
+
+    @Test
+    public void formatTest() {
+        Date date202012122333 = new Date(1607787213000L);  // 12.12 23:33
+        assertEquals(new DateUtils(date202012122333).getFormattedTime(), "2020.12.12 23:33");
+    }
 }

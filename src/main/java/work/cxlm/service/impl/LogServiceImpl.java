@@ -82,13 +82,7 @@ public class LogServiceImpl extends AbstractCrudService<Log, Long> implements Lo
             return logDTO;
         }
         User targetUser = userMap.get(logDTO.getLogKey());
-        if (targetUser == null) {
-            logDTO.setWho("不明人士");
-            logDTO.setShowHead(QfzsConst.SYSTEM_HEAD);
-            return logDTO;
-        }
-        logDTO.setWho(targetUser.getRealName());
-        logDTO.setShowHead(targetUser.getHead());
+        logDTO.fromUserData(targetUser);
         return logDTO;
     }
 }

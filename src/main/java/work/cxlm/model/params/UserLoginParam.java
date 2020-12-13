@@ -1,5 +1,6 @@
 package work.cxlm.model.params;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.hibernate.validator.constraints.Range;
 import work.cxlm.model.dto.base.InputConverter;
@@ -21,8 +22,11 @@ import javax.validation.constraints.Size;
 @Data
 public class UserLoginParam {
 
-    @NotBlank(message = "用户登录凭证不能为空", groups = CreateCheck.class)
+    @ApiModelProperty("code 调用 wx.login 后获取到的 code 用于生成 openId")
     private String code;
+
+    @ApiModelProperty("如果前端已经拿到 openId 则传递此参数进行登录，传递此参数时，无需传递 code")
+    private String wxId;
 
 }
 

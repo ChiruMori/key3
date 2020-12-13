@@ -116,6 +116,10 @@
                                         <label for="favicon_url">站点图标 URL</label>
                                         <input type="text" class="form-control" id="favicon_url" name="favicon_url">
                                     </div>
+                                    <div class="form-group">
+                                        <label for="mini_code_url">小程序码 URL</label>
+                                        <input type="text" class="form-control" id="mini_code_url" name="mini_code_url">
+                                    </div>
                                     <button type="submit" class="btn btn-primary" id="primaryBtn">提交</button>
                                 </form>
                             </div>

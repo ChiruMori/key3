@@ -16,7 +16,7 @@ import work.cxlm.model.enums.LogType;
 @Data
 @ToString
 @EqualsAndHashCode(callSuper = true)
-public class LogDTO extends DashboardListItem implements OutputConverter<LogDTO, Log> {
+public class LogDTO extends ListItemDTO implements OutputConverter<LogDTO, Log> {
 
     private Long id;
 

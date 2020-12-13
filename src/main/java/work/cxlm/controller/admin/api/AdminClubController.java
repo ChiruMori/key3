@@ -17,11 +17,11 @@ import javax.validation.Valid;
  */
 @RestController
 @RequestMapping("/key3/admin/api/")
-public class ClubController {
+public class AdminClubController {
 
     private final ClubService clubService;
 
-    public ClubController(ClubService clubService) {
+    public AdminClubController(ClubService clubService) {
         this.clubService = clubService;
     }
 

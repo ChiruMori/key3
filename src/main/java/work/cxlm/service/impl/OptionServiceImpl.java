@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import work.cxlm.cache.AbstractStringCacheStore;
-import work.cxlm.event.option.OptionUpdatedEvent;
+import work.cxlm.event.OptionUpdatedEvent;
 import work.cxlm.exception.MissingPropertyException;
 import work.cxlm.model.dto.OptionSimpleDTO;
 import work.cxlm.model.dto.OptionDTO;

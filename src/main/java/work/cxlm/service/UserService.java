@@ -8,6 +8,7 @@ import work.cxlm.exception.NotFoundException;
 import work.cxlm.model.entity.Club;
 import work.cxlm.model.entity.Room;
 import work.cxlm.model.entity.User;
+import work.cxlm.model.params.LoginParam;
 import work.cxlm.model.params.UserLoginParam;
 import work.cxlm.model.params.UserParam;
 import work.cxlm.model.vo.PageUserVO;
@@ -32,11 +33,11 @@ public interface UserService extends CrudService<User, Integer> {
     /**
      * 通过用户登录凭证获取 openId
      *
-     * @param code 登录凭证
+     * @param param 登录参数
      * @return openId，可能为 null
      */
     @Nullable
-    String getOpenIdByCode(@NonNull String code);
+    String getOpenIdBy(@NonNull UserLoginParam param);
 
     /**
      * 用户使用 openId 登录，通过小程序登录

@@ -100,6 +100,9 @@ public class User extends BaseEntity {
     @ColumnDefault("0")
     private UserRole role;
 
+    @Column(name="receive_msg")
+    private Boolean receiveMsg;
+
     @Override
     public void prePersist() {
         super.prePersist();
@@ -111,6 +114,9 @@ public class User extends BaseEntity {
         }
         if (StringUtils.isEmpty(sign)) {
             sign = QfzsConst.DEFAULT_USER_SIGNATURE;
+        }
+        if (receiveMsg == null) {
+            receiveMsg = false;
         }
     }
 

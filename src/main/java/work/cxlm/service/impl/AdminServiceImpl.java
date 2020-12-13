@@ -11,13 +11,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import work.cxlm.cache.AbstractStringCacheStore;
-import work.cxlm.event.logger.LogEvent;
+import work.cxlm.event.LogEvent;
 import work.cxlm.exception.*;
 import work.cxlm.model.dto.UserDTO;
 import work.cxlm.model.entity.Club;
 import work.cxlm.model.entity.Joining;
 import work.cxlm.model.entity.User;
 import work.cxlm.model.enums.LogType;
+import work.cxlm.model.enums.NoticeType;
 import work.cxlm.model.enums.UserRole;
 import work.cxlm.model.params.LoginParam;
 import work.cxlm.model.params.AuthorityParam;
@@ -31,7 +32,6 @@ import work.cxlm.security.token.AuthToken;
 import work.cxlm.security.util.SecurityUtils;
 import work.cxlm.service.*;
 import work.cxlm.utils.ServiceUtils;
-import work.cxlm.utils.ServletUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -50,7 +50,8 @@ public class AdminServiceImpl implements AdminService {
 
     private final UserService userService;
     private final JoiningService joiningService;
-    private AbstractStringCacheStore cacheStore;
+    private final AbstractStringCacheStore cacheStore;
+    private final NoticeService noticeService;
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final ClubService clubService;
@@ -64,7 +65,8 @@ public class AdminServiceImpl implements AdminService {
                             ClubService clubService,
                             JoiningService joiningService,
                             LogService logService,
-                            BillService billService) {
+                            BillService billService,
+                            NoticeService noticeService) {
         this.userService = userService;
         this.cacheStore = cacheStore;
         this.userRepository = userRepository;
@@ -73,6 +75,7 @@ public class AdminServiceImpl implements AdminService {
         this.joiningService = joiningService;
         this.logService = logService;
         this.billService = billService;
+        this.noticeService = noticeService;
     }
 
     @Override
@@ -195,8 +198,7 @@ public class AdminServiceImpl implements AdminService {
             if (myself) {
                 targetUser = admin;
             }
-            userParam.update(targetUser);
-            // 企图修改系统管理员权限
+            // 企图修改系统管理员权限，调整为系统管理员或从系统管理员降级
             if (userParam.isSystemAdmin() != targetUser.getRole().isSystemAdmin()) {
                 if (!admin.getRole().isSystemAdmin()) {
                     throw new ForbiddenException("权限不足，无法授权系统管理员");
@@ -208,7 +210,11 @@ public class AdminServiceImpl implements AdminService {
                 } else {
                     targetUser.setRole(UserRole.NORMAL);
                 }
+                // 为用户创建消息
+                noticeService.notifyAndSave(NoticeType.AUTHORITY_CHANGED, "您的权限被系统管理员【" +
+                        admin.getRealName() + "进行了调整", targetUser, admin);
             }
+            userParam.update(targetUser);
             userService.update(targetUser);
             return new UserDTO().convertFrom(targetUser);
         }

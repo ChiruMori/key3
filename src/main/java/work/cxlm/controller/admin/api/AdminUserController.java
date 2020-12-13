@@ -24,12 +24,12 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/key3/admin/api/")
-public class UserAdminController {
+public class AdminUserController {
 
     private final UserService userService;
     private final AdminService adminService;
 
-    public UserAdminController(UserService userService,
+    public AdminUserController(UserService userService,
                                AdminService adminService) {
         this.userService = userService;
         this.adminService = adminService;
@@ -53,7 +53,7 @@ public class UserAdminController {
         return adminService.createBy(userParam);
     }
 
-    @DeleteMapping("user/{userId:\\d+}")
+    @DeleteMapping("user/{userId}")
     @ApiOperation("系统管理员删除用户，会销毁改用户相关的全部信息，包括历史信息")
     public UserDTO deleteUser(@PathVariable("userId") Integer userId) {
         return adminService.delete(userId);

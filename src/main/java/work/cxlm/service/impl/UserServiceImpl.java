@@ -11,6 +11,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import work.cxlm.cache.AbstractStringCacheStore;
 import work.cxlm.config.QfzsProperties;
 import work.cxlm.exception.*;
@@ -20,6 +21,8 @@ import work.cxlm.model.entity.Room;
 import work.cxlm.model.entity.User;
 import work.cxlm.model.entity.id.JoiningId;
 import work.cxlm.model.enums.UserRole;
+import work.cxlm.model.params.LoginParam;
+import work.cxlm.model.params.UserLoginParam;
 import work.cxlm.model.params.UserParam;
 import work.cxlm.model.support.CreateCheck;
 import work.cxlm.model.support.UpdateCheck;
@@ -96,9 +99,15 @@ public class UserServiceImpl extends AbstractCrudService<User, Integer> implemen
     }
 
     @Override
-    public String getOpenIdByCode(@NonNull String code) {
+    public String getOpenIdBy(@NonNull UserLoginParam loginParam) {
+        if (!StringUtils.isEmpty(loginParam.getWxId())) {
+            return loginParam.getWxId();
+        }
+        if (StringUtils.isEmpty(loginParam.getCode())) {
+            throw new MissingPropertyException("必须指定 code 或 open Id 以完成登录");
+        }
         Code2SessionParam param = new Code2SessionParam(qfzsProperties.getAppId(), qfzsProperties.getAppSecret(),
-                code, "authorization_code");
+                loginParam.getCode(), "authorization_code");
         Code2SessionResponse response = RpcClient.getUrl(qfzsProperties.getAppRequestUrl(), Code2SessionResponse.class, param);
         if (response.getOpenid() == null) {
             throw new ServiceException("错误的响应").setErrorData(response);
@@ -156,8 +165,17 @@ public class UserServiceImpl extends AbstractCrudService<User, Integer> implemen
             if (currentUser == null) { // 数据库中也没有用户信息
                 throw new NotFoundException("无效的学号，请联系管理员授权后使用");
             }
+            if (StringUtils.isEmpty(param.getWxId()) ) {
+                throw new MissingPropertyException("更新用户信息必须传递 open ID");
+            }
+            if (!StringUtils.isEmpty(currentUser.getWxId()) && !Objects.equals(currentUser.getWxId(), param.getWxId())) {
+                throw new ForbiddenException("该学号已存在，请联系管理员，并提供您的学号");
+            }
         } else {
             ValidationUtils.validate(param, UpdateCheck.class);
+            if (param.getReceiveMsg() && StringUtils.isEmpty(param.getEmail())) {
+                throw new MissingPropertyException("若开启通知，则必须填写邮箱地址");
+            }
         }
         param.update(currentUser);
         currentUser = userRepository.save(currentUser);

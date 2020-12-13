@@ -96,6 +96,9 @@ public class TimePeriod extends BaseEntity {
         if (showText == null) {
             showText = StringUtils.EMPTY;
         }
+        if (signed == null) {
+            signed = false;
+        }
     }
 
     public TimePeriod(Long id, Date startTime) {

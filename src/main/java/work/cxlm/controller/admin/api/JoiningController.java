@@ -31,7 +31,7 @@ public class JoiningController {
     }
 
     @ApiOperation("退出社团")
-    @DeleteMapping("joining/{clubId:\\d+}/{studentNo:\\d+}")
+    @DeleteMapping("joining/{clubId:\\d+}/{studentNo}")
     public JoiningDTO removeMember(@PathVariable("clubId") Integer clubId, @PathVariable("studentNo") Long studentNo) {
         return joiningService.removeMember(clubId, studentNo);
     }

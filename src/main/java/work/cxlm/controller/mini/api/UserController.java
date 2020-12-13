@@ -59,7 +59,7 @@ public class UserController {
     @PostMapping("/login")
     @CacheLock(autoDelete = false, prefix = "login_check")
     public AuthToken userLogin(@Valid @RequestBody UserLoginParam userLoginParam) {
-        String openId = userService.getOpenIdByCode(userLoginParam.getCode());
+        String openId = userService.getOpenIdBy(userLoginParam);
         return userService.login(openId);
     }
 

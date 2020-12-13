@@ -198,7 +198,7 @@ $().ready(function () {
             refreshTable();
         }, function (res) {
             console.error(res);
-            utils.error("ERROR", res.responseJSON.msg);
+            utils.error("ERROR", res.msg);
             utils.hideLoading();
         });
     });

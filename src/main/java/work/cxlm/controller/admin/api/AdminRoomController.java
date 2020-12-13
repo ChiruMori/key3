@@ -20,11 +20,11 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/key3/admin/api/")
-public class RoomAdminController {
+public class AdminRoomController {
 
     private final RoomService roomService;
 
-    public RoomAdminController(RoomService roomService) {
+    public AdminRoomController(RoomService roomService) {
         this.roomService = roomService;
     }
 
@@ -40,20 +40,20 @@ public class RoomAdminController {
         return roomService.updateRoomBy(param);
     }
 
-    @GetMapping("room/{clubId}")
+    @GetMapping("room/{clubId:\\d+}")
     @ApiOperation("获取指定活动室的所有活动室")
     public List<RoomDTO> getClubRooms(@PathVariable Integer clubId) {
         return roomService.listClubRooms(clubId);
     }
 
-    @DeleteMapping("room/{clubId}/{roomId}")
+    @DeleteMapping("room/{clubId:\\d+}/{roomId:\\d+}")
     @ApiOperation("删除某个活动室")
     public RoomDTO deleteRoom(@PathVariable Integer clubId, @PathVariable Integer roomId) {
         return roomService.deleteRoom(clubId, roomId);
     }
 
     @ApiOperation("获取当前系统中缓存着的活动室位置")
-    @GetMapping("room/locations/{clubId}")
+    @GetMapping("room/locations/{clubId:\\d+}")
     public List<LocationDTO> getClubRoomLocations(@PathVariable("clubId") Integer clubId) {
         return roomService.getLocations(clubId);
     }

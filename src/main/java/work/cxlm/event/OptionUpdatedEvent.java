@@ -1,4 +1,4 @@
-package work.cxlm.event.option;
+package work.cxlm.event;
 
 import org.springframework.context.ApplicationEvent;
 

@@ -74,11 +74,17 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
     // ***************** Private ***********************************
 
     // 获得指定周、活动室的全部时间段
-    private List<TimePeriod> getWeekTimePeriods(@NonNull Integer roomId, @NonNull Integer week) {
-        Assert.notNull(roomId, "roomId 不能为 null");
+    private List<TimePeriod> getWeekTimePeriods(@NonNull Room room, @NonNull Integer week) {
+        Assert.notNull(room, "room 不能为 null");
         Assert.notNull(week, "请求的周次不能为 null");
 
-        DateUtils du = new DateUtils(new Date()).weekStart().changeWeek(week + 1);
+        Integer roomId = room.getId();
+        DateUtils du = new DateUtils(new Date());
+        // 移动到新的一周
+        if (du.whatDayIsIt() == 7 && du.getHour() >= room.getEndHour()) {
+            du.tomorrow();
+        }
+        du.weekStart().changeWeek(week + 1);
         Long endTimeId = TimeIdGenerator.encodeId(du, roomId);
         Long startTimeId = TimeIdGenerator.encodeId(du.changeWeek(-1), roomId);
         return timeRepository.findAllByRoomIdAndIdBetween(roomId, startTimeId, endTimeId);
@@ -87,7 +93,7 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
     // 构建指定活动室、周次、用户的预约表格
     private TimeTableVO buildTable(@NonNull Room targetRoom, @NonNull Integer week, User nowUser) {
         // 获得活动室指定周的全部时段
-        List<TimePeriod> weekTimePeriods = getWeekTimePeriods(targetRoom.getId(), week);
+        List<TimePeriod> weekTimePeriods = getWeekTimePeriods(targetRoom, week);
 
         // 整理数据，并标记自己占用的时间段
         Map<Long, TimePeriod> timePeriodMap = ServiceUtils.convertToMap(weekTimePeriods, TimePeriod::getId, time -> {
@@ -108,13 +114,13 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
             week += 1;
             nextFlag = true;
         }
-        long nowTimeId = TimeIdGenerator.encodeId(du, 0);  // 获得当前时间点的 ID
+        long nowTimeId = TimeIdGenerator.encodeId(du.lastHour(), 0);  // 获得当前时间点的 ID
         du.changeWeek(week).weekStart();  // 移动到指定周周一
         for (int i = startHour; i < endHour; i++) {
             // 生成行标题
             du.setHour(i + 1);
-            String endTimeTitle = du.generateTitleTitle();
-            String startTimeTitle = du.setHour(i).generateTitleTitle();
+            String endTimeTitle = du.generateTitle();
+            String startTimeTitle = du.setHour(i).generateTitle();
             timeTitleList.add(String.format("%s %2s", startTimeTitle, endTimeTitle));
 
             // 行数据整理
@@ -205,6 +211,7 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
 
     @Override
     @CacheLock(prefix = "time_dis_lock", expired = 0, msg = "因为操作冲突，您的请求被取消取消，请重试", argSuffix = "timeId")
+    // TODO: 校验，多用户操作时，加锁应该没用
     public TimePeriodSimpleDTO occupyTimePeriod(@NonNull Long timeId) {
         Assert.notNull(timeId, "timeId 不能为 null");
         // 得到目标时段实体
@@ -232,6 +239,11 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
         // 校验时段是否合法（可预约，没过期，已开放）
         Date targetDate = TimeIdGenerator.decodeIdToDate(timeId);
         Date now = new Date();
+        DateUtils nowData = new DateUtils(now);
+        // 新一周开始，当前时间均算作下周一 0 点
+        if(nowData.whatDayIsIt() == 7 && nowData.getHour() >= targetRoom.getEndHour()) {
+            now = nowData.tomorrow().weekStart().get();
+        }
         if (targetDate.before(now)) {
             throw new ForbiddenException("您无法改写历史");
         } else if (DateUtils.weekStartOf(targetDate).after(now)) {
@@ -239,7 +251,7 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
         }
 
         // 检验是否超出了时长限制
-        List<TimePeriod> weekTimePeriods = getWeekTimePeriods(roomId, 0);
+        List<TimePeriod> weekTimePeriods = getWeekTimePeriods(targetRoom, 0);
         int[] statistic = new int[8];  // 统计，0 为周占用，1~7 为周日到周六
         weekTimePeriods.forEach(time -> {
             if (!Objects.equals(time.getUserId(), nowUser.getId())) {
@@ -258,7 +270,7 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
         TimePeriod previousTime = getByIdOfNullable(previousTimeId);
         if (previousTime != null && // 前移时段不为 null
                 Objects.equals(previousTime.getUserId(), nowUser.getId()) && // 前一时段同为当前用户占用
-                previousTime.getSigned()) { // 前一时段已签到
+                previousTime.getSigned() != null && previousTime.getSigned()) { // 前一时段已签到
             timeInDB.setSigned(true); // 本时段自动设为已签到状态
         }
 

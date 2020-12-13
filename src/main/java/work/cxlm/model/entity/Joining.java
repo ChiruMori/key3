@@ -31,10 +31,6 @@ public class Joining extends BaseEntity {
     @Column(name = "position")
     private String position;
 
-    @Column(name = "receive_info")
-    @ColumnDefault("1")
-    private Boolean receiveInfo;
-
     @Column(name = "total")
     private Integer total;
 

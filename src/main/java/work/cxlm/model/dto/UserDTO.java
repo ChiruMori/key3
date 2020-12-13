@@ -32,4 +32,6 @@ public class UserDTO extends SimpleUserDTO implements OutputConverter<UserDTO, U
     private String email;
 
     private UserRole role;
+
+    private Boolean receiveMsg;
 }

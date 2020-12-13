@@ -2,11 +2,13 @@ package work.cxlm.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import work.cxlm.cache.AbstractStringCacheStore;
+import work.cxlm.event.RoomInfoUpdatedEvent;
 import work.cxlm.exception.DataConflictException;
 import work.cxlm.exception.ForbiddenException;
 import work.cxlm.exception.NotFoundException;
@@ -38,6 +40,7 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
 
     private final RoomRepository roomRepository;
     private final AbstractStringCacheStore cacheStore;
+    private final ApplicationEventPublisher eventPublisher;
 
     private ClubService clubService;
     private UserService userService;
@@ -46,10 +49,12 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
 
 
     protected RoomServiceImpl(RoomRepository roomRepository,
-                              AbstractStringCacheStore cacheStore) {
+                              AbstractStringCacheStore cacheStore,
+                              ApplicationEventPublisher eventPublisher) {
         super(roomRepository);
         this.roomRepository = roomRepository;
         this.cacheStore = cacheStore;
+        this.eventPublisher = eventPublisher;
     }
 
     @Autowired
@@ -104,6 +109,8 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
             Room oldRoom = getById(oldRoomId);
             param.update(oldRoom);
             oldRoom = update(oldRoom);
+            // 通知变更
+            eventPublisher.publishEvent(new RoomInfoUpdatedEvent(this));
             return new RoomDTO().convertFrom(oldRoom);
         }
         // 存储活动室信息
@@ -112,6 +119,8 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
         // 存储归属关系
         Belong newBelong = new Belong(targetClub.getId(), newRoom.getId());
         belongService.create(newBelong);
+        // 通知变更
+        eventPublisher.publishEvent(new RoomInfoUpdatedEvent(this));
         return new RoomDTO().convertFrom(newRoom);
     }
 
@@ -138,6 +147,8 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
         // TODO 可用时段调整对现有预定造成的影响
         Room targetRoom = getById(param.getId());
         param.update(targetRoom);
+        // 通知变更
+        eventPublisher.publishEvent(new RoomInfoUpdatedEvent(this));
         return new RoomDTO().convertFrom(update(targetRoom));
     }
 
@@ -170,6 +181,8 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
         // 如果该活动室只归属于一个社团
         boolean onlyOwner = belongService.listRoomClubs(roomId).size() == 1;
         belongService.removeById(bid);  // 删除归属关系
+        // 通知变更
+        eventPublisher.publishEvent(new RoomInfoUpdatedEvent(this));
         if (onlyOwner) {  // 删除活动室，并删除预约历史记录
             // TODO: 删除预约信息
             return new RoomDTO().convertFrom(removeById(roomId));

@@ -15,16 +15,16 @@ import work.cxlm.service.TimeService;
  */
 @RestController
 @RequestMapping("/key3/admin/api/")
-public class TimeAdminController {
+public class AdminTimeController {
 
     private final TimeService timeService;
 
-    public TimeAdminController(TimeService timeService) {
+    public AdminTimeController(TimeService timeService) {
         this.timeService = timeService;
     }
 
     @ApiOperation(value = "获取活动室当前时间段表格，与用户同名接口完全相同", notes = "返回数据包括当前周次信息、时间表、时间标题信息。用于预约列表页的显示。")
-    @GetMapping("table/{roomId:\\d+}/{week:\\d+}")
+    @GetMapping("table/{roomId:\\d+}/{week}")
     public TimeTableVO getTimePeriod(@ApiParam("活动室 ID") @PathVariable("roomId") Integer roomId,
                                      @ApiParam("周次，当前周为 0，前一周为 -1，后一周为1") @PathVariable("week") Integer week){
         return timeService.getTimeTable(roomId, week);
@@ -42,7 +42,7 @@ public class TimeAdminController {
         return timeService.clearBy(param);
     }
 
-    @ApiOperation("管理员修改时段的显示文本")
+    @ApiOperation("管理员修改时段的显示文字")
     @PutMapping("text")
     public TimeTableVO changeTimeText(@Validated @RequestBody TimeParam param) {
         return timeService.changeTextBy(param);

@@ -3,8 +3,10 @@ package work.cxlm.service;
 import org.springframework.lang.NonNull;
 import org.springframework.transaction.annotation.Transactional;
 import work.cxlm.model.dto.ClubDTO;
+import work.cxlm.model.dto.RoomDTO;
 import work.cxlm.model.entity.Club;
 import work.cxlm.model.params.ClubParam;
+import work.cxlm.model.vo.ClubRoomMapVO;
 import work.cxlm.service.base.CrudService;
 
 import java.util.List;
@@ -47,4 +49,14 @@ public interface ClubService extends CrudService<Club, Integer> {
      * 获取全部社团的 ID -> Club 映射
      */
     Map<Integer, Club> getAllClubMap();
+
+    /**
+     * 获取当前用户的全部社团
+     */
+    List<ClubDTO> listUserClubs();
+
+    /**
+     * 构建社团、活动室映射
+     */
+    ClubRoomMapVO buildClubRoomMapOfUser();
 }

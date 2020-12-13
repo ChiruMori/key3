@@ -3,6 +3,7 @@ package work.cxlm.utils;
 import lombok.NonNull;
 import org.springframework.util.Assert;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -15,6 +16,16 @@ import java.util.Date;
 public class DateUtils {
 
     private static final DateUtils INSTANCE = new DateUtils();
+
+    // ================== 构造 ======================
+
+    public DateUtils() {
+        calendar = new Calendar.Builder().setInstant(new Date()).build();
+    }
+
+    public DateUtils(Date date) {
+        calendar = new Calendar.Builder().setInstant(date).build();
+    }
 
     //************************ 静态方法 ***********************
 
@@ -77,23 +88,39 @@ public class DateUtils {
         return INSTANCE.of(date).whatDayIsIt();
     }
 
+    public static int whatHourIsNow() {
+        return INSTANCE.of(new Date()).getHour();
+    }
+
     // ****************** 实例方法 **********************
 
     private Calendar calendar;
 
-    private DateUtils() {
-    }
-
-    public DateUtils(Date date) {
-        calendar = new Calendar.Builder().setInstant(date).build();
+    /**
+     * 生成当前时间的字符串表示，如 12:23
+     */
+    public String generateTitle() {
+        int nowHour = calendar.get(Calendar.HOUR_OF_DAY);
+        int nowMinute = calendar.get(Calendar.MINUTE);
+        return String.format("%02d:%02d", nowHour, nowMinute);
     }
 
     /**
-     * 更换正在操作的日期对象
+     * 获取当前被包装日期的星期
      */
-    public DateUtils of(Date date) {
-        calendar = new Calendar.Builder().setInstant(date).build();
-        return this;
+    public int whatDayIsIt() {
+        int day = calendar.get(Calendar.DAY_OF_WEEK) - 1;
+        if (day == 0) {
+            return 7;
+        }
+        return day;
+    }
+
+    /**
+     * 获取小时，24 时制
+     */
+    public int getHour() {
+        return calendar.get(Calendar.HOUR_OF_DAY);
     }
 
     /**
@@ -101,23 +128,6 @@ public class DateUtils {
      */
     public Date get() {
         return calendar.getTime();
-    }
-
-
-    public DateUtils weekStart() {
-        // 代码中每周以周日开始，周六为 7
-        int nowWeek = calendar.get(Calendar.DAY_OF_WEEK);
-        if (nowWeek == Calendar.SUNDAY) {
-            calendar.add(Calendar.DAY_OF_MONTH, -6);
-        } else {
-            nowWeek -= 2;
-            calendar.add(Calendar.DAY_OF_MONTH, -nowWeek);
-        }
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
-        return this;
     }
 
     /**
@@ -137,6 +147,43 @@ public class DateUtils {
         int hour = calendar.get(Calendar.HOUR_OF_DAY);  // 24 时制
         int minus = calendar.get(Calendar.MINUTE);
         return year * 10000_0000L + month * 100_0000L + day * 10000L + hour * 100L + minus;
+    }
+
+    public String getFormattedTime() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd HH:mm");
+        return sdf.format(calendar.getTime());
+    }
+
+    @Override
+    public String toString() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss.SSS");
+        return sdf.format(calendar.getTime());
+    }
+
+    // ------------------ 链式调用 --------------------------------------
+
+    /**
+     * 更换正在操作的日期对象
+     */
+    public DateUtils of(Date date) {
+        calendar = new Calendar.Builder().setInstant(date).build();
+        return this;
+    }
+
+    public DateUtils weekStart() {
+        // 代码中每周以周日开始，周六为 7
+        int nowWeek = calendar.get(Calendar.DAY_OF_WEEK);
+        if (nowWeek == Calendar.SUNDAY) {
+            calendar.add(Calendar.DAY_OF_MONTH, -6);
+        } else {
+            nowWeek -= 2;
+            calendar.add(Calendar.DAY_OF_MONTH, -nowWeek);
+        }
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        return this;
     }
 
     /**
@@ -167,30 +214,27 @@ public class DateUtils {
         return this;
     }
 
-    /**
-     * 生成当前时间的字符串表示，如 12:23
-     */
-    public String generateTitleTitle() {
-        int nowHour = calendar.get(Calendar.HOUR_OF_DAY);
-        int nowMinute = calendar.get(Calendar.MINUTE);
-        return String.format("%02d:%02d", nowHour, nowMinute);
+    public DateUtils setMinute(int target) {
+        calendar.set(Calendar.MINUTE, target);
+        return this;
     }
 
     /**
-     * 获取当前被包装日期的星期
+     * 下一个整点
      */
-    public int whatDayIsIt() {
-        int day = calendar.get(Calendar.DAY_OF_WEEK) - 1;
-        if (day == 0) {
-            return 7;
-        }
-        return day;
+    public DateUtils nextTopHour() {
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        calendar.add(Calendar.HOUR_OF_DAY, 1);
+        return this;
     }
 
     /**
-     * 获取小时，24 时制
+     * 向前移动一个小时
      */
-    public int getHour() {
-        return calendar.get(Calendar.HOUR_OF_DAY);
+    public DateUtils lastHour() {
+        calendar.add(Calendar.HOUR_OF_DAY, -1);
+        return this;
     }
 }

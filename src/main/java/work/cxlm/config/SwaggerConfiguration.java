@@ -183,8 +183,8 @@ public class SwaggerConfiguration {
 
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
-                .title("MyFont API 文档")
-                .description("描述 MyFont 后端 API 接口的说明文档")
+                .title("Key3 API 文档")
+                .description("描述程序后端接口的 API 文档")
                 .version(qfzsProperties.getVersion())
                 .termsOfServiceUrl("https://github.com/first-snow/myfont")
                 .contact(new Contact("myfont", "https://github.com/first-snow/myfont/issues", "cxlm@cxlm.work"))

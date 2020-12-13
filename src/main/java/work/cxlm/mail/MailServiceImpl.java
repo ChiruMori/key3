@@ -3,10 +3,11 @@ package work.cxlm.mail;
 import freemarker.template.Template;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationListener;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerConfig;
-import work.cxlm.event.option.OptionUpdatedEvent;
+import work.cxlm.event.OptionUpdatedEvent;
 import work.cxlm.service.OptionService;
 
 import java.nio.file.Path;
@@ -64,7 +65,7 @@ public class MailServiceImpl extends AbstractMailService implements ApplicationL
     }
 
     @Override
-    public void onApplicationEvent(OptionUpdatedEvent event) {
+    public void onApplicationEvent(@NonNull OptionUpdatedEvent event) {
         clearCache();
     }
 }

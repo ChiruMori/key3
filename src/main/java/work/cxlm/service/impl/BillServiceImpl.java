@@ -14,7 +14,6 @@ import work.cxlm.model.entity.Bill;
 import work.cxlm.model.entity.Club;
 import work.cxlm.model.entity.User;
 import work.cxlm.model.params.BillParam;
-import work.cxlm.model.support.QfzsConst;
 import work.cxlm.model.vo.BillTableVO;
 import work.cxlm.model.vo.BillVO;
 import work.cxlm.repository.BillRepository;
@@ -65,13 +64,7 @@ public class BillServiceImpl extends AbstractCrudService<Bill, Integer> implemen
             return billDTO;
         }
         User targetUser = userService.getByIdOfNullable(billDTO.getAuthorId());
-        if (targetUser == null) {
-            billDTO.setWho("不明人士");
-            billDTO.setShowHead(QfzsConst.SYSTEM_HEAD);
-            return billDTO;
-        }
-        billDTO.setWho(targetUser.getRealName());
-        billDTO.setShowHead(targetUser.getHead());
+        billDTO.fromUserData(targetUser);
         return billDTO;
     }
 

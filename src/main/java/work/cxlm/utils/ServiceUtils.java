@@ -191,4 +191,36 @@ public class ServiceUtils {
         return srcList.stream().map(converter).collect(Collectors.toList());
     }
 
+    /**
+     * 整理数据，将实例列表整理为 key 对应 Value 列表的映射关系
+     * @param srcList 源实例列表
+     * @param keyConverter 将实例转化为 key 的函数
+     * @param valueConverter 将实例转化为 value 的函数
+     * @param <K> 键类型
+     * @param <V> 值类型
+     * @param <SRC> 源数据类型
+     */
+    @NonNull
+    public static <K, V, SRC> Map<K, List<V>> list2ListMap(@NonNull List<SRC> srcList,
+                                                           @NonNull Function<SRC, K> keyConverter,
+                                                           @NonNull Function<SRC, V> valueConverter) {
+        Assert.notNull(srcList, "源 List 不能为 null");
+        Assert.notNull(keyConverter, "key 转换函数不能为 null");
+        Assert.notNull(valueConverter, "value 转换函数不能为 null");
+
+        Map<K, List<V>> res = new HashMap<>();
+        srcList.forEach(src -> {
+            K key = keyConverter.apply(src);
+            V value = valueConverter.apply(src);
+            if (res.containsKey(key)){
+                res.get(key).add(value);
+            }else {
+                LinkedList<V> valList = new LinkedList<>();
+                valList.add(value);
+                res.put(key, valList);
+            }
+        });
+        return res;
+    }
+
 }
