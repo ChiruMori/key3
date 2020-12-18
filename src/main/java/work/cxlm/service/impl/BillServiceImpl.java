@@ -2,18 +2,21 @@ package work.cxlm.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import work.cxlm.event.LogEvent;
 import work.cxlm.exception.ForbiddenException;
 import work.cxlm.model.dto.BillDTO;
 import work.cxlm.model.entity.Bill;
 import work.cxlm.model.entity.Club;
 import work.cxlm.model.entity.User;
 import work.cxlm.model.params.BillParam;
+import work.cxlm.model.params.LogParam;
 import work.cxlm.model.vo.BillTableVO;
 import work.cxlm.model.vo.BillVO;
 import work.cxlm.repository.BillRepository;
@@ -35,14 +38,18 @@ import java.util.List;
 public class BillServiceImpl extends AbstractCrudService<Bill, Integer> implements BillService {
 
     private final BillRepository billRepository;
+    private final ApplicationEventPublisher eventPublisher;
     private final UserService userService;
+
     private ClubService clubService;
 
     protected BillServiceImpl(BillRepository repository,
-                              UserService userService) {
+                              UserService userService,
+                              ApplicationEventPublisher eventPublisher) {
         super(repository);
         this.billRepository = repository;
         this.userService = userService;
+        this.eventPublisher = eventPublisher;
     }
 
     @Autowired
@@ -109,6 +116,8 @@ public class BillServiceImpl extends AbstractCrudService<Bill, Integer> implemen
         }
         targetClub.setAssets(targetClub.getAssets().add(newBill.getCost()));
         update(newBill);
+        eventPublisher.publishEvent(new LogEvent(this, new LogParam(admin.getId(), targetClub.getId(),
+                "更新了社团收支：" + newBill.getInfo())));
         clubService.update(targetClub);
         // 响应
         BillVO billVO = new BillVO().convertFrom(newBill);
@@ -131,7 +140,8 @@ public class BillServiceImpl extends AbstractCrudService<Bill, Integer> implemen
         // 移除、更新社团经费
         targetClub.setAssets(targetClub.getAssets().subtract(targetBill.getCost()));
         clubService.update(targetClub);
-        removeById(billId);
+        eventPublisher.publishEvent(new LogEvent(this, new LogParam(admin.getId(), targetClub.getId(),
+                "删除了社团收支项：" + targetBill.getInfo())));
         // 响应
         BillVO billVO = new BillVO().convertFrom(targetBill);
         billVO.setWho(admin.getRealName());

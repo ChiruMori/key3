@@ -35,8 +35,11 @@ public class Notice extends BaseEntity {
     @Column(name = "content")
     private String content;
 
-    @Column(name = "src_user_id")
-    private Integer srcUserId;
+    /**
+     * 有可能是用户、也可能是公告
+     */
+    @Column(name = "src_id")
+    private Integer srcId;
 
     @Column(name = "target_user_id")
     private Integer targetUserId;
@@ -46,11 +49,11 @@ public class Notice extends BaseEntity {
         super.prePersist();
     }
 
-    public Notice(NoticeType type, String content, Integer srcUserId, Integer targetUserId) {
+    public Notice(NoticeType type, String content, Integer srcId, Integer targetUserId) {
         this.type = type;
         this.title = type.getTitle();
         this.content = content;
-        this.srcUserId = srcUserId;
+        this.srcId = srcId;
         this.targetUserId = targetUserId;
     }
 }

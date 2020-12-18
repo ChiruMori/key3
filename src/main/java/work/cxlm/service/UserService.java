@@ -118,13 +118,8 @@ public interface UserService extends CrudService<User, Integer> {
      */
     Map<Integer, User> getAllUserMap();
 
-
-    /*
-    * 判断用户能否去使用这个活动室
-    *
-    * @Param user
-    * @Param room
-    * */
-    List<Club> userOrderRoom(@NonNull User user, @NonNull Room room);
-
+    /**
+     * 获取社团的全部用户列表
+     */
+    List<User> getClubUsers(@NonNull Integer clubId);
 }

@@ -5,16 +5,17 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import work.cxlm.cache.lock.CacheLock;
 import work.cxlm.exception.BadRequestException;
 import work.cxlm.exception.ForbiddenException;
 import work.cxlm.exception.NotFoundException;
 import work.cxlm.model.dto.TimePeriodSimpleDTO;
-import work.cxlm.model.entity.Room;
-import work.cxlm.model.entity.TimePeriod;
-import work.cxlm.model.entity.User;
+import work.cxlm.model.entity.*;
 import work.cxlm.model.entity.support.TimeIdGenerator;
+import work.cxlm.model.enums.NoticeType;
 import work.cxlm.model.params.TimeParam;
 import work.cxlm.model.properties.RuntimeProperties;
 import work.cxlm.model.vo.TimeTableVO;
@@ -41,9 +42,8 @@ import static work.cxlm.model.enums.TimeState.*;
 public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> implements TimeService {
 
     private RoomService roomService;
-    private UserService userService;
     private BelongService belongService;
-
+    private NoticeService noticeService;
 
     private final TimeRepository timeRepository;
     private final OptionService optionService;
@@ -59,10 +59,9 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
     }
 
     @Autowired
-    public void setUserService(UserService userService) {
-        this.userService = userService;
+    public void setNoticeService(NoticeService noticeService) {
+        this.noticeService = noticeService;
     }
-
 
     public TimeServiceImpl(TimeRepository timeRepository,
                            OptionService optionService) {
@@ -210,7 +209,7 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
     }
 
     @Override
-    @CacheLock(prefix = "time_dis_lock", expired = 0, msg = "因为操作冲突，您的请求被取消取消，请重试", argSuffix = "timeId")
+    @CacheLock(prefix = "time_dis_lock", expired = 0, msg = "因为操作冲突，您的请求被取消，请重试", argSuffix = "timeId")
     // TODO: 校验，多用户操作时，加锁应该没用
     public TimePeriodSimpleDTO occupyTimePeriod(@NonNull Long timeId) {
         Assert.notNull(timeId, "timeId 不能为 null");
@@ -238,23 +237,24 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
 
         // 校验时段是否合法（可预约，没过期，已开放）
         Date targetDate = TimeIdGenerator.decodeIdToDate(timeId);
-        Date now = new Date();
-        DateUtils nowData = new DateUtils(now);
+        DateUtils nowDate = new DateUtils(new Date()).lastHour();
         // 新一周开始，当前时间均算作下周一 0 点
-        if(nowData.whatDayIsIt() == 7 && nowData.getHour() >= targetRoom.getEndHour()) {
-            now = nowData.tomorrow().weekStart().get();
+        if (nowDate.whatDayIsIt() == 7 && nowDate.getHour() >= targetRoom.getEndHour()) {
+            nowDate.tomorrow().weekStart().get();
         }
-        if (targetDate.before(now)) {
+        if (targetDate.before(nowDate.get())) {
             throw new ForbiddenException("您无法改写历史");
-        } else if (DateUtils.weekStartOf(targetDate).after(now)) {
+        } else if (DateUtils.weekStartOf(targetDate).after(nowDate.get())) {
             throw new ForbiddenException("该时段尚未开放预订");
         }
 
         // 检验是否超出了时长限制
         List<TimePeriod> weekTimePeriods = getWeekTimePeriods(targetRoom, 0);
+        Date now = new DateUtils().lastHour().get();
         int[] statistic = new int[8];  // 统计，0 为周占用，1~7 为周日到周六
         weekTimePeriods.forEach(time -> {
-            if (!Objects.equals(time.getUserId(), nowUser.getId())) {
+            // 不是自己的时间、已过去的时间不进行统计
+            if (!Objects.equals(time.getUserId(), nowUser.getId()) || time.getStartTime().before(now)) {
                 return;
             }
             statistic[0]++;  // 周统计
@@ -338,5 +338,72 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
             toModify.forEach(time -> time.setShowText(param.getShowText()));
             updateInBatch(toModify);
         });
+    }
+
+    @Override
+    public void deleteByUserId(@NonNull Integer userId) {
+        if (userId == -1) {
+            log.error("危险：尝试删除系统用户的预定，已被阻止");
+            return;
+        }
+        timeRepository.deleteByUserId(userId);
+    }
+
+    @Override
+    public float getWeekUsage(int weekNum, @NonNull Club targetClub) {
+        Assert.notNull(targetClub, "指定的社团不能为 null");
+
+        List<Room> rooms = belongService.listClubRooms(targetClub.getId());
+        int[] usedAndAll = new int[2];
+        if (CollectionUtils.isEmpty(rooms)) {  // 大概是社团没有活动室的情况
+            return 0.0f;
+        }
+        rooms.forEach(room -> {
+            List<TimePeriod> timePeriods = getWeekTimePeriods(room, weekNum);
+            usedAndAll[0] += timePeriods.size();
+            usedAndAll[1] += (room.getEndHour() - room.getStartHour()) * 7;
+        });
+        return (float) usedAndAll[0] / (float) usedAndAll[1] * 100;
+    }
+
+    @Override
+    public void deleteUserFutureTime(@NonNull User targetUser, @NonNull Club targetClub) {
+        Assert.notNull(targetUser, "目标用户不能为 null");
+        Assert.notNull(targetClub, "目标社团不能为 null");
+
+        List<Room> rooms = belongService.listClubRooms(targetClub.getId());
+        List<TimePeriod> toRemove = new LinkedList<>();
+        Date now = new DateUtils().lastHour().get();
+        rooms.forEach(room -> getWeekTimePeriods(room, 0).forEach(time -> {
+            if (TimeIdGenerator.decodeIdToDate(time.getId()).after(now)) {
+                toRemove.add(time);
+            }
+        }));
+        removeAll(toRemove);
+    }
+
+    @Override
+    @Transactional
+    public void removeOutTime(@NonNull Room targetRoom) {
+        Assert.notNull(targetRoom, "目标活动室不能为 null");
+
+        User admin = SecurityContextHolder.ensureUser();
+        LinkedList<TimePeriod> timeToDelete = new LinkedList<>();
+        List<TimePeriod> weekTimePeriods = getWeekTimePeriods(targetRoom, 0);
+        List<Notice> notices = new LinkedList<>();
+        weekTimePeriods.forEach(timePeriod -> {
+            int timePeriodHour = TimeIdGenerator.decodeHourFromId(timePeriod.getId());
+            if (timePeriodHour < targetRoom.getStartHour() || timePeriodHour >= targetRoom.getEndHour()) {
+                timeToDelete.add(timePeriod);
+                if (timePeriod.getUserId() == -1) {
+                    return;
+                }
+                notices.add(new Notice(NoticeType.TIME_DELETE, "因活动室【" + targetRoom.getName() +
+                        "】开放时间调整，您预约的时段：【" + new DateUtils(timePeriod.getStartTime()).getFormattedTime() + "】已被取消",
+                        admin.getId(), timePeriod.getUserId()));
+            }
+        });
+        removeAll(timeToDelete);
+        noticeService.saveAndNotifyInBatch(notices);
     }
 }

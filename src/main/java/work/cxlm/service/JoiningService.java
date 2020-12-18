@@ -111,9 +111,4 @@ public interface JoiningService extends CrudService<Joining, JoiningId> {
      */
     boolean adminOfAny(@NonNull User targetUser);
 
-    /**
-     * 用userId判断用户参加了哪些社团
-     */
-    @NonNull
-    List<Club> getUserClubs(@NonNull Integer userId);
 }

@@ -14,14 +14,15 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import work.cxlm.cache.AbstractStringCacheStore;
 import work.cxlm.config.QfzsProperties;
+import work.cxlm.event.LogEvent;
 import work.cxlm.exception.*;
 import work.cxlm.model.entity.Club;
 import work.cxlm.model.entity.Joining;
-import work.cxlm.model.entity.Room;
 import work.cxlm.model.entity.User;
 import work.cxlm.model.entity.id.JoiningId;
+import work.cxlm.model.enums.LogType;
 import work.cxlm.model.enums.UserRole;
-import work.cxlm.model.params.LoginParam;
+import work.cxlm.model.params.LogParam;
 import work.cxlm.model.params.UserLoginParam;
 import work.cxlm.model.params.UserParam;
 import work.cxlm.model.support.CreateCheck;
@@ -37,7 +38,6 @@ import work.cxlm.security.context.SecurityContextHolder;
 import work.cxlm.security.token.AuthToken;
 import work.cxlm.security.util.SecurityUtils;
 import work.cxlm.service.ClubService;
-import work.cxlm.service.BelongService;
 import work.cxlm.service.JoiningService;
 import work.cxlm.service.UserService;
 import work.cxlm.service.base.AbstractCrudService;
@@ -64,12 +64,6 @@ public class UserServiceImpl extends AbstractCrudService<User, Integer> implemen
 
     private JoiningService joiningService;
     private ClubService clubService;
-    private BelongService belongService;
-
-    @Autowired
-    public void setBelongService(BelongService belongService) {
-        this.belongService = belongService;
-    }
 
     private final UserRepository userRepository;
     private final QfzsProperties qfzsProperties;
@@ -129,6 +123,7 @@ public class UserServiceImpl extends AbstractCrudService<User, Integer> implemen
             throw new BadRequestException("您已登录，无需重复登录");
         }
         log.info("[{}]-[{}] 登录系统", nowUser.getRealName(), ServletUtils.getRequestIp());
+        eventPublisher.publishEvent(new LogEvent(this, new LogParam(nowUser.getId(), LogType.MINI_LOGGED_IN, "用户登录小程序")));
         return buildAuthToken(nowUser, User::getWxId);
     }
 
@@ -165,10 +160,9 @@ public class UserServiceImpl extends AbstractCrudService<User, Integer> implemen
             if (currentUser == null) { // 数据库中也没有用户信息
                 throw new NotFoundException("无效的学号，请联系管理员授权后使用");
             }
-            if (StringUtils.isEmpty(param.getWxId()) ) {
-                throw new MissingPropertyException("更新用户信息必须传递 open ID");
-            }
-            if (!StringUtils.isEmpty(currentUser.getWxId()) && !Objects.equals(currentUser.getWxId(), param.getWxId())) {
+            // 首次登陆完善学号的情况
+            if (!StringUtils.isEmpty(currentUser.getWxId()) && param.getWxId() != null &&
+                    !Objects.equals(currentUser.getWxId(), param.getWxId())) {
                 throw new ForbiddenException("该学号已存在，请联系管理员，并提供您的学号");
             }
         } else {
@@ -192,6 +186,17 @@ public class UserServiceImpl extends AbstractCrudService<User, Integer> implemen
         }
         Page<Joining> allJoining = joiningService.pageAllJoiningByClubId(clubId, pageable);
         return convertJoiningToUserPage(allJoining, pageable);
+    }
+
+    @Override
+    public List<User> getClubUsers(@NonNull Integer clubId) {
+        Assert.notNull(clubId, "社团 ID 不能为 null");
+        Map<Integer, User> allUserMap = getAllUserMap();
+        List<Joining> allJoining = joiningService.listAllJoiningByClubId(clubId);
+        return allJoining.stream().
+                map(joining -> allUserMap.get(joining.getId().getUserId())).
+                filter(user -> user != null && user.getId() != -1).
+                collect(Collectors.toList());
     }
 
     private Page<PageUserVO> convertJoiningToUserPage(Page<Joining> joiningPage, Pageable pageable) {
@@ -261,11 +266,11 @@ public class UserServiceImpl extends AbstractCrudService<User, Integer> implemen
     }
 
     @Override
-    public boolean managerOfClub(@NonNull User admin,  @NonNull Club club) {
+    public boolean managerOfClub(@NonNull User admin, @NonNull Club club) {
         Assert.notNull(admin, "用户不能为 null");
         Assert.notNull(club, "社团不能为 null");
 
-        if (admin.getRole().isSystemAdmin()){
+        if (admin.getRole().isSystemAdmin()) {
             return true;
         }
         if (admin.getRole().isNormalRole()) {
@@ -313,13 +318,5 @@ public class UserServiceImpl extends AbstractCrudService<User, Integer> implemen
     @Override
     public Map<Integer, User> getAllUserMap() {
         return ServiceUtils.convertToMap(listAll(), User::getId);
-    }
-
-    @Override
-    public List<Club> userOrderRoom(@NonNull User user,@NonNull Room room) {
-        List<Club> clubs = belongService.listRoomClubs(room.getId());
-        List<Club> clubs1 = joiningService.getUserClubs(user.getId());
-
-        return clubs.stream().filter(clubs1::contains).collect(Collectors.toList());
     }
 }

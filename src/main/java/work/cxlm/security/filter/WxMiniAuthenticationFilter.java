@@ -63,7 +63,7 @@ public class WxMiniAuthenticationFilter extends AbstractAuthenticationFilter {
         // 从缓存中获取 openId
         Optional<String> userOpenId = cacheStore.getAny(SecurityUtils.buildAccessTokenKey(token), String.class);
         if (!userOpenId.isPresent()) {
-            throw new AuthenticationException("Token 已过期或不存在").setErrorData(token);
+            throw new AuthenticationException("登录凭证过期或不存在，请重新登录").setErrorData(token);
         }
         // 从数据库中查询，并存储到安全上下文
         User user = userService.getByOpenId(userOpenId.get());

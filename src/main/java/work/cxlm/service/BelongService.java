@@ -2,6 +2,7 @@ package work.cxlm.service;
 
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
+import org.springframework.transaction.annotation.Transactional;
 import work.cxlm.model.entity.Belong;
 import work.cxlm.model.entity.Club;
 import work.cxlm.model.entity.Room;
@@ -11,12 +12,9 @@ import work.cxlm.service.base.CrudService;
 import java.util.List;
 
 /**
- * @program: myfont
- * @author: beizi
+ * @author beizi
  * @author Chiru
- * @create: 2020-11-23 15:15
- * @application :
- * @Version 1.0
+ * create 2020-11-23 15:15
  **/
 public interface BelongService extends CrudService<Belong, BelongId> {
 
@@ -30,7 +28,12 @@ public interface BelongService extends CrudService<Belong, BelongId> {
     /**
      * 根据roomId查到属于哪些社团
      */
-    @Nullable
+    @NonNull
     List<Room> listClubRooms(@NonNull Integer clubId);
 
+    /**
+     * 删除归属于社团的活动室
+     */
+    @Transactional
+    void deleteClubRooms(@NonNull Integer clubId);
 }

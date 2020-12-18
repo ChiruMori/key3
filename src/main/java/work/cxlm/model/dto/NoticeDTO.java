@@ -1,5 +1,8 @@
 package work.cxlm.model.dto;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import work.cxlm.model.dto.base.OutputConverter;
 import work.cxlm.model.entity.Notice;
 import work.cxlm.model.enums.NoticeType;
@@ -11,6 +14,9 @@ import javax.persistence.Column;
  *
  * @author Chiru
  */
+@Data
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
 public class NoticeDTO extends ListItemDTO implements OutputConverter<NoticeDTO, Notice> {
 
     private Long id;
@@ -21,7 +27,7 @@ public class NoticeDTO extends ListItemDTO implements OutputConverter<NoticeDTO,
 
     private String content;
 
-    private Integer srcUserId;
+    private Integer srcId;
 
     private Boolean read;
 

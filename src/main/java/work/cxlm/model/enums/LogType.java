@@ -18,6 +18,11 @@ public enum LogType implements ValueEnum<Integer> {
     LOGGED_FAILED(11),
 
     /**
+     * 用户登录小程序
+     */
+    MINI_LOGGED_IN(15),
+
+    /**
      * 指定了新的社团管理员
      */
     NEW_CLUB_ADMIN(20),

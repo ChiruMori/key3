@@ -20,6 +20,10 @@ import java.util.Date;
  */
 public class TimeIdGenerator extends IdentityGenerator {
 
+    public static int decodeHourFromId(Long id) {
+        return (int) (id % 10000_0000 / 100_0000);
+    }
+
     @Override
     public Serializable generate(SharedSessionContractImplementor s, Object obj) {
         if (obj == null) {

@@ -1,8 +1,12 @@
 package work.cxlm.service;
 
 import org.springframework.lang.NonNull;
+import org.springframework.transaction.annotation.Transactional;
 import work.cxlm.model.dto.TimePeriodSimpleDTO;
+import work.cxlm.model.entity.Club;
+import work.cxlm.model.entity.Room;
 import work.cxlm.model.entity.TimePeriod;
+import work.cxlm.model.entity.User;
 import work.cxlm.model.params.TimeParam;
 import work.cxlm.model.vo.TimeTableVO;
 import work.cxlm.service.base.CrudService;
@@ -46,4 +50,26 @@ public interface TimeService extends CrudService<TimePeriod, Long> {
      * 管理员修改时段文本显示
      */
     TimeTableVO changeTextBy(@NonNull TimeParam param);
+
+    /**
+     * 删除用户的全部预定信息
+     */
+    void deleteByUserId(@NonNull Integer userId);
+
+    /**
+     * 获取某社团指定周的活动室使用率
+     * @param weekNum 周次编号，当前周为 0
+     */
+    float getWeekUsage(int weekNum, @NonNull Club club);
+
+    /**
+     * 删除用户在指定社团未来的预约
+     */
+    void deleteUserFutureTime(@NonNull User targetUser, @NonNull Club targetClub);
+
+    /**
+     * 删除在活动室可用时间范围外的时段
+     */
+    @Transactional
+    void removeOutTime(@NonNull Room targetRoom);
 }

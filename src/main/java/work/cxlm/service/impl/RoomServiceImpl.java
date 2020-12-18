@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import work.cxlm.cache.AbstractStringCacheStore;
+import work.cxlm.event.LogEvent;
 import work.cxlm.event.RoomInfoUpdatedEvent;
 import work.cxlm.exception.DataConflictException;
 import work.cxlm.exception.ForbiddenException;
@@ -16,6 +17,8 @@ import work.cxlm.model.dto.LocationDTO;
 import work.cxlm.model.dto.RoomDTO;
 import work.cxlm.model.entity.*;
 import work.cxlm.model.entity.id.BelongId;
+import work.cxlm.model.entity.support.TimeIdGenerator;
+import work.cxlm.model.params.LogParam;
 import work.cxlm.model.params.RoomParam;
 import work.cxlm.model.support.QfzsConst;
 import work.cxlm.repository.RoomRepository;
@@ -46,7 +49,7 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
     private UserService userService;
     private BelongService belongService;
     private JoiningService joiningService;
-
+    private TimeService timeService;
 
     protected RoomServiceImpl(RoomRepository roomRepository,
                               AbstractStringCacheStore cacheStore,
@@ -75,6 +78,11 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
     @Autowired
     public void setJoiningService(JoiningService joiningService) {
         this.joiningService = joiningService;
+    }
+
+    @Autowired
+    public void setTimeService(TimeService timeService) {
+        this.timeService = timeService;
     }
 
     // ----------- Override --------------------------------------
@@ -111,6 +119,8 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
             oldRoom = update(oldRoom);
             // 通知变更
             eventPublisher.publishEvent(new RoomInfoUpdatedEvent(this));
+            eventPublisher.publishEvent(new LogEvent(this, new LogParam(admin.getId(), targetClub.getId(),
+                    "更新了社团活动室" + oldRoom.getName())));
             return new RoomDTO().convertFrom(oldRoom);
         }
         // 存储活动室信息
@@ -121,34 +131,29 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
         belongService.create(newBelong);
         // 通知变更
         eventPublisher.publishEvent(new RoomInfoUpdatedEvent(this));
+        eventPublisher.publishEvent(new LogEvent(this, new LogParam(admin.getId(), targetClub.getId(),
+                "增加了社团活动室：" + newRoom.getName())));
         return new RoomDTO().convertFrom(newRoom);
-    }
-
-    /**
-     * 确保权限足以对 Room 进行增删改
-     *
-     * @param clubId Room 所属的社团
-     */
-    private void ensureAuthority(Integer clubId) {
-        // 验证权限
-        User admin = SecurityContextHolder.ensureUser();
-        Club targetClub = clubService.getById(clubId);
-        if (!userService.managerOfClub(admin, targetClub)) {
-            throw new ForbiddenException("权限不足，您无法管理该社团");
-        }
     }
 
     @Override
     @NonNull
     public RoomDTO updateRoomBy(@NonNull RoomParam param) {
         Assert.notNull(param, "RoomParam 不能为 null");
-        ensureAuthority(param.getClubId());
+        // 验证权限
+        User admin = SecurityContextHolder.ensureUser();
+        Club targetClub = clubService.getById(param.getId());
+        if (!userService.managerOfClub(admin, targetClub)) {
+            throw new ForbiddenException("权限不足，您无法管理该社团");
+        }
         // 更新活动室信息
-        // TODO 可用时段调整对现有预定造成的影响
         Room targetRoom = getById(param.getId());
         param.update(targetRoom);
+        timeService.removeOutTime(targetRoom);  // 移除超出新时间区间的预约
         // 通知变更
         eventPublisher.publishEvent(new RoomInfoUpdatedEvent(this));
+        eventPublisher.publishEvent(new LogEvent(this, new LogParam(admin.getId(), targetClub.getId(),
+                "修改了社团活动室：" + targetRoom.getName())));
         return new RoomDTO().convertFrom(update(targetRoom));
     }
 
@@ -172,7 +177,12 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
     public RoomDTO deleteRoom(@NonNull Integer clubId, @NonNull Integer roomId) {
         Assert.notNull(clubId, "clubId 不能为 null");
         Assert.notNull(roomId, "roomId 不能为 null");
-        ensureAuthority(clubId);
+        // 验证权限
+        User admin = SecurityContextHolder.ensureUser();
+        Club targetClub = clubService.getById(clubId);
+        if (!userService.managerOfClub(admin, targetClub)) {
+            throw new ForbiddenException("权限不足，您无法管理该社团");
+        }
 
         BelongId bid = new BelongId(clubId, roomId);
         if (!belongService.existsById(bid)) {
@@ -183,12 +193,17 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
         belongService.removeById(bid);  // 删除归属关系
         // 通知变更
         eventPublisher.publishEvent(new RoomInfoUpdatedEvent(this));
+        RoomDTO res;
         if (onlyOwner) {  // 删除活动室，并删除预约历史记录
-            // TODO: 删除预约信息
-            return new RoomDTO().convertFrom(removeById(roomId));
+            deleteRoomTimePeriods(roomId);  // 删除该活动室的预约
+            res = new RoomDTO().convertFrom(removeById(roomId));
+        } else {
+            // 还有其他社团拥有该活动室时
+            res = new RoomDTO().convertFrom(getById(clubId));
         }
-        // 还有其他社团拥有该活动室时
-        return new RoomDTO().convertFrom(getById(clubId));
+        eventPublisher.publishEvent(new LogEvent(this, new LogParam(admin.getId(), targetClub.getId(),
+                "修改了社团活动室：" + res.getName())));
+        return res;
     }
 
     @Override
@@ -197,7 +212,7 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
     public List<LocationDTO> getLocations(@NonNull Integer clubId) {
         Optional<List> locations = cacheStore.getAny(QfzsConst.LOCATION_KEY, List.class);
         return (List<LocationDTO>) locations.  // 这里的转化不能删除，否则在 JDK8 环境将报错
-                <List<LocationDTO>>map(list -> ServiceUtils.convertList(list, o -> (LocationDTO) o)).
+                map(list -> ServiceUtils.convertList(list, o -> (LocationDTO) o)).
                 orElse(Collections.emptyList());
     }
 
@@ -216,6 +231,14 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
     @Override
     public boolean roomManagedBy(@NonNull Room room, @NonNull User admin) {
         return hasRelationBetweenRoomAndUser(room, admin, true);
+    }
+
+    @Override
+    public void deleteRoomWithoutAuthorityCheck(Integer roomId) {
+        Assert.notNull(roomId, "roomId 不能为 null");
+
+        deleteRoomTimePeriods(roomId);
+        removeById(roomId);
     }
 
     // ***************** Private *********************
@@ -237,5 +260,13 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
                 collect(Collectors.toSet());
         // 用户加入的社团与活动室所属的社团有交集，则认为用户可以对该活动室进行操作
         return roomClubs.stream().anyMatch(roomClub -> userClubs.contains(roomClub.getId()));
+    }
+
+    private void deleteRoomTimePeriods(@NonNull Integer roomId) {
+        List<TimePeriod> timePeriods = timeService.listAll();
+        timePeriods = timePeriods.stream().
+                filter(time -> Objects.equals(TimeIdGenerator.getRoomId(time.getId()), roomId)).
+                collect(Collectors.toList());
+        timeService.removeAll(timePeriods);
     }
 }

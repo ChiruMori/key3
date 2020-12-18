@@ -20,6 +20,8 @@ import work.cxlm.service.UserService;
 
 import javax.validation.Valid;
 
+import static work.cxlm.model.support.QfzsConst.USER_HELP;
+
 /**
  * created 2020/11/15 10:45
  *
@@ -83,18 +85,9 @@ public class UserController {
         return userService.getPasscode();
     }
 
-    // 显示在帮助页面的信息（临时使用）
-    private static final String[][] USER_HELP = {
-            {"授权说明", "社团成员需要首先使用已授权的学号进行账号绑定，绑定成功后可以使用完整功能。非社团用户只支持浏览，无法进行预定。"},
-            {"基本使用", "在查看页面点击空白时段可以进行添加，点击自己的时间可以删除。过期的时间无法操作，总占用时间不能超过四小时，每日不能占用超过两小时（不含过期时间）。"},
-            {"用户信息", "您可以在个性签名中完善一些附加信息，这将展示在用户列表中。"},
-            {"V2.0版本", "整合、简化三个功能页，增加用户列表，增加过期时间处理，优化部分用户体验。本次更新将原有代码全部重构。"},
-            {"关于本程序", "沙雕程序。没了"}
-    };
-
     @ApiOperation(value = "获取用户帮助文档，得到的数据为二维字符串数组")
     @GetMapping("/help")
-    public String[][] getHelpInfo(){
+    public String[][] getHelpInfo() {
         return USER_HELP;
     }
 

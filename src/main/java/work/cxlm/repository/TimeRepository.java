@@ -21,4 +21,5 @@ public interface TimeRepository extends BaseRepository<TimePeriod, Long> {
 
     List<TimePeriod> findAllByRoomIdAndIdBetween(@NonNull Integer roomId, @NonNull Long minId, @NonNull Long maxId);
 
+    void deleteByUserId(Integer userId);
 }

@@ -43,6 +43,7 @@ public interface ClubService extends CrudService<Club, Integer> {
      * 删除社团及其相关信息
      * @param clubId 社团 ID
      */
+    @Transactional
     void deleteClub(Integer clubId);
 
     /**

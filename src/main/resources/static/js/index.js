@@ -28,7 +28,7 @@ $().ready(function () {
             $('#activeMembers').text(resData.activeMembers);
             $('#activeBar').attr('style', 'width: ' + (resData.activeMembers / resData.enrollMembers * 100) + '%');
             $('#enableAssets').text(resData.assets);
-            $('#roomUsage').text(resData.usage + '%');
+            $('#roomUsage').text(resData.usage.toFixed(2) + '%');  // 保留两位小数
             $('#usageBar').attr('style', 'width: ' + resData.usage + '%');
             let logUlContainer = $('#logArea');
             logUlContainer.html('');  // 清空原内容
@@ -38,7 +38,7 @@ $().ready(function () {
                     logUlContainer.append($(getLiItemFromDTO(logDTO.showHead, logDTO.content, logDTO.who, logDTO.createTime)));
                 });
                 logATag.text('全部日志');
-                logATag.attr('href', ''); // TODO 跳转到日志页面
+                logATag.attr('href', '/key3/admin/page/system-log');
             } else {
                 logATag.text('什么都没有...');
                 logATag.attr('href', '#');
@@ -52,7 +52,7 @@ $().ready(function () {
                         billDTO.createTime, billDTO.cost)));
                 });
                 billATag.text('全部收支');
-                billATag.attr('href', ''); // TODO 跳转到收支页面
+                billATag.attr('href', '/key3/admin/page/club-bill');
             } else {
                 billATag.text('什么都没有...');
                 billATag.attr('href', '#');

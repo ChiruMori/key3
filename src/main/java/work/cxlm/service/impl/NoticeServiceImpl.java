@@ -10,6 +10,7 @@ import org.springframework.util.Assert;
 import work.cxlm.mail.MailContentHelper;
 import work.cxlm.mail.MailService;
 import work.cxlm.model.dto.NoticeDTO;
+import work.cxlm.model.entity.Announcement;
 import work.cxlm.model.entity.Notice;
 import work.cxlm.model.entity.User;
 import work.cxlm.model.enums.NoticeType;
@@ -25,6 +26,7 @@ import work.cxlm.utils.ServiceUtils;
 
 import javax.validation.constraints.NotNull;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -84,7 +86,11 @@ public class NoticeServiceImpl extends AbstractCrudService<Notice, Long> impleme
         Page<Notice> notices = noticeRepository.findAllByTargetUserId(nowUser.getId(), pageable);
         return ServiceUtils.convertPageElements(notices, pageable, notice -> {
             NoticeDTO res = new NoticeDTO().convertFrom(notice);
-            res.fromUserData(userMap.get(notice.getSrcUserId()));
+            Integer targetUserId = notice.getSrcId();
+            if (notice.getType().anncounceType()) {
+                targetUserId = -1;
+            }
+            res.fromUserData(userMap.get(targetUserId));
             return res;
         });
     }
@@ -93,6 +99,7 @@ public class NoticeServiceImpl extends AbstractCrudService<Notice, Long> impleme
     public void notifyAndSave(@NonNull NoticeType type, String content, @NonNull User targetUser, User publisher) {
         Assert.notNull(type, "必须指定消息类型");
         Assert.notNull(targetUser, "目标用户不能为 null");
+        Assert.isTrue(!type.anncounceType(), "公告通知类型请调用 announceAndSave 方法");
 
         Integer publisherId = null;
         if (publisher != null) {
@@ -100,8 +107,28 @@ public class NoticeServiceImpl extends AbstractCrudService<Notice, Long> impleme
         }
         Notice newNotice = new Notice(type, content, publisherId, targetUser.getId());
         create(newNotice);
+        mailTo(publisher, targetUser, newNotice);
+    }
+
+    public void announceAndSave(@NonNull NoticeType type, @NonNull User targetUser,
+                                User publisher, Announcement announcement) {
+        Assert.notNull(type, "必须指定消息类型");
+        Assert.notNull(targetUser, "目标用户不能为 null");
+        Assert.isTrue(type.anncounceType(), "非公告通知类型请调用 notifyAndSave 方法");
+
+        // 系统用户忽略通知
+        if (targetUser.getId() == -1) {
+            return;
+        }
+        Notice newNotice = new Notice(type, "您有新的公告：【" + announcement.getTitle() + "】",
+                announcement.getId(), targetUser.getId());
+        create(newNotice);
+        mailTo(publisher, targetUser, newNotice);
+    }
+
+    private void mailTo(User publisher, User receiver, Notice notice) {
         // 如果目标用户不接受邮件消息
-        if (!targetUser.getReceiveMsg()) {
+        if (receiver.getReceiveMsg() == null || !receiver.getReceiveMsg()) {
             return;
         }
         // 构建邮件消息并发送
@@ -112,13 +139,13 @@ public class NoticeServiceImpl extends AbstractCrudService<Notice, Long> impleme
             srcUserName = publisher.getRealName();
         }
         Map<String, Object> data = new MailContentHelper()
-                .setNotice(newNotice)
-                .setTargetUserName(targetUser.getRealName())
+                .setNotice(notice)
+                .setTargetUserName(receiver.getRealName())
                 .setPublisherName(srcUserName)
                 .setMiniCodeUrl(optionService.getByPropertyOrDefault(PrimaryProperties.MINI_CODE_URL, String.class))
                 .build();
         // 异步发送消息，在批量操作是不存在问题
-        mailService.sendTemplateMail(targetUser.getEmail(), newNotice.getTitle(), data, "mail/notice");
+        mailService.sendTemplateMail(receiver.getEmail(), notice.getTitle(), data, "mail/notice.ftl");
     }
 
     @Override
@@ -134,9 +161,39 @@ public class NoticeServiceImpl extends AbstractCrudService<Notice, Long> impleme
                         log.error("找不到用户：[{}]，无法发送通知: [{}]", notice.getTargetUserId(), notice);
                         return;
                     }
+                    Integer targetUserId = notice.getSrcId();
+                    if (notice.getType().anncounceType()) {
+                        targetUserId = -1;
+                    }
                     notifyAndSave(notice.getType(), notice.getContent(),
-                            targetUser, allUserMap.get(notice.getSrcUserId()));
+                            targetUser, allUserMap.get(targetUserId));
                 }
         );
+    }
+
+    @Override
+    public void announce(@NonNull Announcement nowAnnouncement) {
+        Assert.notNull(nowAnnouncement, "公告对象不能为 null");
+
+        User admin = SecurityContextHolder.ensureUser();
+        List<User> receivers;
+        NoticeType noticeType;
+        if (nowAnnouncement.getClubId() == -1) {
+            noticeType = NoticeType.ADMIN_ANNOUNCEMENT;
+            receivers = userService.listAll();
+        } else {
+            noticeType = NoticeType.CLUB_ANNOUNCEMENT;
+            receivers = userService.getClubUsers(nowAnnouncement.getClubId());
+        }
+        receivers.forEach(user -> announceAndSave(noticeType, user, admin, nowAnnouncement));
+    }
+
+    @Override
+    public void leaveANoteBy(@NonNull NoticeParam param) {
+        Assert.notNull(param, "NoticeParam 不能为 null");
+
+        User publisher = SecurityContextHolder.ensureUser();
+        User receiver = userService.getById(param.getTargetUserId());
+        notifyAndSave(NoticeType.NEW_MESSAGE, param.getContent(), receiver, publisher);
     }
 }

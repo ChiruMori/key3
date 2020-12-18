@@ -45,6 +45,7 @@ public class ClubServiceImpl extends AbstractCrudService<Club, Integer> implemen
     private BillService billService;
     private RoomService roomService;
     private BelongService belongService;
+    private AnnouncementService announcementService;
 
     private final ClubRepository clubRepository;
     private final ApplicationEventPublisher eventPublisher;
@@ -79,6 +80,11 @@ public class ClubServiceImpl extends AbstractCrudService<Club, Integer> implemen
     @Autowired
     public void setBelongService(BelongService belongService) {
         this.belongService = belongService;
+    }
+
+    @Autowired
+    public void setAnnouncementService(AnnouncementService announcementService) {
+        this.announcementService = announcementService;
     }
 
     // --------------------------- Override ---------------------------------------
@@ -139,6 +145,7 @@ public class ClubServiceImpl extends AbstractCrudService<Club, Integer> implemen
     }
 
     @Override
+    @Transactional
     public void deleteClub(Integer clubId) {
         Assert.notNull(clubId, "clubId 不能为 null");
 
@@ -148,8 +155,8 @@ public class ClubServiceImpl extends AbstractCrudService<Club, Integer> implemen
         }
         joiningService.removeByIdClubId(clubId);  // 删除用户加入社团的信息
         billService.removeByClubId(clubId);  // 删除社团财务信息
-        // TODO 删除公告信息
-        // TODO 删除活动室归属信息
+        announcementService.deleteClubAllAnnouncements(clubId);
+        belongService.deleteClubRooms(clubId);
         removeById(clubId);  // 删除社团
         eventPublisher.publishEvent(new LogEvent(this, admin.getId(), LogType.DELETE_CLUB,
                 "删除了社团：" + clubId));

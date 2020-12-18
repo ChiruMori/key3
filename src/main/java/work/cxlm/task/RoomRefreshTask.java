@@ -2,6 +2,7 @@ package work.cxlm.task;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -9,7 +10,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import work.cxlm.model.dto.base.OutputConverter;
 import work.cxlm.model.entity.*;
-import work.cxlm.model.entity.support.TimeIdGenerator;
 import work.cxlm.model.enums.NoticeType;
 import work.cxlm.service.*;
 import work.cxlm.utils.DateUtils;
@@ -25,6 +25,7 @@ import java.util.*;
 @Component
 @EnableAsync
 @EnableScheduling
+@Slf4j
 public class RoomRefreshTask {
 
     private final RoomService roomService;
@@ -32,7 +33,6 @@ public class RoomRefreshTask {
     private final BelongService belongService;
     private final JoiningService joiningService;
     private final UserService userService;
-    private final TimeService timeService;
 
     private Map<CacheUsingSimpleRoomDTO, Set<Integer>> room2UserMap = null;
 
@@ -47,7 +47,6 @@ public class RoomRefreshTask {
         this.belongService = belongService;
         this.joiningService = joiningService;
         this.userService = userService;
-        this.timeService = timeService;
     }
 
     public void clearCache() {
@@ -89,6 +88,7 @@ public class RoomRefreshTask {
             });
             room2UserMap.put(cacheRoomMap.get(roomId), userIdSet);
         });
+        log.info("已刷新用户关系映射缓存");
     }
 
     /**
@@ -104,36 +104,20 @@ public class RoomRefreshTask {
         int nowHour = DateUtils.whatHourIsNow();
 
         LinkedList<Notice> notices = new LinkedList<>();
+        StringBuilder sb = new StringBuilder();
         room2UserMap.forEach((simpleRoomDTO, userIdSet) -> {
             if (simpleRoomDTO.getEndHour() != nowHour) {
                 return;
             }
+            sb.append(simpleRoomDTO.getName()).append("、");
             userIdSet.forEach((userId) -> notices.add(new Notice(NoticeType.TIME_RESET,
                     "活动室 [" + simpleRoomDTO.getName() + "] 新一周的预定已经可以开始了", -1, userId)));
         });
-
+        if (sb.length() != 0) {
+            sb.deleteCharAt(sb.length() - 1);
+        }
         noticeService.saveAndNotifyInBatch(notices);
-    }
-
-    /**
-     * 每到半点执行一次，用于发送预约提醒
-     * 秒 分 时 日 月 星期
-     */
-    @Async
-    @Scheduled(cron = "0 30 * * * ?")
-    public void beforeTimeStart() {
-        DateUtils nextTopHourPointer = new DateUtils().nextTopHour();
-
-        List<Room> rooms = roomService.listAll();
-        // 获取各活动室下一时段
-        List<Long> timeIds = new LinkedList<>();
-        rooms.forEach(room -> timeIds.add(TimeIdGenerator.encodeId(nextTopHourPointer, room.getId())));
-        List<TimePeriod> validTimePeriods = timeService.listAllByIds(timeIds);
-        // 构建并发送通知
-        List<Notice> notices = new LinkedList<>();
-        validTimePeriods.forEach(time -> notices.add(new Notice(NoticeType.TIME_START, "您预约的时段: [" +
-                nextTopHourPointer.getFormattedTime() + "] 即将开始", -1, time.getUserId())));
-        noticeService.saveAndNotifyInBatch(notices);
+        log.info("已向活动室【{}】用户发送重置通知", sb.toString());
     }
 
     @Data

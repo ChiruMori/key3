@@ -33,8 +33,6 @@ public class UserParam implements InputConverter<User> {
     @Size(max = 60, message = "专业名长度不能超过 {max}")
     private String major;
 
-    private Integer enrollYear;
-
     @Size(max = 30, message = "真实姓名长度不能超过 {max}")
     private String realName;
 

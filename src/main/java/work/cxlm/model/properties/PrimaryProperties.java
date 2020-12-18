@@ -12,7 +12,7 @@ public enum PrimaryProperties implements PropertyEnum {
      */
     FAVICON_URL("favicon_url", String.class, "https://cxlm.work/upload/2020/09/favicon-4200eb5642b94655a0b1892b0dd6f6d6.png"),
 
-    MINI_CODE_URL("mini_code_url", String.class, "https://upload.cc/i1/2020/12/12/UGEICR.jpg")
+    MINI_CODE_URL("mini_code_url", String.class, "https://cxlm.work/upload/2020/12/qr-32244b861ff64014965edcd666c9813e.jpg")
     ;
 
     private final String value;

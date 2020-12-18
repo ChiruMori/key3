@@ -26,7 +26,6 @@ public class LogDTO extends ListItemDTO implements OutputConverter<LogDTO, Log> 
 
     private String ip;
 
-    // TODO：确保可以删除后移除这两项，没必要传递给前端
     private Integer logKey;
     private Integer groupId;
 }

@@ -14,6 +14,7 @@ $().ready(function () {
         clubNameDiv.text(targetClub.name);
         GLOBAL_VAL.nowClubId = targetClub.id;
         managingClub = targetClub;
+        utils.writeCache(CONST_VAL.managingClubKey, targetClub);
         utils.publishEvent(CONST_VAL.clubChangedEventKey, targetClub);
     }
 
@@ -36,7 +37,7 @@ $().ready(function () {
             name: clubDiv.text()
         };
         // 忽略类型，ID 相同说明为同一社团
-        if (clickClub.id != managingClub.id) {
+        if (clickClub.id !== managingClub.id) {
             changeClub(clickClub);
         }
     });

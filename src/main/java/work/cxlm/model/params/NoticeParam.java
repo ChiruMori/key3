@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import work.cxlm.model.dto.base.InputConverter;
 import work.cxlm.model.entity.Notice;
-import work.cxlm.model.enums.MessageType;
 import work.cxlm.model.enums.NoticeType;
 
 import javax.validation.constraints.NotNull;
@@ -29,26 +28,24 @@ public class NoticeParam implements InputConverter<Notice> {
     @Size(max = 255)
     private String content;
 
-    private Integer srcUserId;
+    private Integer srcId;
 
     @NotNull
     private Integer targetUserId;
 
     private Boolean read;
 
-    private Boolean needSend;
-
-    public NoticeParam(NoticeType type, String content, Integer srcUserId, Integer targetUserId) {
+    public NoticeParam(NoticeType type, String content, Integer srcId, Integer targetUserId) {
         this.type = type;
         this.title = type.getTitle();
         this.content = content;
-        this.srcUserId = srcUserId;
+        this.srcId = srcId;
         this.targetUserId = targetUserId;
     }
 
-    public NoticeParam(NoticeType type, Integer srcUserId) {
+    public NoticeParam(NoticeType type, Integer srcId) {
         this.type = type;
         this.title = type.getTitle();
-        this.srcUserId = srcUserId;
+        this.srcId = srcId;
     }
 }

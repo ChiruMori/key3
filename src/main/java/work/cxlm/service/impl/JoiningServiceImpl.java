@@ -2,6 +2,7 @@ package work.cxlm.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.lang.NonNull;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import work.cxlm.event.LogEvent;
 import work.cxlm.exception.DataConflictException;
 import work.cxlm.exception.ForbiddenException;
 import work.cxlm.exception.NotFoundException;
@@ -20,12 +22,14 @@ import work.cxlm.model.entity.User;
 import work.cxlm.model.entity.id.JoiningId;
 import work.cxlm.model.enums.UserRole;
 import work.cxlm.model.params.JoiningParam;
+import work.cxlm.model.params.LogParam;
 import work.cxlm.model.support.CreateCheck;
 import work.cxlm.model.support.UpdateCheck;
 import work.cxlm.repository.JoiningRepository;
 import work.cxlm.security.context.SecurityContextHolder;
 import work.cxlm.service.ClubService;
 import work.cxlm.service.JoiningService;
+import work.cxlm.service.TimeService;
 import work.cxlm.service.UserService;
 import work.cxlm.service.base.AbstractCrudService;
 import work.cxlm.utils.ServiceUtils;
@@ -45,12 +49,16 @@ public class JoiningServiceImpl extends AbstractCrudService<Joining, JoiningId> 
 
     private UserService userService;
     private ClubService clubService;
+    private TimeService timeService;
 
     private final JoiningRepository joiningRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
-    protected JoiningServiceImpl(JoiningRepository joiningRepository) {
+    protected JoiningServiceImpl(JoiningRepository joiningRepository,
+                                 ApplicationEventPublisher eventPublisher) {
         super(joiningRepository);
         this.joiningRepository = joiningRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Autowired
@@ -62,6 +70,13 @@ public class JoiningServiceImpl extends AbstractCrudService<Joining, JoiningId> 
     public void setUserService(UserService userService) {
         this.userService = userService;
     }
+
+    @Autowired
+    public void setTimeService(TimeService timeService) {
+        this.timeService = timeService;
+    }
+
+    //*************** Override ************************
 
     @NonNull
     @Override
@@ -136,15 +151,6 @@ public class JoiningServiceImpl extends AbstractCrudService<Joining, JoiningId> 
         }
     }
 
-    // 构造返回值
-    private JoiningDTO buildResult(Joining joining, User targetUser) {
-        JoiningDTO res = new JoiningDTO().convertFrom(joining);
-        res.setHead(targetUser.getHead());
-        res.setRealName(targetUser.getRealName());
-        res.setStudentNo(targetUser.getStudentNo());
-        return res;
-    }
-
     @Override
     @Transactional
     public JoiningDTO newJoiningBy(@NonNull JoiningParam param) {
@@ -177,6 +183,8 @@ public class JoiningServiceImpl extends AbstractCrudService<Joining, JoiningId> 
         JoiningId joiningId = new JoiningId(targetUser.getId(), targetClub.getId());
         newJoining.setId(joiningId);
         newJoining = joiningRepository.save(newJoining);
+        eventPublisher.publishEvent(new LogEvent(this, new LogParam(targetUser.getId(), targetClub.getId(),
+                "增加了社团成员：" + targetUser.getRealName())));
         // 构造返回值
         return buildResult(newJoining, targetUser);
     }
@@ -188,7 +196,7 @@ public class JoiningServiceImpl extends AbstractCrudService<Joining, JoiningId> 
         Assert.notNull(studentNo, "学号不能为 null");
 
         Optional<User> userOptional = userService.getByStudentNo(studentNo);
-        clubService.getById(clubId);  // 确保社团存在
+        Club targetClub = clubService.getById(clubId);  // 确保社团存在
         User admin = SecurityContextHolder.ensureUser();
         if (userOptional.isPresent()) {
             User targetUser = userOptional.get();
@@ -197,8 +205,10 @@ public class JoiningServiceImpl extends AbstractCrudService<Joining, JoiningId> 
             if (!userService.managerOf(admin, targetUser)) {
                 throw new ForbiddenException("权限不足，无法操作该用户");
             }
-            // TODO：删除社团活动室未来时段占用
+            timeService.deleteUserFutureTime(targetUser, targetClub);
             joiningRepository.deleteById(jid);
+            eventPublisher.publishEvent(new LogEvent(this, new LogParam(targetUser.getId(), targetClub.getId(),
+                    "删除了社团成员：" + targetUser.getRealName())));
             // 构造返回值
             return buildResult(toDelete, targetUser);
         } else {
@@ -270,16 +280,16 @@ public class JoiningServiceImpl extends AbstractCrudService<Joining, JoiningId> 
         return userJoining.stream().anyMatch(Joining::getAdmin);
     }
 
-    @Override
-    @NonNull
-    // TODO: DELETE THIS IF UNNECESSARY
-    public List<Club> getUserClubs(@NonNull Integer userId) {
-        List<Joining> joinings = joiningRepository.findAllByIdUserId(userId);
-        List<Club> clubs=new ArrayList<>();
-//        for (Joining joining : joinings) {
-//            Club club = clubService.allClubsByClubId(joining.getId().getClubId());
-//            clubs.add(club);
-//        }
-        return clubs;
+    // **************** Private **********************
+
+    // 构造返回值
+    private JoiningDTO buildResult(Joining joining, User targetUser) {
+        JoiningDTO res = new JoiningDTO().convertFrom(joining);
+        res.setHead(targetUser.getHead());
+        res.setRealName(targetUser.getRealName());
+        res.setStudentNo(targetUser.getStudentNo());
+        return res;
     }
+
+
 }

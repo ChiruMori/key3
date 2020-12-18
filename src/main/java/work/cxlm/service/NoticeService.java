@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.lang.NonNull;
 import work.cxlm.model.dto.NoticeDTO;
+import work.cxlm.model.entity.Announcement;
 import work.cxlm.model.entity.Notice;
 import work.cxlm.model.entity.User;
 import work.cxlm.model.enums.NoticeType;
@@ -42,4 +43,15 @@ public interface NoticeService extends CrudService<Notice, Long> {
      * @param notices 通知集合
      */
     void saveAndNotifyInBatch(@NonNull Collection<Notice> notices);
+
+    /**
+     * 通过公告实体发送通知
+     * @param nowAnnouncement 新公告
+     */
+    void announce(@NonNull Announcement nowAnnouncement);
+
+    /**
+     * 通过参数进行留言
+     */
+    void leaveANoteBy(@NonNull NoticeParam param);
 }

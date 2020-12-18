@@ -73,4 +73,9 @@ public interface RoomService extends CrudService<Room, Integer> {
      * 判定活动室是否归某用户管理
      */
     boolean roomManagedBy(@NonNull Room targetRoom, @NonNull User admin);
+
+    /**
+     * 删除活动室及活动室的预约，不检查权限
+     */
+    void deleteRoomWithoutAuthorityCheck(Integer roomId);
 }

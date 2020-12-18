@@ -57,6 +57,7 @@ public class AdminServiceImpl implements AdminService {
     private final ClubService clubService;
     private final LogService logService;
     private final BillService billService;
+    private final TimeService timeService;
 
     public AdminServiceImpl(UserService userService,
                             AbstractStringCacheStore cacheStore,
@@ -66,7 +67,8 @@ public class AdminServiceImpl implements AdminService {
                             JoiningService joiningService,
                             LogService logService,
                             BillService billService,
-                            NoticeService noticeService) {
+                            NoticeService noticeService,
+                            TimeService timeService) {
         this.userService = userService;
         this.cacheStore = cacheStore;
         this.userRepository = userRepository;
@@ -76,6 +78,7 @@ public class AdminServiceImpl implements AdminService {
         this.logService = logService;
         this.billService = billService;
         this.noticeService = noticeService;
+        this.timeService = timeService;
     }
 
     @Override
@@ -256,7 +259,7 @@ public class AdminServiceImpl implements AdminService {
         try {
             User targetUser = userService.removeById(userId);
             joiningService.deleteByUserId(userId);
-            // TODO：删除预定相关信息
+            timeService.deleteByUserId(userId);
             return new UserDTO().convertFrom(targetUser);
         } catch (EmptyResultDataAccessException e) {
             throw new NotFoundException("没有该用户，请核对后重试");
@@ -294,7 +297,7 @@ public class AdminServiceImpl implements AdminService {
         dashboardVO.setLogs(logService.pageClubLatest(5, clubId));
         dashboardVO.setAssets(targetClub.getAssets());
         dashboardVO.setActiveMembers((int) activeUserCount);
-        dashboardVO.setUsage(79.24f); // TODO 计算活动室使用率
+        dashboardVO.setUsage(timeService.getWeekUsage(0, targetClub));
         return dashboardVO;
     }
 
