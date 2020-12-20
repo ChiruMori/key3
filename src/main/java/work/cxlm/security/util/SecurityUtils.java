@@ -13,33 +13,33 @@ import work.cxlm.model.entity.User;
 public class SecurityUtils {
 
     // Access Token 前缀
-    private static final String TOKEN_ACCESS_CACHE_PREFIX = "qfzs.admin.access.token.";
-    private static final String ACCESS_TOKEN_CACHE_PREFIX = "qfzs.admin.access_token.";
+    private static final String TOKEN_ACCESS_CACHE_PREFIX = "qfzs.user.access.token.";
+    private static final String ACCESS_TOKEN_CACHE_PREFIX = "qfzs.user.access_token.";
 
-    public static final String TOKEN_REFRESH_CACHE_PREFIX = "qfzs.admin.refresh.token.";
-    public static final String REFRESH_TOKEN_CACHE_PREFIX = "qfzs.admin.refresh_token.";
+    public static final String TOKEN_REFRESH_CACHE_PREFIX = "qfzs.user.refresh.token.";
+    public static final String REFRESH_TOKEN_CACHE_PREFIX = "qfzs.user.refresh_token.";
 
     @NonNull
-    public static String buildAccessTokenKey(@NonNull User user) {
+    public static String buildAccessTokenKey(@NonNull User user, String keyPrefix) {
         Assert.notNull(user, "用户不能为 null");
-        return ACCESS_TOKEN_CACHE_PREFIX + user.getId();
+        return keyPrefix + ACCESS_TOKEN_CACHE_PREFIX + user.getId();
     }
 
     @NonNull
-    public static String buildAccessTokenKey(@NonNull String accessToken) {
+    public static String buildAccessTokenKey(@NonNull String accessToken, String keyPrefix) {
         Assert.hasText(accessToken, "Access Token 不能为空");
-        return TOKEN_ACCESS_CACHE_PREFIX + accessToken;
+        return keyPrefix + TOKEN_ACCESS_CACHE_PREFIX + accessToken;
     }
 
     @NonNull
-    public static String buildRefreshTokenKey(@NonNull User user) {
+    public static String buildRefreshTokenKey(@NonNull User user, String keyPrefix) {
         Assert.notNull(user, "用户不能为 null");
-        return REFRESH_TOKEN_CACHE_PREFIX + user.getId();
+        return keyPrefix + REFRESH_TOKEN_CACHE_PREFIX + user.getId();
     }
 
     @NonNull
-    public static String buildRefreshTokenKey(@NonNull String refreshToken) {
+    public static String buildRefreshTokenKey(@NonNull String refreshToken, String keyPrefix) {
         Assert.hasText(refreshToken, "Refresh token 不能为空");
-        return TOKEN_REFRESH_CACHE_PREFIX + refreshToken;
+        return keyPrefix + TOKEN_REFRESH_CACHE_PREFIX + refreshToken;
     }
 }

@@ -51,7 +51,12 @@ public interface UserService extends CrudService<User, Integer> {
     /**
      * 为用户创建合法登录凭证
      */
-    <T> AuthToken buildAuthToken(@NonNull User user, Function<User, T> converter);
+    <T> AuthToken buildAuthToken(@NonNull User user, String keyPrefix, Function<User, T> converter);
+
+    /**
+     * 清除用户 Token，在创建用户 Token 或者登出时调用
+     */
+    void clearUserToken(@NonNull User user, String keyPrefix);
 
     /**
      * 通过表单更新用户信息
@@ -74,7 +79,7 @@ public interface UserService extends CrudService<User, Integer> {
     /**
      * 刷新用户登录凭证到期事件
      */
-    <T> AuthToken refreshToken(String refreshToken, Function<User, T> idGetter, Function<T, User> userGetter, Class<T> idType);
+    <T> AuthToken refreshToken(String refreshToken, String keyPrefix, Function<User, T> idGetter, Function<T, User> userGetter, Class<T> idType);
 
     /**
      * 通过 openId 查询用户信息

@@ -7,7 +7,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
-import work.cxlm.model.dto.LogDTO;
 import work.cxlm.model.dto.UserDTO;
 import work.cxlm.model.params.UserParam;
 import work.cxlm.model.vo.PageUserVO;
@@ -36,8 +35,8 @@ public class AdminUserController {
     }
 
     @GetMapping("user/all/{clubId:\\d+}")
-    @ApiOperation("管理员获取某社团成员列表，成员不一定包含系统管理员")
-    public List<UserDTO> getAllLogs(@PathVariable Integer clubId) {
+    @ApiOperation(value = "管理员获取某社团关联用户列表", notes = "该列表同时包含系统管理员，尽管系统管理员不一定加入该社团")
+    public List<UserDTO> getAllUsers(@PathVariable Integer clubId) {
         return adminService.listClubUsers(clubId);
     }
 

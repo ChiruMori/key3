@@ -48,6 +48,12 @@ $().ready(function () {
         refreshTable();
     });
 
+    // 回到当前周
+    weekNumberTag.parent().on('click', function () {
+        nowWeek = 0;
+        refreshTable();
+    });
+
     // 活动室下拉选项监听
     roomSelectTag.on('change', function () {
         let index = roomSelectTag.val();

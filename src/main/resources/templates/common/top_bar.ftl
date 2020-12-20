@@ -85,16 +85,12 @@
             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <span class="mr-2 d-none d-lg-inline text-gray-600 small">欢迎，${base.userName}</span>
-                <img class="img-profile rounded-circle" src="${base.head}!" alt="头像而已">
+                <img class="img-profile rounded-circle" src="${base.head!"https://cxlm.work/upload/2020/12/error-df59117371c948238cd6d68dba76449a.png"}" alt="嗯？头像呢">
             </a>
             <!-- 下拉列表：管理员信息维护 -->
             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
                  aria-labelledby="userDropdown">
-                <a class="dropdown-item" href="#">
-                    <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                    个人信息
-                </a>
-                <a class="dropdown-item" href="#">
+                <a class="dropdown-item token-tag" href="/key3/admin/page/system-opt">
                     <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
                     系统设置
                 </a>

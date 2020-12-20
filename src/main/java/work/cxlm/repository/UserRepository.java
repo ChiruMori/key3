@@ -5,7 +5,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import work.cxlm.model.entity.User;
+import work.cxlm.model.enums.UserRole;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -39,4 +41,7 @@ public interface UserRepository extends BaseRepository<User, Integer> {
 
     @NonNull
     Page<User> findAllBy(@NonNull Pageable pageable);
+
+    @NonNull
+    List<User> findAllByRole(@NonNull UserRole role);
 }

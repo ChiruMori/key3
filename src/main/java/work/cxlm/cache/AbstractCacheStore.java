@@ -10,6 +10,7 @@ import work.cxlm.utils.QfzsDateUtils;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * 提供部分方法的默认实现
@@ -43,7 +44,7 @@ public abstract class AbstractCacheStore<K, V> implements CacheStore<K, V> {
     /**
      * 删除缓存，由子类实现
      *
-     * @param key   缓存键
+     * @param key 缓存键
      */
     abstract void deleteInternal(@NonNull K key);
 
@@ -61,9 +62,7 @@ public abstract class AbstractCacheStore<K, V> implements CacheStore<K, V> {
      */
     abstract Boolean putInternalIfAbsent(@NonNull K key, @NonNull CacheWrapper<V> value);
 
-    @Override
-    @NonNull
-    public Optional<V> get(@NonNull K key) {
+    private <T> Optional<T> readAndDelete(@NonNull K key, Function<CacheWrapper<V>, T> converter) {
         Assert.notNull(key, "缓存键不能为 null");
 
         return gerInternal(key).map(cacheWrapper -> {
@@ -72,8 +71,20 @@ public abstract class AbstractCacheStore<K, V> implements CacheStore<K, V> {
                 delete(key);  // 惰性删除
                 return null;
             }
-            return cacheWrapper.getData();
+            return converter.apply(cacheWrapper);
         });
+    }
+
+    @Override
+    @NonNull
+    public Optional<V> get(@NonNull K key) {
+        return readAndDelete(key, CacheWrapper::getData);
+    }
+
+    @Override
+    @Nullable
+    public Date getExpireAt(@NonNull K key) {
+        return readAndDelete(key, CacheWrapper::getExpireAt).orElse(null);
     }
 
     @Override

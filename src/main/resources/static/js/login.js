@@ -8,18 +8,15 @@ $().ready(function () {
     }
 
     // 读取本地缓存的登录状态
-    let now = new Date().getTime();
-    let expire = utils.readCache(CONST_VAL.tokenTime);
-    if (expire && now < expire) { // 存在 token 且未过期
-        // 刷新一下
-        let url = '/admin/api/refresh/' + utils.readCache(CONST_VAL.refreshKey) +
-            '?' + CONST_VAL.tokenQueryName + '=' + utils.readCache(CONST_VAL.tokenKey);
-        utils.ajax(url, null, 'POST', function(res){
-            refreshTokenByAuth(res.data);
-        }, function() {
-            console.error("Token 已过期，自动登录失败，需要手动登录");
-        });
-    }
+    // let now = new Date().getTime();
+    // let expire = utils.readCache(CONST_VAL.tokenTime);
+    // 刷新登录凭证
+    let url = '/admin/api/refresh/' + utils.readCache(CONST_VAL.refreshKey);
+    utils.ajax(url, null, 'POST', function (res) {
+        refreshTokenByAuth(res.data);
+    }, function () {
+        console.error("Token 已过期，自动登录失败，需要手动登录");
+    });
     // 登录
     let loginBtn = $('#loginBtn');
     let errDiv = $('#errMsgDiv');

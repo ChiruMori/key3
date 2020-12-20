@@ -2,10 +2,12 @@ package work.cxlm.controller.mini.api;
 
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import work.cxlm.cache.lock.CacheLock;
 import work.cxlm.model.dto.UserDTO;
@@ -53,13 +55,13 @@ public class UserController {
 
     @ApiOperation(value = "更新用户信息", notes = "用户与微信相关的信息，在本方法调用后完成绑定\n需要 accessToken ，首次更新可缺省，标识用户会话")
     @PutMapping("/update")
-    public UserDTO uploadUserInfo(@RequestBody UserParam userParam) {
+    public UserDTO uploadUserInfo(@RequestBody @Validated UserParam userParam) {
         return new UserDTO().convertFrom(userService.updateUserByParam(userParam));
     }
 
     @ApiOperation(value = "用户登录", notes = "必须传递 code 登录成功将会获得用户登录凭证（accessToken），如果用户不存在则得到字段均为 null 的响应")
     @PostMapping("/login")
-    @CacheLock(autoDelete = false, prefix = "login_check")
+    // @CacheLock(prefix = "login_check") // TODO: 校验去掉此处锁会不会出问题
     public AuthToken userLogin(@Valid @RequestBody UserLoginParam userLoginParam) {
         String openId = userService.getOpenIdBy(userLoginParam);
         return userService.login(openId);
@@ -67,9 +69,9 @@ public class UserController {
 
     @PostMapping("/refresh/{refreshToken}")
     @ApiOperation("刷新用户凭证过期时间，需要使用 refreshToken 进行刷新")
-    @CacheLock(autoDelete = false, prefix = "refresh_check")
+    @CacheLock(prefix = "refresh_check")
     public AuthToken refresh(@PathVariable("refreshToken") String refreshToken) {
-        return userService.refreshToken(refreshToken, User::getWxId, userService::getByOpenId, String.class);
+        return userService.refreshToken(refreshToken, StringUtils.EMPTY, User::getWxId, userService::getByOpenId, String.class);
     }
 
     @ApiOperation(value = "获取本社团的用户列表", notes = "注意分页处理与参数\n需要 accessToken 且必填，标识用户会话")

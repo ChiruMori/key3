@@ -98,7 +98,7 @@ public class AdminServiceImpl implements AdminService {
         }
         cacheStore.delete(passcodeCacheKey);  // 清除用完的 passcode key
         eventPublisher.publishEvent(new LogEvent(this, targetUser.getId(), LogType.LOGGED_IN, targetUser.getRealName() + "登录后台"));
-        return userService.buildAuthToken(targetUser, User::getId);
+        return userService.buildAuthToken(targetUser, ADMIN_AUTH_KEY_PREFIX, User::getId);
     }
 
     @Override
@@ -110,25 +110,15 @@ public class AdminServiceImpl implements AdminService {
 
         User admin = authentication.getUserDetail().getUser();
 
-        // Clear access token
-        cacheStore.getAny(SecurityUtils.buildAccessTokenKey(admin), String.class).ifPresent(accessToken -> {
-            // Delete token
-            cacheStore.delete(SecurityUtils.buildAccessTokenKey(accessToken));
-            cacheStore.delete(SecurityUtils.buildAccessTokenKey(admin));
-        });
-
-        // Clear refresh token
-        cacheStore.getAny(SecurityUtils.buildRefreshTokenKey(admin), String.class).ifPresent(refreshToken -> {
-            cacheStore.delete(SecurityUtils.buildRefreshTokenKey(refreshToken));
-            cacheStore.delete(SecurityUtils.buildRefreshTokenKey(admin));
-        });
+        userService.clearUserToken(admin, ADMIN_AUTH_KEY_PREFIX);
     }
 
     @Override
     @NonNull
     public AuthToken refreshToken(@NonNull String refreshToken) {
         Assert.notNull(refreshToken, "refresh token 为空，无法刷新登录凭证");
-        return userService.refreshToken(refreshToken, User::getId, userService::getById, Integer.class);
+        return userService.refreshToken(refreshToken, ADMIN_AUTH_KEY_PREFIX, User::getId,
+                userService::getById, Integer.class);
     }
 
     @Override
@@ -304,11 +294,14 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public List<UserDTO> listClubUsers(Integer clubId) {
         // 不做任何校验，因为该信息本身公开
-        List<User> allUsers = userService.listAll();
-        Map<Integer, User> userMap = ServiceUtils.convertToMap(allUsers, User::getId);
-        return joiningService.listAllJoiningByClubId(clubId).stream().
-                map(joining -> (UserDTO) new UserDTO().
-                        convertFrom(userMap.get(joining.getId().getUserId()))).
+        // 列出全部社团成员、因为去重需要，删除过滤掉系统管理员
+        List<User> allUsers = userService.listAll().stream().
+                filter(user -> !user.getRole().isSystemAdmin()).
                 collect(Collectors.toList());
+        // 添加所有系统管理员到列表
+        allUsers.addAll(userRepository.findAllByRole(UserRole.SYSTEM_ADMIN));
+
+        Map<Integer, User> userMap = ServiceUtils.convertToMap(allUsers, User::getId);
+        return allUsers.stream().map(u -> (UserDTO) new UserDTO().convertFrom(u)).collect(Collectors.toList());
     }
 }

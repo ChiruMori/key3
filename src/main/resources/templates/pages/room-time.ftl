@@ -45,7 +45,8 @@
                         <div class="form-row">
                             <button id="prevBtn" type="button" class="form-control btn btn-primary col-1 min-w-2"><i
                                         class="fas fa-angle-double-left"></i></button>
-                            <div class="form-control bg-transparent p-2 text-gray-800 border-0 col text-center">第<span
+                            <div class="form-control bg-transparent p-2 text-gray-800 border-0 col text-center"
+                                 title="点击回到当前周">第<span
                                         id="weekNumber">~</span>周
                             </div>
                             <button id="nextBtn" type="button" class="form-control btn btn-primary col-1 min-w-2"><i

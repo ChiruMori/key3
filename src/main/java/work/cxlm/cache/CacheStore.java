@@ -1,7 +1,9 @@
 package work.cxlm.cache;
 
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 
+import java.util.Date;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -23,6 +25,9 @@ public interface CacheStore<K, V> {
      */
     @NonNull
     Optional<V> get(@NonNull K key);
+
+    @Nullable
+    Date getExpireAt(@NonNull K key);
 
     /**
      * 添加缓存，并设置过期时间

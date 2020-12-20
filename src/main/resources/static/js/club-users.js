@@ -61,7 +61,8 @@ $(document).ready(function () {
                     data: 'email',
                     defaultContent: '-',
                 }, {
-                    data: 'sign'
+                    data: 'sign',
+                    type: 'textarea'
                 }, {
                     data: 'role',
                     type: GLOBAL_VAL.systemAdmin ? 'checkbox' : 'readonly',

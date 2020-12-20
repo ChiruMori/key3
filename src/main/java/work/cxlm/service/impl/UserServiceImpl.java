@@ -2,6 +2,7 @@ package work.cxlm.service.impl;
 
 import cn.hutool.core.util.RandomUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -11,7 +12,6 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 import work.cxlm.cache.AbstractStringCacheStore;
 import work.cxlm.config.QfzsProperties;
 import work.cxlm.event.LogEvent;
@@ -124,12 +124,12 @@ public class UserServiceImpl extends AbstractCrudService<User, Integer> implemen
         }
         log.info("[{}]-[{}] 登录系统", nowUser.getRealName(), ServletUtils.getRequestIp());
         eventPublisher.publishEvent(new LogEvent(this, new LogParam(nowUser.getId(), LogType.MINI_LOGGED_IN, "用户登录小程序")));
-        return buildAuthToken(nowUser, User::getWxId);
+        return buildAuthToken(nowUser, StringUtils.EMPTY, User::getWxId);
     }
 
     @Override
-    public <T> AuthToken buildAuthToken(@NonNull User user, Function<User, T> converter) {
-        Assert.notNull(user, "User must not be null");
+    public <T> AuthToken buildAuthToken(@NonNull User user, String keyPrefix, Function<User, T> converter) {
+        clearUserToken(user, keyPrefix);  // 清除原 Token 确保不会生成冗余的 Token
 
         // Generate new token
         AuthToken token = new AuthToken();
@@ -139,37 +139,50 @@ public class UserServiceImpl extends AbstractCrudService<User, Integer> implemen
         token.setRefreshToken(QfzsUtils.randomUUIDWithoutDash());
 
         // Cache those tokens, just for clearing
-        cacheStore.putAny(SecurityUtils.buildAccessTokenKey(user), token.getAccessToken(), ACCESS_TOKEN_EXPIRED_SECONDS, TimeUnit.SECONDS);
-        cacheStore.putAny(SecurityUtils.buildRefreshTokenKey(user), token.getRefreshToken(), REFRESH_TOKEN_EXPIRED_DAYS, TimeUnit.DAYS);
+        cacheStore.putAny(SecurityUtils.buildAccessTokenKey(user, keyPrefix), token.getAccessToken(), ACCESS_TOKEN_EXPIRED_SECONDS, TimeUnit.SECONDS);
+        cacheStore.putAny(SecurityUtils.buildRefreshTokenKey(user, keyPrefix), token.getRefreshToken(), REFRESH_TOKEN_EXPIRED_DAYS, TimeUnit.DAYS);
 
         // Cache those tokens with open id
-        cacheStore.putAny(SecurityUtils.buildAccessTokenKey(token.getAccessToken()), converter.apply(user), ACCESS_TOKEN_EXPIRED_SECONDS, TimeUnit.SECONDS);
-        cacheStore.putAny(SecurityUtils.buildRefreshTokenKey(token.getRefreshToken()), converter.apply(user), REFRESH_TOKEN_EXPIRED_DAYS, TimeUnit.DAYS);
+        cacheStore.putAny(SecurityUtils.buildAccessTokenKey(token.getAccessToken(), keyPrefix), converter.apply(user), ACCESS_TOKEN_EXPIRED_SECONDS, TimeUnit.SECONDS);
+        cacheStore.putAny(SecurityUtils.buildRefreshTokenKey(token.getRefreshToken(), keyPrefix), converter.apply(user), REFRESH_TOKEN_EXPIRED_DAYS, TimeUnit.DAYS);
 
         return token;
     }
 
+    @Override
+    public void clearUserToken(@NonNull User user, String keyPrefix) {
+        Assert.notNull(user, "目标用户不能为 null");
+
+        // Clear access token
+        cacheStore.getAny(SecurityUtils.buildAccessTokenKey(user, keyPrefix), String.class).ifPresent(accessToken -> {
+            // Delete token
+            cacheStore.delete(SecurityUtils.buildAccessTokenKey(accessToken, keyPrefix));
+            cacheStore.delete(SecurityUtils.buildAccessTokenKey(user, keyPrefix));
+        });
+
+        // Clear refresh token
+        cacheStore.getAny(SecurityUtils.buildRefreshTokenKey(user, keyPrefix), String.class).ifPresent(refreshToken -> {
+            cacheStore.delete(SecurityUtils.buildRefreshTokenKey(refreshToken, keyPrefix));
+            cacheStore.delete(SecurityUtils.buildRefreshTokenKey(user, keyPrefix));
+        });
+    }
 
     @Override
     @Nullable
     public User updateUserByParam(@NonNull UserParam param) {
-        User currentUser = SecurityContextHolder.getCurrentUser().orElse(null);
-        if (currentUser == null) { // 缓存中没有用户信息
-            ValidationUtils.validate(param, CreateCheck.class);
-            currentUser = userRepository.findByStudentNo(param.getStudentNo()).orElse(null);
-            if (currentUser == null) { // 数据库中也没有用户信息
-                throw new NotFoundException("无效的学号，请联系管理员授权后使用");
-            }
-            // 首次登陆完善学号的情况
-            if (!StringUtils.isEmpty(currentUser.getWxId()) && param.getWxId() != null &&
-                    !Objects.equals(currentUser.getWxId(), param.getWxId())) {
-                throw new ForbiddenException("该学号已存在，请联系管理员，并提供您的学号");
-            }
-        } else {
-            ValidationUtils.validate(param, UpdateCheck.class);
-            if (param.getReceiveMsg() && StringUtils.isEmpty(param.getEmail())) {
-                throw new MissingPropertyException("若开启通知，则必须填写邮箱地址");
-            }
+        // 更新信息的请求在过滤器黑名单中，无法走 Authentication 方法获得用户
+        User currentUser = userRepository.findByStudentNo(param.getStudentNo()).orElse(null);
+        if (currentUser == null) { // 目标用户不存在、数据库中没有用户信息
+            throw new NotFoundException("无效的学号，请联系管理员授权后使用");
+        }
+        // 首次登陆完善学号的情况
+        if (!StringUtils.isEmpty(currentUser.getWxId()) && param.getWxId() != null &&
+                !Objects.equals(currentUser.getWxId(), param.getWxId())) {
+            throw new ForbiddenException("该学号已存在，请联系管理员，并提供您的学号");
+        }
+        // 表单验证：邮件、通知
+        if (param.getReceiveMsg() && StringUtils.isEmpty(param.getEmail())) {
+            throw new MissingPropertyException("若开启通知，则必须填写邮箱地址");
         }
         param.update(currentUser);
         currentUser = userRepository.save(currentUser);
@@ -229,24 +242,24 @@ public class UserServiceImpl extends AbstractCrudService<User, Integer> implemen
     }
 
     @Override
-    public <T> AuthToken refreshToken(String refreshToken, Function<User, T> idGetter,
+    public <T> AuthToken refreshToken(String refreshToken, String keyPrefix, Function<User, T> idGetter,
                                       Function<T, User> userGetter, Class<T> idType) {
         Assert.hasText(refreshToken, "Refresh token 不能为空");
 
-        T usingId = cacheStore.getAny(SecurityUtils.buildRefreshTokenKey(refreshToken), idType)
+        T usingId = cacheStore.getAny(SecurityUtils.buildRefreshTokenKey(refreshToken, keyPrefix), idType)
                 .orElseThrow(() -> new BadRequestException("登录状态已失效，请重新登录").setErrorData(refreshToken));
 
         // 获取用户信息
         User user = userGetter.apply(usingId);
 
         // 清除原 Token
-        cacheStore.getAny(SecurityUtils.buildAccessTokenKey(user), String.class)
-                .ifPresent(accessToken -> cacheStore.delete(SecurityUtils.buildAccessTokenKey(accessToken)));
-        cacheStore.delete(SecurityUtils.buildRefreshTokenKey(refreshToken));
-        cacheStore.delete(SecurityUtils.buildAccessTokenKey(user));
-        cacheStore.delete(SecurityUtils.buildRefreshTokenKey(user));
+        cacheStore.getAny(SecurityUtils.buildAccessTokenKey(user, keyPrefix), String.class)
+                .ifPresent(accessToken -> cacheStore.delete(SecurityUtils.buildAccessTokenKey(accessToken, keyPrefix)));
+        cacheStore.delete(SecurityUtils.buildRefreshTokenKey(refreshToken, keyPrefix));
+        cacheStore.delete(SecurityUtils.buildAccessTokenKey(user, keyPrefix));
+        cacheStore.delete(SecurityUtils.buildRefreshTokenKey(user, keyPrefix));
         // 建立新的 Token
-        return buildAuthToken(user, idGetter);
+        return buildAuthToken(user, keyPrefix, idGetter);
     }
 
     @Override

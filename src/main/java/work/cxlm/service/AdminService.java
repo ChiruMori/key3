@@ -28,9 +28,11 @@ public interface AdminService {
     /**
      * ACCESS TOKEN 时效
      */
-    int ACCESS_TOKEN_EXPIRED_SECONDS = 24 * 3600;
+    int ACCESS_TOKEN_EXPIRED_SECONDS = 3600 * 24;  // 一天登录凭证失效
 
-    int REFRESH_TOKEN_EXPIRED_DAYS = 30;
+    int REFRESH_TOKEN_EXPIRED_DAYS = 30;  // 30 天刷新凭证失效
+
+    String ADMIN_AUTH_KEY_PREFIX = "admin_auth.";
 
     /**
      * 管理员登录后台

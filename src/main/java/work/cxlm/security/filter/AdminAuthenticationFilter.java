@@ -25,6 +25,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Optional;
 
+import static work.cxlm.service.AdminService.ADMIN_AUTH_KEY_PREFIX;
+
 /**
  * 验证管理后台登录状态的过滤器
  * created 2020/11/21 17:18
@@ -46,7 +48,7 @@ public class AdminAuthenticationFilter extends AbstractAuthenticationFilter {
         // 针对管理员相关的 API 接口进行过滤
         addToBlackSet("/key3/admin/api/**", "/key3/admin/page/**");
         // 排除管理员登录、更新 Token 接口
-        addToWhiteSet("/key3/admin/api/login", "/key3/admin/page/login");
+        addToWhiteSet("/key3/admin/api/refresh", "/key3/admin/api/login", "/key3/admin/page/login");
         DefaultAuthenticationFailureHandler failureHandler = new DefaultAuthenticationFailureHandler();
         failureHandler.setProductEnv(qfzsProperties.isProductionEnv());
         failureHandler.setObjectMapper(objectMapper);
@@ -62,7 +64,7 @@ public class AdminAuthenticationFilter extends AbstractAuthenticationFilter {
             return;
         }
         // 从缓存中获取管理员 userId
-        Optional<Integer> adminId = cacheStore.getAny(SecurityUtils.buildAccessTokenKey(token), Integer.class);
+        Optional<Integer> adminId = cacheStore.getAny(SecurityUtils.buildAccessTokenKey(token, ADMIN_AUTH_KEY_PREFIX), Integer.class);
         if (!adminId.isPresent()) {
             response.sendRedirect("/key3/admin/page/login");
             return;

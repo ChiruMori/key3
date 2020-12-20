@@ -42,7 +42,8 @@ $(document).ready(function () {
                 }, {
                     data: 'realName'
                 }, {
-                    data: 'studentNo'
+                    data: 'studentNo',
+                    type: 'number'
                 }, {
                     data: 'position',
                     defaultContent: '-'

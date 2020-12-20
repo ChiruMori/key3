@@ -210,7 +210,6 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
 
     @Override
     @CacheLock(prefix = "time_dis_lock", expired = 0, msg = "因为操作冲突，您的请求被取消，请重试", argSuffix = "timeId")
-    // TODO: 校验，多用户操作时，加锁应该没用
     public TimePeriodSimpleDTO occupyTimePeriod(@NonNull Long timeId) {
         Assert.notNull(timeId, "timeId 不能为 null");
         // 得到目标时段实体
