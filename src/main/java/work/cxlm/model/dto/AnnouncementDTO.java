@@ -19,4 +19,5 @@ public class AnnouncementDTO extends ListItemDTO implements OutputConverter<Anno
     private String title;
     private String content;
     private Integer publisherId;
+    private Integer clubId;
 }

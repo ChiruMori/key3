@@ -18,7 +18,9 @@ public class AdminBaseVO {
     private String userName;
     private List<Club> clubs;
 
-    private boolean systemAdmin;
-    private boolean clubAdmin;
-    private boolean showSideBarCard;
+    private Boolean systemAdmin;
+    private Boolean clubAdmin;
+    private Boolean showSideBarCard;
+
+    private String docUrl;
 }

@@ -20,11 +20,9 @@ import work.cxlm.service.AdminService;
 @RequestMapping("/key3/admin/page/")
 public class ContentController {
 
-    private final AdminService adminService;
     private final AdminModel adminModel;
 
-    public ContentController(AdminService adminService, AdminModel adminModel) {
-        this.adminService = adminService;
+    public ContentController(AdminModel adminModel) {
         this.adminModel = adminModel;
     }
 

@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,7 @@ import work.cxlm.service.base.AbstractCrudService;
 import work.cxlm.utils.ServiceUtils;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * created 2020/11/26 14:39
@@ -87,16 +89,16 @@ public class BillServiceImpl extends AbstractCrudService<Bill, Integer> implemen
         if (!userService.managerOfClub(admin, targetClub)) {
             throw new ForbiddenException("您的权限不足，禁止操作");
         }
-        List<BillDTO> billDTOs = ServiceUtils.convertList(billRepository.findAllByClubId(clubId),
+        List<BillDTO> billDtos = ServiceUtils.convertList(billRepository.findAllByClubId(clubId),
                 bill -> wrapLogWithHeadAndWho(new BillDTO().convertFrom(bill), true));
         BillTableVO tableVO = new BillTableVO();
-        tableVO.setBills(billDTOs);
+        tableVO.setBills(billDtos);
         tableVO.setClubAssets(targetClub.getAssets());
         return tableVO;
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public BillVO saveBillBy(@NonNull BillParam param) {
         Assert.notNull(param, "BillParam 不能为 null");
         // 验证
@@ -108,7 +110,8 @@ public class BillServiceImpl extends AbstractCrudService<Bill, Integer> implemen
         // 存储
         Bill newBill = param.convertTo();
         newBill.setAuthorId(admin.getId());
-        if (newBill.getId() != null) {  // 更新模式，需要删除原账单导致的经费变化
+        // 更新模式，需要删除原账单导致的经费变化
+        if (newBill.getId() != null) {
             Bill oldBill = getById(newBill.getId());
             targetClub.setAssets(targetClub.getAssets().subtract(oldBill.getCost()));
             param.update(oldBill);
@@ -128,7 +131,7 @@ public class BillServiceImpl extends AbstractCrudService<Bill, Integer> implemen
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public BillVO deleteBill(Integer billId) {
         // 验证
         User admin = SecurityContextHolder.ensureUser();
@@ -148,5 +151,16 @@ public class BillServiceImpl extends AbstractCrudService<Bill, Integer> implemen
         billVO.setShowHead(admin.getHead());
         billVO.setClubAssets(targetClub.getAssets());
         return billVO;
+    }
+
+    @Override
+    public Page<BillDTO> pageClubBills(Integer clubId, Pageable pageable) {
+        Map<Integer, User> allUserMap = userService.getAllUserMap();
+        return ServiceUtils.convertPageElements(billRepository.findAllByClubId(clubId, pageable), pageable,
+                bill -> {
+                    BillDTO dto = new BillDTO().convertFrom(bill);
+                    dto.fromUserData(allUserMap.get(bill.getAuthorId()));
+                    return dto;
+                });
     }
 }

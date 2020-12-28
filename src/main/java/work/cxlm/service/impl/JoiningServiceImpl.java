@@ -235,7 +235,7 @@ public class JoiningServiceImpl extends AbstractCrudService<Joining, JoiningId> 
     }
 
     @Override
-    public List<JoiningDTO> listAllJoiningDTOByClubId(Integer clubId) {
+    public List<JoiningDTO> listAllJoiningDtosByClubId(Integer clubId) {
         Map<Integer, User> allUserMap = userService.getAllUserMap();
         return ServiceUtils.convertList(listAllJoiningByClubId(clubId), joining -> {
             User targetUser = allUserMap.get(joining.getId().getUserId());

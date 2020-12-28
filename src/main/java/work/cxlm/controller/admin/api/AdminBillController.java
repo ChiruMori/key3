@@ -16,11 +16,11 @@ import work.cxlm.service.BillService;
  */
 @RestController
 @RequestMapping("/key3/admin/api/")
-public class BillController {
+public class AdminBillController {
 
     private final BillService billService;
 
-    public BillController(BillService billService) {
+    public AdminBillController(BillService billService) {
         this.billService = billService;
     }
 

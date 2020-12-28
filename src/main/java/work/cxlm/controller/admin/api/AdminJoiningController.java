@@ -16,11 +16,11 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/key3/admin/api/")
-public class JoiningController {
+public class AdminJoiningController {
 
     private final JoiningService joiningService;
 
-    public JoiningController(JoiningService joiningService) {
+    public AdminJoiningController(JoiningService joiningService) {
         this.joiningService = joiningService;
     }
 
@@ -39,7 +39,7 @@ public class JoiningController {
     @ApiOperation("获取某社团的全部成员加入信息")
     @GetMapping("joining/{clubId:\\d+}")
     public List<JoiningDTO> listAllJoining(@PathVariable Integer clubId) {
-        return joiningService.listAllJoiningDTOByClubId(clubId);
+        return joiningService.listAllJoiningDtosByClubId(clubId);
     }
 
     @ApiOperation("更新社团加入信息")

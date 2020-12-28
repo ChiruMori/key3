@@ -9,6 +9,11 @@ $().ready(function () {
     const errorHint = $('#errorHint');
     const deleteBtn = $('#deleteBtn');
 
+    const propMap = {
+        'needSign': true,
+        'available': true,
+    }
+
     let clubRoomDTOs, roomLocationDTOs;
     let selectingRoom = null;
 
@@ -37,7 +42,12 @@ $().ready(function () {
         roomIdInp.attr('readonly', 'true');
         for (let name in selectingRoom) {
             if (selectingRoom.hasOwnProperty(name)) {
-                $('#' + name).val(selectingRoom[name]);  // 赋默认值
+                let targetInput = $('#' + name);
+                if (propMap[name]) {
+                    targetInput.prop('checked', selectingRoom[name]);
+                    continue;
+                }
+                targetInput.val(selectingRoom[name]);  // 赋默认值
             }
         }
         submitBtn.on('click', function () {

@@ -2,6 +2,7 @@ package work.cxlm.controller.admin.content.model;
 
 import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
+import work.cxlm.config.QfzsProperties;
 import work.cxlm.exception.ForbiddenException;
 import work.cxlm.model.entity.User;
 import work.cxlm.model.enums.UserRole;
@@ -25,9 +26,11 @@ import java.util.Collections;
 public class AdminModel {
 
     private final AdminService adminService;
+    private final QfzsProperties qfzsProperties;
 
-    public AdminModel(AdminService adminService) {
+    public AdminModel(AdminService adminService, QfzsProperties qfzsProperties) {
         this.adminService = adminService;
+        this.qfzsProperties = qfzsProperties;
     }
 
     /**
@@ -49,6 +52,13 @@ public class AdminModel {
         baseVO.setSystemAdmin(role.isSystemAdmin());
         baseVO.setClubAdmin(role.isAdminRole());
         baseVO.setClubs(adminService.listManagedClubs(admin));
+        if (role.isSystemAdmin()) {
+            baseVO.setDocUrl(qfzsProperties.getSystemAdminDoc());
+        } else if (role.isAdminRole()) {
+            baseVO.setDocUrl(qfzsProperties.getClubAdminDoc());
+        } else {
+            baseVO.setDocUrl(qfzsProperties.getUserDoc());
+        }
         model.addAttribute("base", baseVO);
     }
 

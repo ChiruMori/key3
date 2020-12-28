@@ -181,7 +181,7 @@ public class UserServiceImpl extends AbstractCrudService<User, Integer> implemen
             throw new ForbiddenException("该学号已存在，请联系管理员，并提供您的学号");
         }
         // 表单验证：邮件、通知
-        if (param.getReceiveMsg() && StringUtils.isEmpty(param.getEmail())) {
+        if (param.getReceiveMsg() != null && param.getReceiveMsg() && StringUtils.isEmpty(param.getEmail())) {
             throw new MissingPropertyException("若开启通知，则必须填写邮箱地址");
         }
         param.update(currentUser);

@@ -2,6 +2,8 @@ package work.cxlm.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -76,10 +78,8 @@ public class AnnouncementServiceImpl extends AbstractCrudService<Announcement, I
 
         User admin = SecurityContextHolder.ensureUser();
         Integer clubId = param.getClubId();
-        if (!admin.getRole().isSystemAdmin() && // 系统管理员无视权限
-                (clubId == -1 || !userService.managerOfClub(admin, clubId))) {
-            throw new ForbiddenException("您的权限不足，无法操作公告信息");
-        }
+        ensureAuthority(admin, clubId);
+
         Announcement nowAnnouncement = param.convertTo();
         if (newEntity) {
             nowAnnouncement.setPublisherId(admin.getId());
@@ -109,13 +109,11 @@ public class AnnouncementServiceImpl extends AbstractCrudService<Announcement, I
     public AnnouncementDTO deleteOne(@NonNull Integer annoId) {
         Assert.notNull(annoId, "公告 ID 不能为 null");
 
+        // 权限验证
         User admin = SecurityContextHolder.ensureUser();
         Announcement toDelete = getById(annoId);
         Integer clubId = toDelete.getClubId();
-        if (!admin.getRole().isSystemAdmin() && // 系统管理员无视权限
-                (clubId == -1 || !userService.managerOfClub(admin, clubId))) {
-            throw new ForbiddenException("您的权限不足，无法操作公告信息");
-        }
+        ensureAuthority(admin, clubId);
 
         remove(toDelete);
         AnnouncementDTO dto = new AnnouncementDTO().convertFrom(toDelete);
@@ -132,5 +130,34 @@ public class AnnouncementServiceImpl extends AbstractCrudService<Announcement, I
         }
 
         repository.deleteByClubId(clubId);
+    }
+
+    @Override
+    public Page<AnnouncementDTO> pageClubAnnouncements(Integer clubId, Pageable pageable) {
+        Map<Integer, User> allUserMap = userService.getAllUserMap();
+
+        return ServiceUtils.convertPageElements(repository.findAllByClubId(clubId, pageable), pageable, anno -> {
+            AnnouncementDTO dto = new AnnouncementDTO().convertFrom(anno);
+            dto.fromUserData(allUserMap.get(anno.getPublisherId()));
+            return dto;
+        });
+    }
+
+    private void ensureAuthority(User admin, Integer clubId) {
+        // 权限校验，注意：系统管理员无视权限
+        boolean notSystemAdmin = admin.getRole().isSystemAdmin();
+        boolean notManagerOfClub = clubId == -1 || !userService.managerOfClub(admin, clubId);
+        if (notSystemAdmin && notManagerOfClub) {
+            throw new ForbiddenException("您的权限不足，无法操作公告信息");
+        }
+    }
+
+    @Override
+    public AnnouncementDTO getAnnouncementDtoById(Integer annoId) {
+        Announcement src = getById(annoId);
+        User publisher = userService.getById(src.getPublisherId());
+        AnnouncementDTO dto = new AnnouncementDTO().convertFrom(src);
+        dto.fromUserData(publisher);
+        return dto;
     }
 }

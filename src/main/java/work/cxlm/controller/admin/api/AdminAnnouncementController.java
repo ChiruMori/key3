@@ -17,11 +17,11 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/key3/admin/api/")
-public class AnnouncementController {
+public class AdminAnnouncementController {
 
     private final AnnouncementService announcementService;
 
-    public AnnouncementController(AnnouncementService announcementService) {
+    public AdminAnnouncementController(AnnouncementService announcementService) {
         this.announcementService = announcementService;
     }
 

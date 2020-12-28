@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>管理后台 - 日志</title>
+    <title>管理后台 - 参数</title>
     <#include "../common/header.ftl">
 </head>
 

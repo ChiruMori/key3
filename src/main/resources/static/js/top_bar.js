@@ -1,4 +1,3 @@
-
 // 全局变量
 const GLOBAL_VAL = {
     nowClubId: null,
@@ -8,6 +7,7 @@ const GLOBAL_VAL = {
 $().ready(function () {
     const clubNameDiv = $('#now-club-name');
     const newClubBtn = $('#newClubBtn');
+    const refreshStorage = $('#refreshStorage');
 
     let managingClub = utils.readCache(CONST_VAL.managingClubKey);
 
@@ -24,6 +24,15 @@ $().ready(function () {
         });
     });
 
+    refreshStorage.on('click', function () {
+        utils.confirm('清除选项', '当前社团被删除、修改后，可以执行本操作清除选项缓存', '清除', '算了').then(function (ok) {
+            if (ok) {
+                utils.removeCache(CONST_VAL.managingClubKey);
+                location.reload();
+            }
+        });
+    });
+
     if (newClubBtn[0]) { // 跳转到新建社团页面，同时设置新建功能锁
         newClubBtn.click(function () {
             utils.writeCache(CONST_VAL.newClubLockKey, true);
@@ -33,9 +42,6 @@ $().ready(function () {
 
     // 切换社团，变化显示文字、全局数据，发布事件
     const changeClub = function (targetClub) {
-        if (!targetClub) {
-            utils.alert("社团无效，如果您正在初始化系统，请新建一个社团。如果不是，请联系系统管理员报告问题");
-        }
         clubNameDiv.text(targetClub.name);
         GLOBAL_VAL.nowClubId = targetClub.id;
         managingClub = targetClub;
@@ -45,6 +51,10 @@ $().ready(function () {
 
     if (!managingClub) { // 初次登录或缓存已清除
         let clubNodes = $('.club-item');
+        if (!clubNodes[0]) {
+            utils.alert("社团无效，如果您正在初始化系统，请新建一个社团。如果不是，请联系系统管理员报告问题");
+            return;
+        }
         managingClub = {
             id: clubNodes[0].getAttribute('itemId'),
             name: clubNodes[0].textContent

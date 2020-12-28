@@ -7,11 +7,8 @@ import work.cxlm.model.dto.base.OutputConverter;
 import work.cxlm.model.entity.User;
 
 /**
- * @program: myfont
- * @author: beizi
- * @create: 2020-11-21 20:43
- * @application :
- * @Version 1.0
+ * @author beizi
+ * create 2020-11-21 20:43
  **/
 @Data
 @ToString(callSuper = true)

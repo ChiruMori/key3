@@ -7,14 +7,10 @@ import work.cxlm.model.entity.Room;
 
 
 /**
- * @program: myfont
- * @author: beizi
- * @create: 2020-11-20 15:27
- * @application :
- * @Version 1.0
+ * @author beizi
+ * create 2020-11-20 15:27
  **/
 public class PageRoomVO extends SimpleUserDTO implements OutputConverter<PageRoomVO, Room> {
-
 
     @ApiModelProperty("该活动室总时长")
     private Integer total;

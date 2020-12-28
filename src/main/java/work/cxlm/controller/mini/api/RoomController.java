@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import work.cxlm.model.dto.ClubDTO;
 import work.cxlm.model.dto.RoomDTO;
 import work.cxlm.service.RoomService;
 
@@ -39,4 +40,9 @@ public class RoomController {
         return roomService.getOne(roomId);
     }
 
+    @GetMapping("/clubs/{roomId}")
+    @ApiOperation(value = "获取活动室归属的全部社团", notes = "需要传递 token")
+    public List<ClubDTO> getRoomClubs(@PathVariable("roomId") Integer roomId) {
+        return roomService.getRoomClubs(roomId);
+    }
 }

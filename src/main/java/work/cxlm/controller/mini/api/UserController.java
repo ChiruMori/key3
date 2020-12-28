@@ -77,7 +77,7 @@ public class UserController {
     @ApiOperation(value = "获取本社团的用户列表", notes = "注意分页处理与参数\n需要 accessToken 且必填，标识用户会话")
     @GetMapping("/list/{clubId:\\d+}")
     public Page<PageUserVO> pageMembersBy(@ApiParam(value = "社团 ID", required = true, example = "1") @PathVariable("clubId") Integer clubId,
-                                          @PageableDefault(sort = "total", direction = Sort.Direction.DESC) Pageable pageable) {
+                                          @PageableDefault(sort = {"total", "idUserId"}, direction = Sort.Direction.DESC) Pageable pageable) {
         return userService.getClubUserPage(clubId, pageable);
     }
 

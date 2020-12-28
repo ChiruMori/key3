@@ -189,7 +189,7 @@ public class NoticeServiceImpl extends AbstractCrudService<Notice, Long> impleme
     }
 
     @Override
-    public void leaveANoteBy(@NonNull NoticeParam param) {
+    public void leaveNoteBy(@NonNull NoticeParam param) {
         Assert.notNull(param, "NoticeParam 不能为 null");
 
         User publisher = SecurityContextHolder.ensureUser();

@@ -1,6 +1,7 @@
 package work.cxlm.model.dto;
 
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.Nullable;
 import work.cxlm.model.entity.User;
 import work.cxlm.model.support.QfzsConst;
@@ -25,6 +26,10 @@ public abstract class ListItemDTO {
             return;
         }
         who = targetUser.getRealName();
+        // 头像，如果无效则使用占位图
         showHead = targetUser.getHead();
+        if (StringUtils.isBlank(showHead)) {
+            showHead = QfzsConst.ERROR_HEAD_URL;
+        }
     }
 }

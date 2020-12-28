@@ -19,6 +19,10 @@
             </div>
         </div>
     </form-->
+    <div class="nav-item no-arrow mx-1">
+        <a class="nav-link" href="${base.docUrl}" target="_blank" role="button">
+            <i class="fas fa-book mr-2"></i>用户文档</a>
+    </div>
 
     <!-- 顶部导航选项 -->
     <ul class="navbar-nav ml-auto">
@@ -52,7 +56,7 @@
             <a class="nav-link dropdown-toggle" href="#" id="clubDropdown" role="button"
                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <i class="fas fa-users-cog fa-fw"></i>
-                <div class="ml-2 font-weight-bold" id="now-club-name">加载中...</div>
+                <div class="ml-2 font-weight-bold" id="now-club-name">没有社团</div>
             </a>
             <!-- 下拉选框 - 社团列表 -->
             <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
@@ -78,6 +82,12 @@
             </div>
         </li>
 
+        <li class="nav-item no-arrow mx-1">
+            <a title="清除选择" class="nav-link" href="#" id="refreshStorage" role="button">
+                <i class="fas fa-sync-alt"></i>
+            </a>
+        </li>
+
         <div class="topbar-divider d-none d-sm-block"></div>
 
         <!-- 选项，用户信息 -->
@@ -85,7 +95,9 @@
             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <span class="mr-2 d-none d-lg-inline text-gray-600 small">欢迎，${base.userName}</span>
-                <img class="img-profile rounded-circle" src="${base.head!"https://cxlm.work/upload/2020/12/error-df59117371c948238cd6d68dba76449a.png"}" alt="嗯？头像呢">
+                <img class="img-profile rounded-circle"
+                     src="${base.head!"https://cxlm.work/upload/2020/12/error-df59117371c948238cd6d68dba76449a.png"}"
+                     alt="嗯？头像呢">
             </a>
             <!-- 下拉列表：管理员信息维护 -->
             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"

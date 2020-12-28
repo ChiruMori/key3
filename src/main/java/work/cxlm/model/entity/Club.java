@@ -49,11 +49,11 @@ public class Club extends BaseEntity {
     @Column(name = "absent_limit")
     private Integer absentLimit;
 
-    // 保存之前执行
     @Override
     public void prePersist() {
         super.prePersist();
-        if (assets == null) { // 必须加这个条件，否则将导致新建 Club 时传入的初始经费被覆盖
+        // 必须加这个条件，否则将导致新建 Club 时传入的初始经费被覆盖
+        if (assets == null) {
             assets = new BigDecimal(0);
         }
         if (absentLimit == null) {

@@ -28,4 +28,7 @@ public class PageUserVO extends SimpleUserDTO implements OutputConverter<PageUse
 
     @ApiModelProperty("用户在该社团的贡献点数")
     private Integer point;
+
+    @ApiModelProperty("用户是否为该社团的管理员")
+    private Boolean admin;
 }

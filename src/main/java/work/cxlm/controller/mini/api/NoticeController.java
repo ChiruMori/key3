@@ -33,8 +33,8 @@ public class NoticeController {
 
     @PostMapping("/note")
     @ApiOperation("给用户留言")
-    public void leaveANote(@RequestBody NoticeParam param) {
-        noticeService.leaveANoteBy(param);
+    public void leaveNote(@RequestBody NoticeParam param) {
+        noticeService.leaveNoteBy(param);
     }
 
 }

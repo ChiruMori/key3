@@ -61,7 +61,7 @@ public class AdminUserController {
     @GetMapping("user/list/{clubId:\\d+}")
     @ApiOperation("分页获取社团成员列表，与 User 接口用法、参数相同")
     public Page<PageUserVO> pageClubUsers(@ApiParam(value = "社团 ID", required = true, example = "1") @PathVariable("clubId") Integer clubId,
-                                          @PageableDefault(sort = "total", direction = Sort.Direction.DESC) Pageable pageable) {
+                                          @PageableDefault(sort = {"total", "idUserId"}, direction = Sort.Direction.DESC) Pageable pageable) {
         return userService.getClubUserPage(clubId, pageable);
     }
 

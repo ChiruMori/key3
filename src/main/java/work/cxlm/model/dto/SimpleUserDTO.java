@@ -14,6 +14,8 @@ import work.cxlm.model.enums.UserGender;
 @Data
 public class SimpleUserDTO {
 
+    private Integer id;
+
     private String wxName;
 
     private String wxId;

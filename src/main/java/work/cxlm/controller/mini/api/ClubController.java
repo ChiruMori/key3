@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import work.cxlm.model.dto.ClubDTO;
-import work.cxlm.model.dto.RoomDTO;
 import work.cxlm.model.vo.ClubRoomMapVO;
 import work.cxlm.service.ClubService;
 
@@ -34,7 +33,7 @@ public class ClubController {
     }
 
     @GetMapping("/info/{clubId}")
-    @ApiOperation(value = "获取某活动室信息", notes = "需要社团 ID，得到的信息与 /list 中的信息一样")
+    @ApiOperation(value = "获取某社团信息", notes = "需要社团 ID，得到的信息与 /list 中的信息一样")
     public ClubDTO getRoomInfo(@PathVariable("clubId") Integer clubId) {
         return new ClubDTO().convertFrom(clubService.getById(clubId));
     }
@@ -44,4 +43,5 @@ public class ClubController {
     public ClubRoomMapVO getClubRoomMap() {
         return clubService.buildClubRoomMapOfUser();
     }
+
 }

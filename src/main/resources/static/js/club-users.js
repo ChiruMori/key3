@@ -10,6 +10,26 @@ $(document).ready(function () {
     };
 
     const refreshTable = function (newId) {
+        let btns = [{
+            extend: 'selected',
+            text: '<i class="fas fa-pen-square pr-1"></i>编辑',
+            name: 'edit',
+            className: 'btn btn-info'
+        }];
+        if (GLOBAL_VAL.systemAdmin) {
+            btns.unshift({
+                text: '<i class="fas fa-plus-square pr-1"></i>添加',
+                name: 'add',
+                className: 'btn btn-success'
+            });
+            btns.push({
+                extend: 'selected',
+                text: '<i class="fas fa-trash-alt pr-1"></i>删除',
+                name: 'delete',
+                className: 'btn btn-danger'
+            });
+        }
+
         if (datatable === null) {
             datatable = $('#dataTable').DataTable({
                 language: {
@@ -73,21 +93,7 @@ $(document).ready(function () {
                         return role === 'SYSTEM_ADMIN';
                     }
                 }],
-                buttons: [{
-                    text: '<i class="fas fa-plus-square pr-1"></i>添加',
-                    name: 'add',
-                    className: 'btn btn-success'
-                }, {
-                    extend: 'selected',
-                    text: '<i class="fas fa-pen-square pr-1"></i>编辑',
-                    name: 'edit',
-                    className: 'btn btn-info'
-                }, {
-                    extend: 'selected',
-                    text: '<i class="fas fa-trash-alt pr-1"></i>删除',
-                    name: 'delete',
-                    className: 'btn btn-danger'
-                }],
+                buttons: btns,
                 onAddRow: function (datatable, rowdata, success, error) {
                     utils.showLoading('ADDING...');
                     let systemAdmin = rowdata.role;

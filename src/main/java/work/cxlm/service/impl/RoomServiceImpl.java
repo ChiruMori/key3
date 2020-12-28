@@ -13,6 +13,7 @@ import work.cxlm.event.RoomInfoUpdatedEvent;
 import work.cxlm.exception.DataConflictException;
 import work.cxlm.exception.ForbiddenException;
 import work.cxlm.exception.NotFoundException;
+import work.cxlm.model.dto.ClubDTO;
 import work.cxlm.model.dto.LocationDTO;
 import work.cxlm.model.dto.RoomDTO;
 import work.cxlm.model.entity.*;
@@ -142,7 +143,7 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
         Assert.notNull(param, "RoomParam 不能为 null");
         // 验证权限
         User admin = SecurityContextHolder.ensureUser();
-        Club targetClub = clubService.getById(param.getId());
+        Club targetClub = clubService.getById(param.getClubId());
         if (!userService.managerOfClub(admin, targetClub)) {
             throw new ForbiddenException("权限不足，您无法管理该社团");
         }
@@ -239,6 +240,11 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
 
         deleteRoomTimePeriods(roomId);
         removeById(roomId);
+    }
+
+    @Override
+    public List<ClubDTO> getRoomClubs(Integer roomId) {
+        return ServiceUtils.convertList(belongService.listRoomClubs(roomId), club -> new ClubDTO().convertFrom(club));
     }
 
     // ***************** Private *********************

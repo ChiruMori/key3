@@ -38,7 +38,7 @@ $().ready(function () {
                     logUlContainer.append($(getLiItemFromDTO(logDTO.showHead, logDTO.content, logDTO.who, logDTO.createTime)));
                 });
                 logATag.text('全部日志');
-                logATag.attr('href', '/key3/admin/page/system-log');
+                logATag.attr('href', utils.wrapUrlWithToken('/key3/admin/page/system-log'));
             } else {
                 logATag.text('什么都没有...');
                 logATag.attr('href', '#');
@@ -52,13 +52,13 @@ $().ready(function () {
                         billDTO.createTime, billDTO.cost)));
                 });
                 billATag.text('全部收支');
-                billATag.attr('href', '/key3/admin/page/club-bill');
+                billATag.attr('href', utils.wrapUrlWithToken('/key3/admin/page/club-bill'));
             } else {
                 billATag.text('什么都没有...');
                 billATag.attr('href', '#');
             }
         }, function (res) {
-            alert('数据加载失败，请尝试刷新页面或重新登录');
+            utils.error('加载失败', '当前社团已被删除或者网络连接错误');
             console.error(res);
         }, function () {
             utils.hideLoading();

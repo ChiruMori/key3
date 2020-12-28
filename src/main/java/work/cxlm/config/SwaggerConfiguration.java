@@ -107,10 +107,10 @@ public class SwaggerConfiguration {
     @Bean
     SecurityConfiguration security() {
         return SecurityConfigurationBuilder.builder()
-                .clientId("my-font-client-id")
-                .clientSecret("my-font-client-secret")
-                .realm("my-font-realm")
-                .appName("my-font-app")
+                .clientId("key3-client-id")
+                .clientSecret("key3-client-secret")
+                .realm("key3-realm")
+                .appName("key3-app")
                 .scopeSeparator(",")
                 .additionalQueryStringParams(null)
                 .useBasicAuthenticationWithAccessCodeGrant(false)

@@ -48,6 +48,8 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
     private final TimeRepository timeRepository;
     private final OptionService optionService;
 
+    private static final int WEEKEND = 7;
+
     @Autowired
     public void setBelongService(BelongService belongService) {
         this.belongService = belongService;
@@ -72,7 +74,9 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
 
     // ***************** Private ***********************************
 
-    // 获得指定周、活动室的全部时间段
+    /**
+     * 获得指定周、活动室的全部时间段
+     */
     private List<TimePeriod> getWeekTimePeriods(@NonNull Room room, @NonNull Integer week) {
         Assert.notNull(room, "room 不能为 null");
         Assert.notNull(week, "请求的周次不能为 null");
@@ -89,7 +93,9 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
         return timeRepository.findAllByRoomIdAndIdBetween(roomId, startTimeId, endTimeId);
     }
 
-    // 构建指定活动室、周次、用户的预约表格
+    /**
+     * 构建指定活动室、周次、用户的预约表格
+     */
     private TimeTableVO buildTable(@NonNull Room targetRoom, @NonNull Integer week, User nowUser) {
         // 获得活动室指定周的全部时段
         List<TimePeriod> weekTimePeriods = getWeekTimePeriods(targetRoom, week);
@@ -109,7 +115,7 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
         DateUtils du = new DateUtils(new Date());
         boolean nextFlag = false;
         // 周日，而且超过了活动室的当日关闭时间
-        if (du.whatDayIsIt() == 7 && du.getHour() >= targetRoom.getEndHour()) {
+        if (du.whatDayIsIt() == WEEKEND && du.getHour() >= targetRoom.getEndHour()) {
             week += 1;
             nextFlag = true;
         }
@@ -124,7 +130,7 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
 
             // 行数据整理
             LinkedList<TimePeriodSimpleDTO> hourRow = new LinkedList<>();
-            for (int j = 0; j < 7; j++) {
+            for (int j = 0; j < WEEKEND; j++) {
                 Long timeId = TimeIdGenerator.encodeId(du, targetRoom.getId());
 
                 TimePeriod nowTime;
@@ -137,9 +143,9 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
                     nowTime.setShowText(StringUtils.EMPTY);
                 }
                 // 状态变更
-                // TODO: 关注状态变更
+                // 废弃: 关注状态变更
                 if (nowTime.getState() == null) { // 空闲状态
-                    nowTime.setState(IDLE);
+                    nowTime.setState(targetRoom.getAvailable() ? IDLE : DISABLED_RED);
                 }
                 if (!nowTime.getState().isDisabledState()) {  // 禁用状态优先级更高
                     if (nowTimeId > timeId) {
@@ -236,12 +242,13 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
 
         // 校验时段是否合法（可预约，没过期，已开放）
         Date targetDate = TimeIdGenerator.decodeIdToDate(timeId);
-        DateUtils nowDate = new DateUtils(new Date()).lastHour();
+        DateUtils nowDate = new DateUtils();
+        Date lastHour = new DateUtils().lastHour().get();
         // 新一周开始，当前时间均算作下周一 0 点
-        if (nowDate.whatDayIsIt() == 7 && nowDate.getHour() >= targetRoom.getEndHour()) {
+        if (nowDate.whatDayIsIt() == WEEKEND && nowDate.getHour() >= targetRoom.getEndHour()) {
             nowDate.tomorrow().weekStart().get();
         }
-        if (targetDate.before(nowDate.get())) {
+        if (targetDate.before(lastHour)) {
             throw new ForbiddenException("您无法改写历史");
         } else if (DateUtils.weekStartOf(targetDate).after(nowDate.get())) {
             throw new ForbiddenException("该时段尚未开放预订");
@@ -250,7 +257,8 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
         // 检验是否超出了时长限制
         List<TimePeriod> weekTimePeriods = getWeekTimePeriods(targetRoom, 0);
         Date now = new DateUtils().lastHour().get();
-        int[] statistic = new int[8];  // 统计，0 为周占用，1~7 为周日到周六
+        // 统计，0 为周占用，1~7 为周日到周六
+        int[] statistic = new int[8];
         weekTimePeriods.forEach(time -> {
             // 不是自己的时间、已过去的时间不进行统计
             if (!Objects.equals(time.getUserId(), nowUser.getId()) || time.getStartTime().before(now)) {
