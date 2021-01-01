@@ -12,7 +12,4 @@ import java.util.Optional;
  */
 public interface ClubRepository extends BaseRepository<Club, Integer> {
 
-
-    @NonNull
-    Optional<Club> findById(@NonNull Integer clubId);
 }

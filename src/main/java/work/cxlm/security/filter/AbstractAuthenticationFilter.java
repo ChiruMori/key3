@@ -36,12 +36,19 @@ import java.util.*;
 public abstract class AbstractAuthenticationFilter extends OncePerRequestFilter {
 
     private final AntPathMatcher antPathMatcher;
-    private final UrlPathHelper urlPathHelper = new UrlPathHelper(); // URL 校验工具对象
+
+    /**
+     * URL 校验工具对象
+     */
+    private final UrlPathHelper urlPathHelper = new UrlPathHelper();
     private final OneTimeTokenService oneTimeTokenService;
     private final QfzsProperties qfzsProperties;
     protected final AbstractStringCacheStore cacheStore;
 
-    private volatile AuthenticationFailureHandler failureHandler; // 未通过验证的错误处理
+    /**
+     * 未通过验证的错误处理
+     */
+    private volatile AuthenticationFailureHandler failureHandler;
 
     AbstractAuthenticationFilter(OneTimeTokenService oneTimeTokenService,
                                  QfzsProperties qfzsProperties,
@@ -66,9 +73,21 @@ public abstract class AbstractAuthenticationFilter extends OncePerRequestFilter 
 
     /**
      * 没有合法的一次性口令时，会调用本方法进行校验
+     *
+     * @param filterChain 过滤器链
+     * @param request     Http 请求
+     * @param response    Http 响应
+     * @throws IOException      网络 IO 异常
+     * @throws ServletException Servlet 异常
      */
     protected abstract void doAuthenticate(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws IOException, ServletException;
 
+    /**
+     * 从请求中获取登录凭证
+     *
+     * @param request Http 请求
+     * @return 读取到的 Token
+     */
     protected abstract String getTokenFromRequest(@NonNull HttpServletRequest request);
 
     // --------------- Override -------------------------
@@ -86,14 +105,14 @@ public abstract class AbstractAuthenticationFilter extends OncePerRequestFilter 
             // 未通过验证
             doAuthenticate(request, response, filterChain);
         } catch (AbstractQfzsException e) {
-            getFailHandler().onFailure(request, response, e);  // 转入失败处理，给客户端处理厚的错误响应
+            // 转入失败处理，给客户端处理厚的错误响应
+            getFailHandler().onFailure(request, response, e);
         } finally { // 用户的授权状态置为无效
             SecurityContextHolder.clearContext();
         }
     }
 
 
-    // 不用过滤的情况
     @Override
     protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
         Assert.notNull(request, "Http Request 不能为 null");
@@ -113,8 +132,9 @@ public abstract class AbstractAuthenticationFilter extends OncePerRequestFilter 
     private boolean isOneTimeAuthSufficient(HttpServletRequest request) {
         // 获取请求中的传回的 ott
         final String oneTimeToken = getTokenFromRequest(request, QfzsConst.ONE_TIME_TOKEN_QUERY_NAME, QfzsConst.ONE_TIME_TOKEN_HEADER_NAME);
+        // 没有 ott
         if (StringUtils.isEmpty(oneTimeToken)) {
-            return false; // 没有 ott
+            return false;
         }
         // 匹配 OOT 与 URL
         String allowUrl = oneTimeTokenService.get(oneTimeToken).orElseThrow(() -> new BadRequestException("无效的 Token"));
@@ -148,7 +168,9 @@ public abstract class AbstractAuthenticationFilter extends OncePerRequestFilter 
         return accessKey;
     }
 
-    // 生成 AuthenticationFailureHandler 的实例
+    /**
+     * 生成 AuthenticationFailureHandler 的实例
+     */
     private AuthenticationFailureHandler getFailHandler() {
         // 双重校验锁单例：DefaultAuthenticationFailureHandler 的实例
         if (failureHandler == null) {

@@ -43,13 +43,6 @@ public class TimePeriod extends BaseEntity {
     @Temporal(TemporalType.TIMESTAMP)
     private Date startTime;
 
-    /*
-     * 时段结束时间
-     */
-//    @Column(name = "end_time")
-//    @Temporal(TemporalType.TIMESTAMP)
-//    private Date endTime;
-
     /**
      * 关联的活动室 ID
      */
@@ -84,10 +77,10 @@ public class TimePeriod extends BaseEntity {
     private Boolean late;
 
     /**
-     * 当前时间段的状态：空闲、预定、预定且被关注、禁用
+     * 当前时间段的状态：空闲（默认）、预定、预定且被关注、禁用
      */
     @Column(name = "state")
-    @ColumnDefault("0") // 默认空闲
+    @ColumnDefault("0")
     private TimeState state;
 
     @Override

@@ -32,11 +32,6 @@ public class PageJacksonSerializer extends JsonSerializer<Page> {
         gen.writeBooleanField("isLast", page.isLast());
         gen.writeBooleanField("isEmpty", page.isEmpty());
         gen.writeBooleanField("hasContent", page.hasContent());
-        // 评论分页需要
-        // if (page instanceof CommentPage) {
-        //     CommentPage commentPage = (CommentPage) page;
-        //     gen.writeNumberField("commentCount", commentPage.getCommentCount());
-        // }
         gen.writeEndObject();
     }
 }

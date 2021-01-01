@@ -13,22 +13,25 @@ import java.util.Date;
  * created 2020/10/17 14:30
  * <p>
  * 所有实体类的基类，封装了创建、更新时间的字段
+ * 不映射到单独的数据表
  */
 @Data
 @ToString
 @EqualsAndHashCode
-@MappedSuperclass  // 不映射到单独的数据表
+@MappedSuperclass
 public abstract class BaseEntity {
 
     @Column(name = "create_time")
-    @Temporal(TemporalType.TIMESTAMP) // 自动封装为 yyyy-MM-dd hh:MM:ss
+    @Temporal(TemporalType.TIMESTAMP)
     private Date createTime;
 
     @Column(name = "update_time")
-    @Temporal(TemporalType.TIMESTAMP) // 自动封装为 yyyy-MM-dd hh:MM:ss
+    @Temporal(TemporalType.TIMESTAMP)
     private Date updateTime;
 
-    // 保存之前执行
+    /**
+     * 保存之前执行
+     */
     @PrePersist
     protected void prePersist() {
         Date now = QfzsDateUtils.now();
@@ -41,7 +44,6 @@ public abstract class BaseEntity {
         }
     }
 
-    // 更新之前执行
     @PreUpdate
     @PreRemove
     protected void preUpdate() {

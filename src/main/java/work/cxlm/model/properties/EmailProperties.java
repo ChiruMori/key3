@@ -11,14 +11,19 @@ public enum EmailProperties implements PropertyEnum {
 
     // 服务器
     HOST("email_host", String.class, "smtp.ym.163.com"),
+
     // 协议
     PROTOCOL("email_protocol", String.class, "smtp"),
+
     // 端口
     SSL_PORT("email_ssl_port", Integer.class, "465"),
+
     // 邮件用户名
     USERNAME("email_username", String.class, "cxlm@cxlm.work"),
+
     // 邮件密码
     PASSWORD("email_password", String.class, "cxlmmima123456"),
+
     // 发件人
     FROM_NAME("email_from_name", String.class, "琴房助手3");
 

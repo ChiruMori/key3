@@ -9,9 +9,8 @@ spring:
   datasource:
     type: com.mysql.cj.jdbc.MysqlDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/key3?useSSL=false&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&autoReconnect=true&serverTimezone=UTC
-#    username: cxlm
-    username: chiru
+    url: jdbc:mysql://127.0.0.1:6621/key3?useSSL=false&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&autoReconnect=true&serverTimezone=UTC
+    username: cxlm
     password: DB_mima~9749
   jpa:
     hibernate:
@@ -26,3 +25,6 @@ qfzs:
   app-id: wx037c071037531864
   app-secret: "******"
   app-request-url: "https://api.weixin.qq.com/sns/jscode2session"
+  system-admin-doc: "https://cxlm.work/s/key3-system-admin-doc"
+  club-admin-doc: "https://cxlm.work/s/key3-club-admin-doc"
+  user-doc: "https://cxlm.work/s/key3-user-doc"

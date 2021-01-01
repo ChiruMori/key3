@@ -1,5 +1,6 @@
 package work.cxlm.security.authentication;
 
+import org.springframework.lang.NonNull;
 import work.cxlm.security.support.UserDetail;
 
 /**
@@ -17,6 +18,7 @@ public class AuthenticationImpl implements Authentication {
     }
 
     @Override
+    @NonNull
     public UserDetail getUserDetail() {
         return userDetail;
     }

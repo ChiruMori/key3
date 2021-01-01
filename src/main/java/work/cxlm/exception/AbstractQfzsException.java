@@ -22,6 +22,8 @@ public abstract class AbstractQfzsException extends RuntimeException {
 
     /**
      * 获取 HTTP 状态，需要在子类实现
+     *
+     * @return Http 状态码
      */
     @NonNull
     public abstract HttpStatus getStatus();

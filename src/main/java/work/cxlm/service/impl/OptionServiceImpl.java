@@ -59,7 +59,7 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void save(Map<String, Object> options) {
         if (CollectionUtils.isEmpty(options)) {
             return;
@@ -97,7 +97,7 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
     }
 
     @Override
-    @Transactional  // 因为调用了本类其他有事务的方法，因自调用问题，需要添加事务
+    @Transactional(rollbackFor = Exception.class)
     public void save(List<OptionParam> optionParams) {
         if (CollectionUtils.isEmpty(optionParams)) {
             return;
@@ -118,7 +118,7 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
     }
 
     @Override
-    public void update(@NonNull Integer optionId, OptionParam optionParam) {
+    public void update(@NonNull Integer optionId, @NonNull OptionParam optionParam) {
         Assert.notNull(optionId, "配置项 ID 不能为 null");
         Option toUpdate = getById(optionId);
         optionParam.update(toUpdate);
@@ -129,11 +129,12 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
     @Override
     public void saveProperty(@NonNull PropertyEnum property, String value) {
         Assert.notNull(property, "property 不能为 null");
-        save(Collections.singletonMap(property.getValue(), value));  // 只有一个元素，无需事务
+        // 只有一个元素，无需事务
+        save(Collections.singletonMap(property.getValue(), value));
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void saveProperties(@NonNull Map<? extends PropertyEnum, String> properties) {
         if (CollectionUtils.isEmpty(properties)) {
             return;
@@ -155,7 +156,7 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
             return Collections.emptyMap();
         }
         Map<String, Object> allOptions = listOptions();
-        Map<String, Object> result = new HashMap<>();
+        Map<String, Object> result = new HashMap<>(16);
         keys.stream()
                 .filter(key -> !allOptions.containsKey(key))
                 .forEach(key -> result.put(key, allOptions.get(key)));
@@ -202,14 +203,14 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
     }
 
     @Override
-    public List<OptionDTO> listDTOs() {
+    public List<OptionDTO> listDtos() {
         List<OptionDTO> result = new LinkedList<>();
         listOptions().forEach((key, val) -> result.add(new OptionDTO(key, val)));
         return result;
     }
 
     @Override
-    public Page<OptionSimpleDTO> pageDTOsBy(@NonNull Pageable pageable, OptionQuery optionQuery) {
+    public Page<OptionSimpleDTO> pageDtosBy(@NonNull Pageable pageable, OptionQuery optionQuery) {
         Assert.notNull(pageable, "Pageable 对象不能为 null");
         Page<Option> optionPage = optionRepository.findAll(buildSpecByQuery(optionQuery), pageable);
         return optionPage.map(this::convertToDTO);
@@ -228,10 +229,6 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
         Assert.notNull(optionQuery, "查询字段不能为 null");
         return (root, query, builder) -> {
             List<Predicate> predicates = new LinkedList<>();
-            if (optionQuery.getType() != null) {
-                // 关系语句：type=?
-                predicates.add(builder.equal(root.get("type"), optionQuery.getType()));
-            }
             if (optionQuery.getKey() != null) {
                 // 关系语句 key LIKE %?% OR value LIKE %?%
                 String likeCondition = String.format("%%%s%%", StringUtils.strip(optionQuery.getKey()));

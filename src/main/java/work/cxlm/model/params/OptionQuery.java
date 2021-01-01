@@ -1,7 +1,6 @@
 package work.cxlm.model.params;
 
 import lombok.Data;
-import work.cxlm.model.enums.OptionType;
 
 /**
  * 查询配置项的参数
@@ -14,5 +13,4 @@ import work.cxlm.model.enums.OptionType;
 public class OptionQuery {
 
     private String key;
-    private OptionType type;
 }

@@ -34,12 +34,13 @@ public class QfzsConfiguration {
 
     @Bean
     public ObjectMapper objectMapperBean(Jackson2ObjectMapperBuilder builder) {
-        builder.failOnEmptyBeans(false);  // 配置此项后，在遇到无法转换的对象时，不会抛出异常
+        // 配置此项后，在遇到无法转换的对象时，不会抛出异常
+        builder.failOnEmptyBeans(false);
         return builder.build();
     }
 
     @Bean
-    @ConditionalOnMissingBean  // 防止重复注册，出现重复的情况直接抛出异常
+    @ConditionalOnMissingBean
     public AbstractStringCacheStore stringCacheStore() {
         AbstractStringCacheStore stringCacheStore;
         switch (qfzsProperties.getCache()) {

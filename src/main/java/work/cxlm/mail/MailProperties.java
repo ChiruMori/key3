@@ -19,7 +19,9 @@ public class MailProperties extends org.springframework.boot.autoconfigure.mail.
         this(false);
     }
 
-    // 方便测试使用
+    /**
+     * 方便测试使用
+     */
     public MailProperties(boolean needDebug) {
         addProperties("mail.debug", Boolean.toString(needDebug));
         addProperties("mail.smtp.auth", Boolean.TRUE.toString());
@@ -29,7 +31,7 @@ public class MailProperties extends org.springframework.boot.autoconfigure.mail.
 
     private void addProperties(String k, String v) {
         if (properties == null) {
-            properties = new HashMap<>();
+            properties = new HashMap<>(7);
         }
         properties.put(k, v);
     }

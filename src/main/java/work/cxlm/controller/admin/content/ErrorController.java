@@ -117,7 +117,7 @@ public class ErrorController extends AbstractErrorController {
     }
 
     /**
-     * 返回错误页面模板的路径
+     * 返回错误页面模板的路径（必须重写，因为抽象父类需要）
      */
     @Override
     public String getErrorPath() {

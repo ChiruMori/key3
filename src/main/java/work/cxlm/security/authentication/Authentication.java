@@ -13,6 +13,8 @@ public interface Authentication {
 
     /**
      * 获取用户详情（UserDetail 实例）
+     *
+     * @return 被包装的 UserDetail 实体
      */
     @NonNull
     UserDetail getUserDetail();

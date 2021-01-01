@@ -20,29 +20,38 @@ public interface CacheStore<K, V> {
 
     /**
      * 通过键查找缓存
+     *
      * @param key 键
      * @return Optional 包装的值
      */
     @NonNull
     Optional<V> get(@NonNull K key);
 
+    /**
+     * 获取到期时间
+     *
+     * @param key 缓存键
+     * @return 到期时间
+     */
     @Nullable
     Date getExpireAt(@NonNull K key);
 
     /**
      * 添加缓存，并设置过期时间
-     * @param key 缓存键
-     * @param value 缓存值
-     * @param timeout 过期时间
+     *
+     * @param key      缓存键
+     * @param value    缓存值
+     * @param timeout  过期时间
      * @param timeUnit 过期时间单位
      */
     void put(@NonNull K key, @NonNull V value, long timeout, @NonNull TimeUnit timeUnit);
 
     /**
      * 如果该键存在则设置
-     * @param key 缓存键
-     * @param value 缓存值
-     * @param timeout 过期时间
+     *
+     * @param key      缓存键
+     * @param value    缓存值
+     * @param timeout  过期时间
      * @param timeUnit 过期时间单位
      * @return 该缓存键是否已存在
      */
@@ -50,13 +59,15 @@ public interface CacheStore<K, V> {
 
     /**
      * 设置一个不会过期的缓存
-     * @param key 缓存键
+     *
+     * @param key   缓存键
      * @param value 缓存值
      */
     void put(@NonNull K key, @NonNull V value);
 
     /**
      * 删除一个缓存
+     *
      * @param key 缓存键
      */
     void delete(@NonNull K key);

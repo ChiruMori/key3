@@ -53,7 +53,8 @@ public class ValidationUtils {
             validate((Iterable<?>) obj, groups);
         } else {
             final Set<ConstraintViolation<Object>> constraintViolations = validator.validate(obj, groups);
-            if (!CollectionUtils.isEmpty(constraintViolations)) { // 含有未通过校验的字段
+            // 含有未通过校验的字段
+            if (!CollectionUtils.isEmpty(constraintViolations)) {
                 throw new ConstraintViolationException(constraintViolations);
             }
         }

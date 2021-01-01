@@ -3,7 +3,6 @@ package work.cxlm.service.impl;
 import cn.hutool.core.lang.Assert;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import work.cxlm.exception.ForbiddenException;
@@ -17,7 +16,6 @@ import work.cxlm.service.LogService;
 import work.cxlm.service.UserService;
 import work.cxlm.service.base.AbstractCrudService;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -45,7 +43,8 @@ public class LogServiceImpl extends AbstractCrudService<Log, Long> implements Lo
     public Page<LogDTO> pageClubLatest(int top, Integer clubId) {
         Assert.isTrue(top > 0, "每页条目必须大于 0");
         User admin = SecurityContextHolder.ensureUser();
-        Map<Integer, User> userMap = userService.getAllUserMap();  // 因为需要用户信息，一次查询以避免多次数据库 IO
+        // 因为需要用户信息，一次查询以避免多次数据库 IO
+        Map<Integer, User> userMap = userService.getAllUserMap();
         PageRequest latestPageable = PageRequest.of(0, top, Sort.by(Sort.Direction.DESC, "createTime"));
         if (admin.getRole().isSystemAdmin()) {
             return listAll(latestPageable).map(log -> wrapLogWithHeadAndWho(new LogDTO().convertFrom(log), userMap));
@@ -61,7 +60,8 @@ public class LogServiceImpl extends AbstractCrudService<Log, Long> implements Lo
     @Override
     public List<LogDTO> listAllByClubId(Integer clubId) {
         User admin = SecurityContextHolder.ensureUser();
-        Map<Integer, User> userMap = userService.getAllUserMap();  // 因为需要用户信息，一次查询以避免多次数据库 IO
+        // 因为需要用户信息，一次查询以避免多次数据库 IO
+        Map<Integer, User> userMap = userService.getAllUserMap();
         if (admin.getRole().isAdminRole()) {
             return listAll().stream().
                     map(log -> wrapLogWithHeadAndWho(new LogDTO().convertFrom(log), userMap)).

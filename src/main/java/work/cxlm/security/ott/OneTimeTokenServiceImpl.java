@@ -41,7 +41,7 @@ public class OneTimeTokenServiceImpl implements OneTimeTokenService {
     public String create(@NonNull String uri) {
         Assert.hasText(uri, "请求链接不能为空");
         // 使用 UUID 生成 OTT
-        String ott = QfzsUtils.randomUUIDWithoutDash();
+        String ott = QfzsUtils.randomUuidWithoutDash();
         cacheStore.put(ott, uri, OTT_EXPIRE_DAY, TimeUnit.DAYS);
         return ott;
     }

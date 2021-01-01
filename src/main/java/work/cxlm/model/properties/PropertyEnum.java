@@ -26,6 +26,9 @@ public interface PropertyEnum extends ValueEnum<String> {
 
     /**
      * 检测某个类是否支持转换
+     *
+     * @param type 该类的类对象
+     * @return 是否是本类的派生类
      */
     static boolean isSupportedType(Class<?> type) {
         if (type == null) {
@@ -72,9 +75,14 @@ public interface PropertyEnum extends ValueEnum<String> {
 
     /**
      * 将字符串转化为 PropertyEnum 指定的类型，不能转化时，返回字符串本身
+     *
+     * @param value        源字符串
+     * @param propertyEnum 目标的类型对象
+     * @return 转化后的结果
      */
     @SuppressWarnings("unchecked, rawtypes")
-    static Object convertTo(@NonNull String value, @NonNull PropertyEnum propertyEnum) {
+    static Object
+    convertTo(@NonNull String value, @NonNull PropertyEnum propertyEnum) {
         Assert.notNull(propertyEnum, "property enum 不能为 null");
 
         if (StringUtils.isBlank(value)) {
@@ -97,6 +105,14 @@ public interface PropertyEnum extends ValueEnum<String> {
         }
     }
 
+    /**
+     * 将源字符串转化为指定的泛型实例
+     *
+     * @param value 源字符串
+     * @param type  泛型类对象
+     * @param <T>   泛型类参数
+     * @return 转化后的泛型对象
+     */
     static <T extends Enum<T>> T convertToEnum(@NonNull String value, @NonNull Class<T> type) {
         try {
             return Enum.valueOf(type, value.toUpperCase());
@@ -105,13 +121,26 @@ public interface PropertyEnum extends ValueEnum<String> {
         }
     }
 
+    /**
+     * 获取本类的参数类对象
+     *
+     * @return 类对象
+     */
     Class<?> getType();
 
+    /**
+     * 获取参数的默认值
+     *
+     * @return 类对象
+     */
     @Nullable
     String defaultValue();
 
     /**
      * 获得指定类型的默认值
+     *
+     * @param propertyType 默认值类型对象
+     * @return 默认值
      */
     @Nullable
     default <T> T defaultValue(Class<T> propertyType) {
@@ -122,13 +151,18 @@ public interface PropertyEnum extends ValueEnum<String> {
         return PropertyEnum.convertTo(defaultValue, propertyType);
     }
 
+    /**
+     * 获取全部的配置参数对象映射
+     *
+     * @return 配置参数 Map
+     */
     static Map<String, PropertyEnum> getValuePropertyEnumType() {
         List<Class<? extends PropertyEnum>> classes = new LinkedList<>();
         // 添加系统配置，增加配置类时需要在这里进行注册
         classes.add(EmailProperties.class);
         classes.add(PrimaryProperties.class);
         classes.add(RuntimeProperties.class);
-        Map <String, PropertyEnum> result = new HashMap<>();
+        Map<String, PropertyEnum> result = new HashMap<>(9);
         classes.forEach(cls -> {
             PropertyEnum[] propertyEnums = cls.getEnumConstants();
 

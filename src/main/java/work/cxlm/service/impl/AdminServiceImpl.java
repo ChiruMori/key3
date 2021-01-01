@@ -96,7 +96,8 @@ public class AdminServiceImpl implements AdminService {
             eventPublisher.publishEvent(new LogEvent(this, targetUser.getId(), LogType.LOGGED_FAILED, "作为[" + targetUser.getRealName() + "]登录失败"));
             throw new ForbiddenException("错误的登录口令");
         }
-        cacheStore.delete(passcodeCacheKey);  // 清除用完的 passcode key
+        // 清除用完的 passcode key
+        cacheStore.delete(passcodeCacheKey);
         eventPublisher.publishEvent(new LogEvent(this, targetUser.getId(), LogType.LOGGED_IN, targetUser.getRealName() + "登录后台"));
         return userService.buildAuthToken(targetUser, ADMIN_AUTH_KEY_PREFIX, User::getId);
     }
@@ -122,13 +123,13 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void grant(AuthorityParam param) {
         changeAuthority(param, true);
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void revoke(AuthorityParam param) {
         changeAuthority(param, false);
     }
@@ -238,7 +239,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public UserDTO delete(@NonNull Integer userId) {
         Assert.notNull(userId, "user param 不能为 null");
 
@@ -269,9 +270,12 @@ public class AdminServiceImpl implements AdminService {
         }
         List<Joining> allJoining = joiningService.listAllJoiningByUserId(admin.getId());
         return clubService.listAllByIds(allJoining.stream().
-                filter(Joining::getAdmin).  // 确保为管理员角色
-                map(joining -> joining.getId().getClubId()).  // 得到社团 ID
-                collect(Collectors.toList()));  // 转为 List，去数据库查询
+                // 确保为管理员角色
+                filter(Joining::getAdmin).
+                // 得到社团 ID
+                map(joining -> joining.getId().getClubId()).
+                // 转为 List，去数据库查询
+                collect(Collectors.toList()));
     }
 
     @Override

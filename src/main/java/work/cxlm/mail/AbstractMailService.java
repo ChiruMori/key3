@@ -17,8 +17,7 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 /**
  * Abstract mail service.
@@ -46,7 +45,8 @@ public abstract class AbstractMailService implements MailService {
     @NonNull
     public ExecutorService getExecutorService() {
         if (this.executorService == null) {
-            this.executorService = Executors.newFixedThreadPool(DEFAULT_POOL_SIZE);
+            this.executorService = new ThreadPoolExecutor(DEFAULT_POOL_SIZE, DEFAULT_POOL_SIZE, 0,
+                    TimeUnit.SECONDS, new LinkedBlockingQueue<>(), t -> new Thread(t, "邮件发送线程"));
         }
         return executorService;
     }
@@ -178,6 +178,9 @@ public abstract class AbstractMailService implements MailService {
     protected interface Callback {
         /**
          * 处理消息
+         *
+         * @param messageHelper 消息构建器
+         * @throws Exception 任何异常
          */
         void handle(@NonNull MimeMessageHelper messageHelper) throws Exception;
     }

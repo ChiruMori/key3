@@ -164,7 +164,7 @@ public class QfzsUtils {
     /**
      * 生成没有横线连接的 UUID
      */
-    public static String randomUUIDWithoutDash() {
+    public static String randomUuidWithoutDash() {
         return StringUtils.remove(UUID.randomUUID().toString(), '-');
     }
 }

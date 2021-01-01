@@ -17,14 +17,25 @@ public interface BillRepository extends BaseRepository<Bill, Integer> {
 
     /**
      * 分页查询社团的账单
-     * @param clubId 社团 ID
+     *
+     * @param clubId         社团 ID
      * @param latestPageable 分页请求
+     * @return 社团账单的分页数据集
      */
     Page<Bill> findAllByClubId(Integer clubId, Pageable latestPageable);
+
+    /**
+     * 查询社团的全部账单（前端分页）
+     *
+     * @param clubId 社团 ID
+     * @return 社团全部账单的列表
+     */
     List<Bill> findAllByClubId(Integer clubId);
 
     /**
      * 删除社团全部财务信息
+     *
+     * @param clubId 目标社团 id
      */
     void deleteByClubId(Integer clubId);
 }

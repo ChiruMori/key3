@@ -6,9 +6,11 @@ import org.springframework.util.Assert;
 
 import javax.annotation.PreDestroy;
 import java.util.Optional;
-import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -25,27 +27,29 @@ public class InMemoryCacheStore extends AbstractStringCacheStore {
     /**
      * 清理器的工作周期
      */
-    private final static long PERIOD = 60 * 1000;
+    private final static long PERIOD = 60;
 
     /**
      * 缓存实际存储的 map
      */
     private final static ConcurrentHashMap<String, CacheWrapper<String>> CACHE_CONTAINER = new ConcurrentHashMap<>();
 
-    // 执行自动清理任务的定时器
-    private final Timer timer;
+    /**
+     * 执行自动清理任务的定时器
+     */
+    private final ScheduledExecutorService timerPool;
 
     private final Lock lock = new ReentrantLock();
 
     public InMemoryCacheStore() {
-        timer = new Timer();
-        timer.scheduleAtFixedRate(new CacheExpiryCleaner(), 0, PERIOD);
+        timerPool = new ScheduledThreadPoolExecutor(1, t -> new Thread(t, "缓存自动清除线程"));
+        timerPool.scheduleAtFixedRate(new CacheExpiryCleaner(), 0, PERIOD, TimeUnit.SECONDS);
     }
 
     @PreDestroy
     public void preDestroy() {
         log.debug("取消定时任务");
-        timer.cancel();
+        timerPool.shutdown();
         CACHE_CONTAINER.clear();
     }
 

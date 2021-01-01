@@ -3,7 +3,6 @@ package work.cxlm.model.params;
 import lombok.Data;
 import work.cxlm.model.entity.Option;
 import work.cxlm.model.dto.base.InputConverter;
-import work.cxlm.model.enums.OptionType;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
@@ -22,6 +21,4 @@ public class OptionParam implements InputConverter<Option> {
 
     @Size(max = 1023, message = "配置项值的长度不能超过 {max}")
     private String value;
-
-    private OptionType type;
 }

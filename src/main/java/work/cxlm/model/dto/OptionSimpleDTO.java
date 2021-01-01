@@ -2,8 +2,6 @@ package work.cxlm.model.dto;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import work.cxlm.model.dto.OptionDTO;
-import work.cxlm.model.enums.OptionType;
 
 import java.util.Date;
 
@@ -19,7 +17,6 @@ import java.util.Date;
 public class OptionSimpleDTO extends OptionDTO {
 
     private Integer id;
-    private OptionType type;
     private Date createTime;
     private Date updateTime;
 }

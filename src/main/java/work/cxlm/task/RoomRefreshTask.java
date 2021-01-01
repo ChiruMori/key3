@@ -40,8 +40,7 @@ public class RoomRefreshTask {
                            NoticeService noticeService,
                            BelongService belongService,
                            JoiningService joiningService,
-                           UserService userService,
-                           TimeService timeService) {
+                           UserService userService) {
         this.roomService = roomService;
         this.noticeService = noticeService;
         this.belongService = belongService;
@@ -54,7 +53,7 @@ public class RoomRefreshTask {
     }
 
     private void buildCache() {
-        room2UserMap = new HashMap<>();
+        room2UserMap = new HashMap<>(8);
         Map<Integer, CacheUsingSimpleRoomDTO> cacheRoomMap = ServiceUtils.convertToMap(roomService.listAll(), Room::getId,
                 room -> new CacheUsingSimpleRoomDTO().convertFrom(room));
         List<Belong> belongs = belongService.listAll();

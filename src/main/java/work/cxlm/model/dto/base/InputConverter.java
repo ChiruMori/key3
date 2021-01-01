@@ -17,6 +17,8 @@ public interface InputConverter<DOMAIN> {
 
     /**
      * 转化为 DOMAIN 实例（浅拷贝）
+     *
+     * @return 转化后的实体
      */
     @SuppressWarnings("unchecked")
     default DOMAIN convertTo() {
@@ -34,6 +36,8 @@ public interface InputConverter<DOMAIN> {
 
     /**
      * 通过 DTO 更新 DOMAIN 实例
+     *
+     * @param domain 被更新的实体对象
      */
     default void update(DOMAIN domain) {
         BeanUtils.updateProperties(this, domain);
@@ -41,6 +45,8 @@ public interface InputConverter<DOMAIN> {
 
     /**
      * 获取泛型
+     *
+     * @return 获取泛型
      */
     @Nullable
     default ParameterizedType parameterizedType() {

@@ -14,12 +14,20 @@ import java.util.Optional;
  */
 public interface TimeRepository extends BaseRepository<TimePeriod, Long> {
 
-    @NonNull
-    Optional<TimePeriod> findById(@NonNull Long timeId);
-
-    List<TimePeriod> findAllByRoomId(@NonNull Integer roomId);
-
+    /**
+     * 查询某个活动室某个时间段内全部时段
+     *
+     * @param roomId 活动室 ID
+     * @param minId  开始时间的 ID
+     * @param maxId  结束时间的 ID
+     * @return 活动室的全部时段列表
+     */
     List<TimePeriod> findAllByRoomIdAndIdBetween(@NonNull Integer roomId, @NonNull Long minId, @NonNull Long maxId);
 
+    /**
+     * 删除某用户预约的全部时段
+     *
+     * @param userId 用户 ID
+     */
     void deleteByUserId(Integer userId);
 }

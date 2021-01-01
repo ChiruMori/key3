@@ -84,7 +84,7 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
         Integer roomId = room.getId();
         DateUtils du = new DateUtils(new Date());
         // 移动到新的一周
-        if (du.whatDayIsIt() == 7 && du.getHour() >= room.getEndHour()) {
+        if (du.whatDayIsIt() == WEEKEND && du.getHour() >= room.getEndHour()) {
             du.tomorrow();
         }
         du.weekStart().changeWeek(week + 1);
@@ -119,8 +119,10 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
             week += 1;
             nextFlag = true;
         }
-        long nowTimeId = TimeIdGenerator.encodeId(du.lastHour(), 0);  // 获得当前时间点的 ID
-        du.changeWeek(week).weekStart();  // 移动到指定周周一
+        // 获得当前时间点的 ID
+        long nowTimeId = TimeIdGenerator.encodeId(du.lastHour(), 0);
+        // 移动到指定周周一
+        du.changeWeek(week).weekStart();
         for (int i = startHour; i < endHour; i++) {
             // 生成行标题
             du.setHour(i + 1);
@@ -144,21 +146,28 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
                 }
                 // 状态变更
                 // 废弃: 关注状态变更
-                if (nowTime.getState() == null) { // 空闲状态
+
+                // 空闲状态
+                if (nowTime.getState() == null) {
                     nowTime.setState(targetRoom.getAvailable() ? IDLE : DISABLED_RED);
                 }
-                if (!nowTime.getState().isDisabledState()) {  // 禁用状态优先级更高
+                // 禁用状态优先级更高
+                if (!nowTime.getState().isDisabledState()) {
+                    boolean nextWeekOrNotOpen = week > 1 || (week == 1 && !nextFlag);
                     if (nowTimeId > timeId) {
                         nowTime.setState(PASSED);
-                    } else if (week > 1 || (week == 1 && !nextFlag)) { // 请求未来的周，且未到切换周的时间点
+                    // 请求未来的周，且未到切换周的时间点
+                    } else if (nextWeekOrNotOpen) {
                         nowTime.setState(NOT_OPEN);
                     }
                 }
                 hourRow.add(new TimePeriodSimpleDTO().convertFrom(nowTime));
-                du.tomorrow();  // 下移一天
+                // 下移一天
+                du.tomorrow();
             }
             timeTable.add(hourRow);
-            du.changeWeek(-1);  // 前移一周
+            // 前移一周
+            du.changeWeek(-1);
         }
 
         // 返回值构建
@@ -219,9 +228,9 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
     public TimePeriodSimpleDTO occupyTimePeriod(@NonNull Long timeId) {
         Assert.notNull(timeId, "timeId 不能为 null");
         // 得到目标时段实体
-        TimePeriod timeInDB = getByIdOfNullable(timeId);
-        if (timeInDB == null) {
-            timeInDB = new TimePeriod(timeId);
+        TimePeriod timeInDb = getByIdOfNullable(timeId);
+        if (timeInDb == null) {
+            timeInDb = new TimePeriod(timeId);
         }
 
         // 得到活动室
@@ -268,27 +277,31 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
             statistic[DateUtils.whatDayIs(time.getStartTime())]++;  // 日统计
         });
         if (statistic[0] >= targetRoom.getWeekLimit() ||
-                statistic[DateUtils.whatDayIs(timeInDB.getStartTime())] >= targetRoom.getDayLimit()) {
+                statistic[DateUtils.whatDayIs(timeInDb.getStartTime())] >= targetRoom.getDayLimit()) {
             throw new ForbiddenException("超出限定时长：周限定: [" + targetRoom.getWeekLimit() + "]，日限定: [" + targetRoom.getDayLimit() + "]");
         }
 
         // 签到继承
         Long previousTimeId = TimeIdGenerator.previousTimeId(timeId);
         TimePeriod previousTime = getByIdOfNullable(previousTimeId);
-        if (previousTime != null && // 前移时段不为 null
-                Objects.equals(previousTime.getUserId(), nowUser.getId()) && // 前一时段同为当前用户占用
-                previousTime.getSigned() != null && previousTime.getSigned()) { // 前一时段已签到
-            timeInDB.setSigned(true); // 本时段自动设为已签到状态
+        // 前移时段不为 null
+        if (previousTime != null &&
+                // 前一时段同为当前用户占用
+                Objects.equals(previousTime.getUserId(), nowUser.getId()) &&
+                // 前一时段已签到
+                previousTime.getSigned() != null && previousTime.getSigned()) {
+            // 本时段自动设为已签到状态
+            timeInDb.setSigned(true);
         }
 
         // 占用时段
-        timeInDB.setShowText(nowUser.getRealName());
-        timeInDB.setRoomId(roomId);
-        timeInDB.setUserId(nowUser.getId());
-        timeInDB.setState(OCCUPIED);
+        timeInDb.setShowText(nowUser.getRealName());
+        timeInDb.setRoomId(roomId);
+        timeInDb.setUserId(nowUser.getId());
+        timeInDb.setState(OCCUPIED);
         // 存储、应用修改（更新或新建）
-        timeInDB = timeRepository.save(timeInDB);
-        return new TimePeriodSimpleDTO().convertFrom(timeInDB);
+        timeInDb = timeRepository.save(timeInDb);
+        return new TimePeriodSimpleDTO().convertFrom(timeInDb);
     }
 
     @Override
@@ -362,7 +375,8 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
 
         List<Room> rooms = belongService.listClubRooms(targetClub.getId());
         int[] usedAndAll = new int[2];
-        if (CollectionUtils.isEmpty(rooms)) {  // 大概是社团没有活动室的情况
+        // 大概是社团没有活动室的情况
+        if (CollectionUtils.isEmpty(rooms)) {
             return 0.0f;
         }
         rooms.forEach(room -> {
@@ -390,7 +404,7 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void removeOutTime(@NonNull Room targetRoom) {
         Assert.notNull(targetRoom, "目标活动室不能为 null");
 

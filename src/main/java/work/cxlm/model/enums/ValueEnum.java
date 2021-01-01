@@ -34,6 +34,8 @@ public interface ValueEnum<T> {
     }
 
     /**
+     * 获取枚举类型实际值
+     *
      * @return 枚举类值
      */
     T getValue();

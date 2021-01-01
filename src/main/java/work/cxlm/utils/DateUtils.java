@@ -144,7 +144,8 @@ public class DateUtils {
         int year = calendar.get(Calendar.YEAR);
         int month = calendar.get(Calendar.MONTH) + 1;
         int day = calendar.get(Calendar.DAY_OF_MONTH);
-        int hour = calendar.get(Calendar.HOUR_OF_DAY);  // 24 时制
+        // 24 时制
+        int hour = calendar.get(Calendar.HOUR_OF_DAY);
         int minus = calendar.get(Calendar.MINUTE);
         return year * 10000_0000L + month * 100_0000L + day * 10000L + hour * 100L + minus;
     }

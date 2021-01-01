@@ -24,7 +24,7 @@ import java.io.IOException;
 @Slf4j
 public class DefaultAuthenticationFailureHandler implements AuthenticationFailureHandler {
 
-    // 是否为生产环境
+    /** 是否为生产环境 */
     private boolean productEnv = true;
 
     private ObjectMapper objectMapper = JsonUtils.DEFAULT_JSON_MAPPER;

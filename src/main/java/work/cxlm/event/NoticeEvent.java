@@ -8,6 +8,7 @@ import work.cxlm.utils.ValidationUtils;
  * created 2020/12/10 15:45
  *
  * @author Chiru
+ * @deprecated 不再使用事件机制处理 Notice，请直接使用 Service
  */
 @Deprecated
 public class NoticeEvent extends ApplicationEvent {

@@ -16,17 +16,29 @@ import java.math.BigDecimal;
 @Data
 public class DashboardVO {
 
-    // 账单分页
+    /**
+     * 账单分页
+     */
     private Page<BillDTO> bills;
-    // 日志分页
+    /**
+     * 日志分页
+     */
     private Page<LogDTO> logs;
 
-    // 注册成员数
+    /**
+     * 注册成员数
+     */
     private Integer enrollMembers;
-    // 激活成员数
+    /**
+     * 激活成员数
+     */
     private Integer activeMembers;
-    // 可用资产
+    /**
+     * 可用资产
+     */
     private BigDecimal assets;
-    // 活动室使用率
-    private float usage;
+    /**
+     * 活动室使用率
+     */
+    private Float usage;
 }

@@ -17,6 +17,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.*;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Level DB 实现的字符串缓存
@@ -31,17 +34,22 @@ public class LevelCacheStore extends AbstractStringCacheStore {
     /**
      * 清理器的工作周期
      */
-    public static final long PERIOD = 60 * 1000;
+    public static final long PERIOD = 60;
 
     private static DB LEVEL_DB;
 
-    private Timer timer;  // 定时器
+    /**
+     * 执行自动清理任务的定时器
+     */
+    private final ScheduledExecutorService timerPool;
 
     //// -------------------- 生命周期 --------------------
 
     public LevelCacheStore(QfzsProperties properties) {
         super.qfzsProperties = properties;
         init();
+        timerPool = new ScheduledThreadPoolExecutor(1, t -> new Thread(t, "缓存自动清除线程"));
+        timerPool.scheduleAtFixedRate(new CacheExpiryCleaner(), 0, PERIOD, TimeUnit.SECONDS);
     }
 
     @PostConstruct
@@ -57,8 +65,6 @@ public class LevelCacheStore extends AbstractStringCacheStore {
             options.createIfMissing(true);
 
             LEVEL_DB = factory.open(folder, options);
-            timer = new Timer();
-            timer.scheduleAtFixedRate(new CacheExpiryCleaner(), 0, PERIOD);  // 启动定时清理任务
         } catch (IOException e) {
             log.error("初始化数据库失败", e);
         }
@@ -68,7 +74,7 @@ public class LevelCacheStore extends AbstractStringCacheStore {
     public void preDestroy() {
         try {
             LEVEL_DB.close();
-            timer.cancel();
+            timerPool.shutdown();
         } catch (IOException e) {
             log.error("关闭 Level DB 出错", e);
         }

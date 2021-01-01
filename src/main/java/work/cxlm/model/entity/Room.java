@@ -6,7 +6,6 @@ import lombok.ToString;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.validator.constraints.Range;
-import work.cxlm.model.enums.RoomState;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -60,12 +59,6 @@ public class Room extends BaseEntity {
     @Column(name = "end_hour")
     @Range(min = 1, max = 24)
     private Integer endHour;
-
-    /*
-     * 重设周期，CRON 表达式
-     */
-//    @Column(name = "reset_cron", length = 50)
-//    private String resetCron;
 
     /**
      * 使用当前活动室是否需要签到

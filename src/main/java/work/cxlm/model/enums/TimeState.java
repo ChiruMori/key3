@@ -2,6 +2,8 @@ package work.cxlm.model.enums;
 
 /**
  * 时段状态
+ *
+ * @author cxlm
  */
 public enum TimeState implements ValueEnum<Integer> {
 

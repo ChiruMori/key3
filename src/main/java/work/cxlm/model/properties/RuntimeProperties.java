@@ -10,6 +10,7 @@ import org.springframework.lang.NonNull;
  */
 public enum RuntimeProperties implements PropertyEnum {
 
+    // 开始计算
     WEEK_START_DATE("week_start_stamp", Long.class, "0")
     ;
     private final String value;

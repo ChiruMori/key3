@@ -22,7 +22,9 @@ public class LogEventListener {
         this.logService = logService;
     }
 
-    // 监听 LogEvent，异步方法（在独立的线程中执行）
+    /**
+     * 监听 LogEvent，异步方法（在独立的线程中执行）
+     */
     @Async
     @EventListener
     public void onApplicationEvent(LogEvent logEvent) {

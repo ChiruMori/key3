@@ -5,6 +5,8 @@ import lombok.Data;
 /**
  * auth.code2Session 接口响应实体
  * created 2020/11/17 16:07
+ * <p>
+ * 不遵循驼峰命名法则，后续如果重新设计，使用 Map 作为响应
  *
  * @author Chiru
  */

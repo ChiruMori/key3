@@ -34,14 +34,18 @@ public class Log extends BaseEntity {
     @Column(name = "content", length = 1023, nullable = false)
     private String content;
 
-    @Column(name="ip", length=127)
+    @Column(name = "ip", length = 127)
     private String ip;
 
-    /* 一般作为外键使用，关联产生当前日志的东西，通常为社团，系统级日志时为 admin id */
+    /**
+     * 一般作为外键使用，关联产生当前日志的东西，通常为社团，系统级日志时为 admin id
+     */
     @Column(name = "log_key")
     private Integer logKey;
 
-    /* 分组 ID，一般为社团 ID，当类型为社团级日志时，不能为空 */
+    /**
+     * 分组 ID，一般为社团 ID，当类型为社团级日志时，不能为空
+     */
     @Column(name = "group_id")
     private Integer groupId;
 }

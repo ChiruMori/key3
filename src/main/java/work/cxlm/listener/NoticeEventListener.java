@@ -9,6 +9,7 @@ import work.cxlm.service.NoticeService;
  * created 2020/12/10 15:58
  *
  * @author Chiru
+ * @deprecated 不再使用事件机制处理 Notice，请直接使用 Service
  */
 // @Component
 @Deprecated

@@ -14,6 +14,13 @@ import work.cxlm.utils.BeanUtils;
  */
 public interface OutputConverter<DTO extends OutputConverter<DTO, DOMAIN>, DOMAIN> {
 
+    /**
+     * 将实体类对象转化为 DTO 对象
+     *
+     * @param domain 实体类对象
+     * @param <T>    DTO 类参数
+     * @return 转化后的 DTO 类对象
+     */
     @NonNull
     @SuppressWarnings("unchecked")
     default <T extends DTO> T convertFrom(DOMAIN domain) {

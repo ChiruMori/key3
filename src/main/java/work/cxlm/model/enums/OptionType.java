@@ -10,8 +10,11 @@ package work.cxlm.model.enums;
  */
 @Deprecated
 public enum OptionType implements ValueEnum<Integer> {
-    INTERNAL(0),  // 内部选项
-    CUSTOM(1)  // 用户选项
+    // 内部选项
+    INTERNAL(0),
+
+    // 用户选项
+    CUSTOM(1)
     ;
 
     private Integer value;

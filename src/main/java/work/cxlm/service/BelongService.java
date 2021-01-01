@@ -19,21 +19,29 @@ import java.util.List;
 public interface BelongService extends CrudService<Belong, BelongId> {
 
     /**
-     * 根据roomId查到属于哪些社团
+     * 查询活动室归属的全部社团
+     *
+     * @param roomId 社团 ID
+     * @return 活动室归属的全部社团列表
      */
     @NonNull
     List<Club> listRoomClubs(@NonNull Integer roomId);
 
 
     /**
-     * 根据roomId查到属于哪些社团
+     * 查看社团拥有的全部活动室列表
+     *
+     * @param clubId 指定的社团 id
+     * @return 社团拥有的全部活动室列表
      */
     @NonNull
     List<Room> listClubRooms(@NonNull Integer clubId);
 
     /**
      * 删除归属于社团的活动室
+     *
+     * @param clubId 活动室 id
      */
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     void deleteClubRooms(@NonNull Integer clubId);
 }

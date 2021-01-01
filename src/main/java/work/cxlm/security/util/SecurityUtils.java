@@ -12,7 +12,9 @@ import work.cxlm.model.entity.User;
  */
 public class SecurityUtils {
 
-    // Access Token 前缀
+    /**
+     * Access Token 缓存前缀
+     */
     private static final String TOKEN_ACCESS_CACHE_PREFIX = "qfzs.user.access.token.";
     private static final String ACCESS_TOKEN_CACHE_PREFIX = "qfzs.user.access_token.";
 

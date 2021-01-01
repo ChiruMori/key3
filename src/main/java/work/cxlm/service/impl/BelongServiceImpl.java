@@ -75,14 +75,14 @@ public class BelongServiceImpl extends AbstractCrudService<Belong, BelongId> imp
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void deleteClubRooms(@NonNull Integer clubId) {
         Assert.notNull(clubId, "社团 ID 不能为 null");
 
         List<Belong> belongs = listAll();
         List<Integer> targetClubRooms = new LinkedList<>();
-        HashMap<Integer, Integer> roomClubCounter = new HashMap<>();
-        HashMap<Integer, Integer> clubRoomCounter = new HashMap<>();
+        HashMap<Integer, Integer> roomClubCounter = new HashMap<>(8);
+        HashMap<Integer, Integer> clubRoomCounter = new HashMap<>(4);
         belongs.forEach(belong -> {
             Integer rId = belong.getId().getRoomId();
             Integer cId = belong.getId().getClubId();

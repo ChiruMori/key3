@@ -16,11 +16,16 @@ import java.util.Optional;
 public interface OptionRepository extends BaseRepository<Option, Integer>, JpaSpecificationExecutor<Option> {
     /**
      * 通过键查找 Option
+     *
+     * @param key 配置项 键
+     * @return Optional 包装的配置项
      */
     Optional<Option> findByKey(String key);
 
     /**
      * 删除指定键的 Option
+     *
+     * @param key 配置项 键
      */
     void deleteByKey(String key);
 }

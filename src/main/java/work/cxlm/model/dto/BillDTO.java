@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 @Data
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class BillDTO extends ListItemDTO implements OutputConverter<BillDTO, Bill> {
+public class BillDTO extends BaseListItemDTO implements OutputConverter<BillDTO, Bill> {
 
     private Integer id;
 

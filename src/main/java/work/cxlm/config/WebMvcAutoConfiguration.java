@@ -79,7 +79,8 @@ public class WebMvcAutoConfiguration extends WebMvcConfigurationSupport {
 
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-        resolvers.add(new AuthenticationArgumentResolver());  // 添加用户凭证校验解析器
+        // 添加用户凭证校验解析器
+        resolvers.add(new AuthenticationArgumentResolver());
         resolvers.add(pageableResolver);
         resolvers.add(sortResolver);
     }
@@ -104,9 +105,6 @@ public class WebMvcAutoConfiguration extends WebMvcConfigurationSupport {
         registry.addResourceHandler(uploadUrlPattern)
                 .setCacheControl(CacheControl.maxAge(7L, TimeUnit.DAYS))
                 .addResourceLocations(workDir + "upload/");
-        // registry.addResourceHandler(adminPathPattern)
-        //        .addResourceLocations("classpath:/admin/");
-
         if (!qfzsProperties.isDocDisabled()) {
             // 启用文档接口
             registry.addResourceHandler("/swagger-ui.html")
@@ -119,7 +117,8 @@ public class WebMvcAutoConfiguration extends WebMvcConfigurationSupport {
 
     @Override
     public void addFormatters(FormatterRegistry registry) {
-        registry.addConverterFactory(new StringToEnumConverterFactory());  // 自定义 String 到 Enum 的转换器
+        // 自定义 String 到 Enum 的转换器
+        registry.addConverterFactory(new StringToEnumConverterFactory());
     }
 
     /**

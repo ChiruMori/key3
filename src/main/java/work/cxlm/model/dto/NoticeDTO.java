@@ -7,8 +7,6 @@ import work.cxlm.model.dto.base.OutputConverter;
 import work.cxlm.model.entity.Notice;
 import work.cxlm.model.enums.NoticeType;
 
-import javax.persistence.Column;
-
 /**
  * created 2020/12/10 15:10
  *
@@ -17,7 +15,7 @@ import javax.persistence.Column;
 @Data
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class NoticeDTO extends ListItemDTO implements OutputConverter<NoticeDTO, Notice> {
+public class NoticeDTO extends BaseListItemDTO implements OutputConverter<NoticeDTO, Notice> {
 
     private Long id;
 

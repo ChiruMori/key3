@@ -7,8 +7,10 @@ package work.cxlm.model.enums;
  **/
 @Deprecated
 public enum  RoomState implements ValueEnum<Integer>{
+    // 禁用
     BAN(0),
 
+    // 开放
     ALLOW(1);
 
     private Integer value;

@@ -247,6 +247,11 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
         return ServiceUtils.convertList(belongService.listRoomClubs(roomId), club -> new ClubDTO().convertFrom(club));
     }
 
+    @Override
+    public List<ClubDTO> getRoomClubs(Integer roomId) {
+        return ServiceUtils.convertList(belongService.listRoomClubs(roomId), club -> new ClubDTO().convertFrom(club));
+    }
+
     // ***************** Private *********************
 
     private boolean hasRelationBetweenRoomAndUser(@NonNull Room room, @NonNull User user, boolean mustAdmin) {

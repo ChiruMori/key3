@@ -116,7 +116,7 @@ public class ClubServiceImpl extends AbstractCrudService<Club, Integer> implemen
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public ClubDTO updateByParam(ClubParam clubParam) {
         Assert.notNull(clubParam, "ClubParam 不能为 null");
         ValidationUtils.validate(clubParam, UpdateCheck.class);
@@ -145,7 +145,7 @@ public class ClubServiceImpl extends AbstractCrudService<Club, Integer> implemen
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void deleteClub(Integer clubId) {
         Assert.notNull(clubId, "clubId 不能为 null");
 
@@ -153,11 +153,14 @@ public class ClubServiceImpl extends AbstractCrudService<Club, Integer> implemen
         if (!admin.getRole().isSystemAdmin()) {
             throw new ForbiddenException("权限不足，禁止操作");
         }
-        joiningService.removeByIdClubId(clubId);  // 删除用户加入社团的信息
-        billService.removeByClubId(clubId);  // 删除社团财务信息
+        // 删除用户加入社团的信息
+        joiningService.removeByIdClubId(clubId);
+        // 删除社团财务信息
+        billService.removeByClubId(clubId);
         announcementService.deleteClubAllAnnouncements(clubId);
         belongService.deleteClubRooms(clubId);
-        removeById(clubId);  // 删除社团
+        // 删除社团
+        removeById(clubId);
         eventPublisher.publishEvent(new LogEvent(this, admin.getId(), LogType.DELETE_CLUB,
                 "删除了社团：" + clubId));
     }
@@ -181,13 +184,13 @@ public class ClubServiceImpl extends AbstractCrudService<Club, Integer> implemen
     public ClubRoomMapVO buildClubRoomMapOfUser() {
         ClubRoomMapVO res = new ClubRoomMapVO();
         List<ClubDTO> userClubs = listUserClubs();
-        Map<Integer, ClubDTO> clubDTOMap = ServiceUtils.convertToMap(userClubs, ClubDTO::getId);
+        Map<Integer, ClubDTO> clubDtoMap = ServiceUtils.convertToMap(userClubs, ClubDTO::getId);
         res.setClubs(userClubs);
         Map<Integer, Room> allRoomMap = roomService.getAllRoomMap();
-        HashMap<Integer, List<RoomDTO>> clubRooms = new HashMap<>();
+        HashMap<Integer, List<RoomDTO>> clubRooms = new HashMap<>(4);
         belongService.listAll().forEach(belong -> {
             Integer clubId = belong.getId().getClubId();
-            if (clubDTOMap.containsKey(clubId)) {
+            if (clubDtoMap.containsKey(clubId)) {
                 List<RoomDTO> targetList;
                 if (clubRooms.containsKey(clubId)) {
                     targetList = clubRooms.get(clubId);

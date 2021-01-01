@@ -14,6 +14,10 @@ public interface NoticeRepository extends BaseRepository<Notice, Long> {
 
     /**
      * 查询某用户的全部通知
+     *
+     * @param id       指定用户 id
+     * @param pageable 分页参数
+     * @return 某用户的全部通知分页数据集
      */
     @NonNull
     Page<Notice> findAllByTargetUserId(Integer id, @NonNull Pageable pageable);
