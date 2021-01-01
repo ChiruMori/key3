@@ -45,7 +45,8 @@ public class QfzsProperties {
 
     @PostConstruct
     private void init() {
-        redisNodes.add("127.0.0.1:6543");  // 配置使用的 Redis 节点
+        // 配置使用的 Redis 节点
+        redisNodes.add("120.27.248.158:6543");
     }
 
     /**

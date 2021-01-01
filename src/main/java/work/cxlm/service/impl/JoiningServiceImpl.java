@@ -152,22 +152,26 @@ public class JoiningServiceImpl extends AbstractCrudService<Joining, JoiningId> 
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public JoiningDTO newJoiningBy(@NonNull JoiningParam param) {
-        ValidationUtils.validate(param, CreateCheck.class);  // 表单校验
+        // 表单校验
+        ValidationUtils.validate(param, CreateCheck.class);
         Optional<User> userOptional = userService.getByStudentNo(param.getStudentNo());
         User targetUser;
-        Club targetClub = clubService.getById(param.getClubId());  // 确保社团存在
+        // 确保社团存在
+        Club targetClub = clubService.getById(param.getClubId());
         // 用户已存在时
         if (userOptional.isPresent()) {
             JoiningId jid = new JoiningId(userOptional.get().getId(), param.getClubId());
             Joining joining = getByIdOfNullable(jid);
-            if (joining != null) { // 该用户已经加入社团，抛
+            // 该用户已经加入社团，抛
+            if (joining != null) {
                 throw new DataConflictException("用户" + userOptional.get().getRealName() +
                         "已为" + targetClub.getName() + "社团成员");
             }
             targetUser = userOptional.get();
-        } else { // 用户不存在的情况，要首先新建用户
+        } else {
+            // 用户不存在的情况，要首先新建用户
             if (StringUtils.isEmpty(param.getRealName())) {
                 throw new ValidationException("新建用户时必须同时指定用户姓名");
             }
@@ -190,18 +194,20 @@ public class JoiningServiceImpl extends AbstractCrudService<Joining, JoiningId> 
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public JoiningDTO removeMember(@NonNull Integer clubId, @NonNull Long studentNo) {
         Assert.notNull(clubId, "社团 ID 不能为 null");
         Assert.notNull(studentNo, "学号不能为 null");
 
         Optional<User> userOptional = userService.getByStudentNo(studentNo);
-        Club targetClub = clubService.getById(clubId);  // 确保社团存在
+        // 确保社团存在
+        Club targetClub = clubService.getById(clubId);
         User admin = SecurityContextHolder.ensureUser();
         if (userOptional.isPresent()) {
             User targetUser = userOptional.get();
             JoiningId jid = new JoiningId(targetUser.getId(), clubId);
-            Joining toDelete = getById(jid);  // 确保加入该社团
+            // 确保加入该社团
+            Joining toDelete = getById(jid);
             if (!userService.managerOf(admin, targetUser)) {
                 throw new ForbiddenException("权限不足，无法操作该用户");
             }
@@ -255,7 +261,7 @@ public class JoiningServiceImpl extends AbstractCrudService<Joining, JoiningId> 
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public JoiningDTO updateJoiningBy(JoiningParam param) {
         ValidationUtils.validate(param, UpdateCheck.class);
         User targetUser = userService.getByStudentNo(param.getStudentNo()).orElseThrow(
@@ -282,7 +288,6 @@ public class JoiningServiceImpl extends AbstractCrudService<Joining, JoiningId> 
 
     // **************** Private **********************
 
-    // 构造返回值
     private JoiningDTO buildResult(Joining joining, User targetUser) {
         JoiningDTO res = new JoiningDTO().convertFrom(joining);
         res.setHead(targetUser.getHead());

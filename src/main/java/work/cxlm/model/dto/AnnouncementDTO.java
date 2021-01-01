@@ -14,7 +14,7 @@ import work.cxlm.model.entity.Announcement;
 @Data
 @ToString
 @EqualsAndHashCode(callSuper = true)
-public class AnnouncementDTO extends ListItemDTO implements OutputConverter<AnnouncementDTO, Announcement> {
+public class AnnouncementDTO extends BaseListItemDTO implements OutputConverter<AnnouncementDTO, Announcement> {
     private Integer id;
     private String title;
     private String content;

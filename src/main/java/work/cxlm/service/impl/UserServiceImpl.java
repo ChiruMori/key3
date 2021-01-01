@@ -25,8 +25,6 @@ import work.cxlm.model.enums.UserRole;
 import work.cxlm.model.params.LogParam;
 import work.cxlm.model.params.UserLoginParam;
 import work.cxlm.model.params.UserParam;
-import work.cxlm.model.support.CreateCheck;
-import work.cxlm.model.support.UpdateCheck;
 import work.cxlm.rpc.RpcClient;
 import work.cxlm.rpc.code2session.Code2SessionParam;
 import work.cxlm.rpc.code2session.Code2SessionResponse;
@@ -40,7 +38,7 @@ import work.cxlm.security.util.SecurityUtils;
 import work.cxlm.service.ClubService;
 import work.cxlm.service.JoiningService;
 import work.cxlm.service.UserService;
-import work.cxlm.service.base.AbstractCrudService;
+import work.cxlm.service.base.AbstractCacheCrudService;
 import work.cxlm.utils.*;
 
 import java.util.*;
@@ -60,7 +58,7 @@ import static work.cxlm.service.AdminService.REFRESH_TOKEN_EXPIRED_DAYS;
  */
 @Service
 @Slf4j
-public class UserServiceImpl extends AbstractCrudService<User, Integer> implements UserService {
+public class UserServiceImpl extends AbstractCacheCrudService<User, Integer> implements UserService {
 
     private JoiningService joiningService;
     private ClubService clubService;
@@ -75,7 +73,7 @@ public class UserServiceImpl extends AbstractCrudService<User, Integer> implemen
                            ApplicationEventPublisher eventPublisher,
                            QfzsProperties qfzsProperties,
                            AbstractStringCacheStore cacheStore) {
-        super(userRepository);
+        super(userRepository, cacheStore, User::getId, "user.map.cache");
         this.userRepository = userRepository;
         this.eventPublisher = eventPublisher;
         this.qfzsProperties = qfzsProperties;
@@ -129,14 +127,15 @@ public class UserServiceImpl extends AbstractCrudService<User, Integer> implemen
 
     @Override
     public <T> AuthToken buildAuthToken(@NonNull User user, String keyPrefix, Function<User, T> converter) {
-        clearUserToken(user, keyPrefix);  // 清除原 Token 确保不会生成冗余的 Token
+        // 清除原 Token 确保不会生成冗余的 Token
+        clearUserToken(user, keyPrefix);
 
         // Generate new token
         AuthToken token = new AuthToken();
 
-        token.setAccessToken(QfzsUtils.randomUUIDWithoutDash());
+        token.setAccessToken(QfzsUtils.randomUuidWithoutDash());
         token.setExpiredIn(ACCESS_TOKEN_EXPIRED_SECONDS);
-        token.setRefreshToken(QfzsUtils.randomUUIDWithoutDash());
+        token.setRefreshToken(QfzsUtils.randomUuidWithoutDash());
 
         // Cache those tokens, just for clearing
         cacheStore.putAny(SecurityUtils.buildAccessTokenKey(user, keyPrefix), token.getAccessToken(), ACCESS_TOKEN_EXPIRED_SECONDS, TimeUnit.SECONDS);
@@ -172,7 +171,8 @@ public class UserServiceImpl extends AbstractCrudService<User, Integer> implemen
     public User updateUserByParam(@NonNull UserParam param) {
         // 更新信息的请求在过滤器黑名单中，无法走 Authentication 方法获得用户
         User currentUser = userRepository.findByStudentNo(param.getStudentNo()).orElse(null);
-        if (currentUser == null) { // 目标用户不存在、数据库中没有用户信息
+        // 目标用户不存在、数据库中没有用户信息
+        if (currentUser == null) {
             throw new NotFoundException("无效的学号，请联系管理员授权后使用");
         }
         // 首次登陆完善学号的情况
@@ -194,7 +194,8 @@ public class UserServiceImpl extends AbstractCrudService<User, Integer> implemen
     @NonNull
     public Page<PageUserVO> getClubUserPage(Integer clubId, Pageable pageable) {
         User me = SecurityContextHolder.ensureUser();
-        if (me.getRole() != UserRole.SYSTEM_ADMIN) {  // 系统管理员无视权限
+        // 系统管理员无视权限
+        if (me.getRole() != UserRole.SYSTEM_ADMIN) {
             joiningService.getJoiningById(me.getId(), clubId).orElseThrow(() -> new BadRequestException("您不属于该社团，无权查看"));
         }
         Page<Joining> allJoining = joiningService.pageAllJoiningByClubId(clubId, pageable);

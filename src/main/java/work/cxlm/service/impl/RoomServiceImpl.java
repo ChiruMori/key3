@@ -95,7 +95,7 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @NonNull
     public RoomDTO newRoomBy(@NonNull RoomParam param) {
         Assert.notNull(param, "RoomParam 不能为 null");
@@ -109,7 +109,8 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
         Integer oldRoomId = param.getId();
         if (oldRoomId != null) {
             BelongId bid = new BelongId(targetClub.getId(), oldRoomId);
-            if (belongService.existsById(bid)) {  // 已经存在该归属关系
+            // 已经存在该归属关系
+            if (belongService.existsById(bid)) {
                 throw new DataConflictException("活动室已经属于该社团，请核对后重试");
             }
             // 存储归属关系
@@ -150,7 +151,8 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
         // 更新活动室信息
         Room targetRoom = getById(param.getId());
         param.update(targetRoom);
-        timeService.removeOutTime(targetRoom);  // 移除超出新时间区间的预约
+        // 移除超出新时间区间的预约
+        timeService.removeOutTime(targetRoom);
         // 通知变更
         eventPublisher.publishEvent(new RoomInfoUpdatedEvent(this));
         eventPublisher.publishEvent(new LogEvent(this, new LogParam(admin.getId(), targetClub.getId(),
@@ -173,7 +175,7 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @NonNull
     public RoomDTO deleteRoom(@NonNull Integer clubId, @NonNull Integer roomId) {
         Assert.notNull(clubId, "clubId 不能为 null");
@@ -191,12 +193,15 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
         }
         // 如果该活动室只归属于一个社团
         boolean onlyOwner = belongService.listRoomClubs(roomId).size() == 1;
-        belongService.removeById(bid);  // 删除归属关系
+        // 删除归属关系
+        belongService.removeById(bid);
         // 通知变更
         eventPublisher.publishEvent(new RoomInfoUpdatedEvent(this));
         RoomDTO res;
-        if (onlyOwner) {  // 删除活动室，并删除预约历史记录
-            deleteRoomTimePeriods(roomId);  // 删除该活动室的预约
+        // 删除活动室，并删除预约历史记录
+        if (onlyOwner) {
+            // 删除该活动室的预约
+            deleteRoomTimePeriods(roomId);
             res = new RoomDTO().convertFrom(removeById(roomId));
         } else {
             // 还有其他社团拥有该活动室时
@@ -212,7 +217,8 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
     @SuppressWarnings("rawtypes, unchecked")
     public List<LocationDTO> getLocations(@NonNull Integer clubId) {
         Optional<List> locations = cacheStore.getAny(QfzsConst.LOCATION_KEY, List.class);
-        return (List<LocationDTO>) locations.  // 这里的转化不能删除，否则在 JDK8 环境将报错
+        // 这里的转化不能删除，否则在 JDK8 环境将报错
+        return (List<LocationDTO>) locations.
                 map(list -> ServiceUtils.convertList(list, o -> (LocationDTO) o)).
                 orElse(Collections.emptyList());
     }
@@ -247,11 +253,6 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
         return ServiceUtils.convertList(belongService.listRoomClubs(roomId), club -> new ClubDTO().convertFrom(club));
     }
 
-    @Override
-    public List<ClubDTO> getRoomClubs(Integer roomId) {
-        return ServiceUtils.convertList(belongService.listRoomClubs(roomId), club -> new ClubDTO().convertFrom(club));
-    }
-
     // ***************** Private *********************
 
     private boolean hasRelationBetweenRoomAndUser(@NonNull Room room, @NonNull User user, boolean mustAdmin) {
@@ -266,7 +267,8 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
         List<Joining> userJoining = joiningService.listAllJoiningByUserId(user.getId());
         // 获得用户加入的全部社团
         Set<Integer> userClubs = userJoining.stream().
-                filter(joining -> !mustAdmin || joining.getAdmin()).  // 在需要管理员权限时进行过滤
+                // 在需要管理员权限时进行过滤
+                filter(joining -> !mustAdmin || joining.getAdmin()).
                 map(joining -> joining.getId().getClubId()).
                 collect(Collectors.toSet());
         // 用户加入的社团与活动室所属的社团有交集，则认为用户可以对该活动室进行操作

@@ -59,7 +59,9 @@ public class SwaggerConfiguration {
         this.qfzsProperties = qfzsProperties;
     }
 
-    // 非管理员功能 API 文档
+    /**
+     * 非管理员功能 API 文档
+     */
     @Bean
     public Docket qfzsDefaultDocket() {
         if (qfzsProperties.isDocDisabled()) {
@@ -74,7 +76,9 @@ public class SwaggerConfiguration {
                 .enable(!qfzsProperties.isDocDisabled());
     }
 
-    // 管理员功能 API 文档
+    /**
+     * 管理员功能 API 文档
+     */
     @Bean
     public Docket qfzsAdminApi() {
         if (qfzsProperties.isDocDisabled()) {
@@ -89,7 +93,9 @@ public class SwaggerConfiguration {
                 .enable(!qfzsProperties.isDocDisabled());
     }
 
-    // 管理员功能 API 文档
+    /**
+     * 管理员功能 API 文档
+     */
     @Bean
     public Docket qfzsTimeApi() {
         if (qfzsProperties.isDocDisabled()) {

@@ -24,7 +24,6 @@ public class CacheStoreTest {
 
     List<CacheStore<String, String>> stores;
 
-
     private QfzsProperties qfzsProperties;
 
     @Autowired
@@ -36,7 +35,7 @@ public class CacheStoreTest {
     void setUp() {
         stores = new LinkedList<>();
         stores.add(new LevelCacheStore(qfzsProperties));
-        // TODO: stores.add(new RedisCacheStore(myFontProperties));
+        stores.add(new RedisCacheStore(qfzsProperties));
         stores.add(new InMemoryCacheStore());
     }
 

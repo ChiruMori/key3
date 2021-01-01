@@ -6,8 +6,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-import work.cxlm.model.entity.User;
-import work.cxlm.model.vo.PageUserVO;
+import org.springframework.util.comparator.Comparators;
 
 import java.util.*;
 import java.util.function.Function;
@@ -59,7 +58,7 @@ public class ServiceUtils {
             return Collections.emptyMap();
         }
 
-        Map<ID, List<ENTITY>> res = new HashMap<>();
+        Map<ID, List<ENTITY>> res = new HashMap<>(entities.size());
         // 整理数据，每个 ID 都会对应一个只有一个元素的列表
         entities.forEach(e -> res.computeIfAbsent(convertFunction.apply(e), id -> new LinkedList<>())
                 .add(e));
@@ -85,7 +84,7 @@ public class ServiceUtils {
             return Collections.emptyMap();
         }
 
-        HashMap<ID, ENTITY> resultMap = new HashMap<>();
+        HashMap<ID, ENTITY> resultMap = new HashMap<>(entities.size());
         entities.forEach(data -> resultMap.putIfAbsent(convertFunction.apply(data), data));
         return resultMap;
     }
@@ -109,7 +108,7 @@ public class ServiceUtils {
             return Collections.emptyMap();
         }
 
-        HashMap<ID, VAL> resultMap = new HashMap<>();
+        HashMap<ID, VAL> resultMap = new HashMap<>(entities.size());
         entities.forEach(data -> resultMap.putIfAbsent(idConverter.apply(data), valConverter.apply(data)));
         return resultMap;
     }
@@ -177,10 +176,11 @@ public class ServiceUtils {
 
     /**
      * 使用转换函数转换列表中元素的类型
-     * @param srcList 原始列表
+     *
+     * @param srcList   原始列表
      * @param converter 转换函数
-     * @param <SRC> 原始元素类型
-     * @param <TAR> 目标元素类型
+     * @param <SRC>     原始元素类型
+     * @param <TAR>     目标元素类型
      */
     @NonNull
     public static <SRC, TAR> List<TAR> convertList(@Nullable List<SRC> srcList, @NonNull Function<SRC, TAR> converter) {
@@ -193,12 +193,13 @@ public class ServiceUtils {
 
     /**
      * 整理数据，将实例列表整理为 key 对应 Value 列表的映射关系
-     * @param srcList 源实例列表
-     * @param keyConverter 将实例转化为 key 的函数
+     *
+     * @param srcList        源实例列表
+     * @param keyConverter   将实例转化为 key 的函数
      * @param valueConverter 将实例转化为 value 的函数
-     * @param <K> 键类型
-     * @param <V> 值类型
-     * @param <SRC> 源数据类型
+     * @param <K>            键类型
+     * @param <V>            值类型
+     * @param <SRC>          源数据类型
      */
     @NonNull
     public static <K, V, SRC> Map<K, List<V>> list2ListMap(@NonNull List<SRC> srcList,
@@ -208,13 +209,13 @@ public class ServiceUtils {
         Assert.notNull(keyConverter, "key 转换函数不能为 null");
         Assert.notNull(valueConverter, "value 转换函数不能为 null");
 
-        Map<K, List<V>> res = new HashMap<>();
+        Map<K, List<V>> res = new HashMap<>(srcList.size());
         srcList.forEach(src -> {
             K key = keyConverter.apply(src);
             V value = valueConverter.apply(src);
-            if (res.containsKey(key)){
+            if (res.containsKey(key)) {
                 res.get(key).add(value);
-            }else {
+            } else {
                 LinkedList<V> valList = new LinkedList<>();
                 valList.add(value);
                 res.put(key, valList);
@@ -223,4 +224,18 @@ public class ServiceUtils {
         return res;
     }
 
+    /**
+     * 将一个 Map 转化为值列表
+     *
+     * @param <DOMAIN> 值类型参数
+     * @param valueMap 包含值的 Map
+     * @return 所有的值列表
+     */
+    @NonNull
+    public static <DOMAIN> List<DOMAIN> convertToList(Map<?, DOMAIN> valueMap) {
+        if (CollectionUtils.isEmpty(valueMap)) {
+            return Collections.emptyList();
+        }
+        return new ArrayList<>(valueMap.values());
+    }
 }
