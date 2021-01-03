@@ -20,8 +20,10 @@
         </div>
     </form-->
     <div class="nav-item no-arrow mx-1">
-        <a class="nav-link" href="${base.docUrl}" target="_blank" role="button">
-            <i class="fas fa-book mr-2"></i>用户文档</a>
+        <#if base.docUrl??>
+            <a class="nav-link" href="${base.docUrl!'https://cxlm.work'}" target="_blank" role="button">
+                <i class="fas fa-book mr-2"></i>用户文档</a>
+        </#if>
     </div>
 
     <!-- 顶部导航选项 -->

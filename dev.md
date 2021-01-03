@@ -1,7 +1,5 @@
 ## 系统基础模块
 
-_注意，因为系统开发时，分支切换的影响。下文中名称中 MyFont 和 Qfzs 为同一个含义_
-
 ### 系统基础功能增强
 
 > 全局事件监听用于将业务无关的部分处理抽离出来，以降低耦合，增加可读性
@@ -46,6 +44,7 @@ _注意，因为系统开发时，分支切换的影响。下文中名称中 MyF
 + Service (work.cxlm.service.base)
     + CrudService 声明与数据库交互、完成常规 CRUD 操作的 service 通用方法。其中泛型 `DOMAIN`、`ID` 分别表示操作的实体类、实体主键类型
     + AbstractCrudService 实现上述接口的全部方法，需要子类继承时传入 repository 即可使用
+    + AbstractCacheCrudService 继承上述接口，实现一个弱引用缓存，缓存全部实体的 Map
 + Controller (作用目标 work.cxlm.controller)
     + work.cxlm.annotation
         + DisableOnCondition 注解及相关切面（aspect）、解析器，作用于 Controller 方法上，可以限制在某些情况下（通常为系统配置的调整）禁用 API
@@ -149,3 +148,9 @@ _注意，因为系统开发时，分支切换的影响。下文中名称中 MyF
     + 子包：每个包表示请求一个接口使用的参数与响应实体
     + GetParam：提供了 Get 请求参数的转化方法
     + RpcClient：发送 Http 请求的静态工具类
+    
+### task 自动任务模块
+
++ InitialCommandLineRunner 系统启动自检
++ RoomRefreshTask 用于发送活动室重置通知
++ TimeNoticeTask 用于发送预约时段开始通知 

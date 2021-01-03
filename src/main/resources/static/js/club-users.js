@@ -104,6 +104,8 @@ $(document).ready(function () {
                     }, commonAjaxFailHandler(error), utils.hideLoading);
                 },
                 onDeleteRow: function (datatable, rowdata, success, error) {
+                    // 隐藏信息显示的模态弹窗
+                    $('.altEditor-modal.modal').modal('hide');
                     utils.prompt("删除用户？",
                         "注意，这会同时删除用户全部信息，包括社团的参加信息、活动的参加信息、所有该用户的预约；如果您不顾一切要这样做，请输入该用户的名字以进行确认",
                         "input", rowdata.realName).then(function (inputValue) {

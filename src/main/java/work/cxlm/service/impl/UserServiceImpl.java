@@ -73,7 +73,7 @@ public class UserServiceImpl extends AbstractCacheCrudService<User, Integer> imp
                            ApplicationEventPublisher eventPublisher,
                            QfzsProperties qfzsProperties,
                            AbstractStringCacheStore cacheStore) {
-        super(userRepository, cacheStore, User::getId, "user.map.cache");
+        super(userRepository, cacheStore, User::getId, User.class, "user.map.cache");
         this.userRepository = userRepository;
         this.eventPublisher = eventPublisher;
         this.qfzsProperties = qfzsProperties;
@@ -186,6 +186,8 @@ public class UserServiceImpl extends AbstractCacheCrudService<User, Integer> imp
         }
         param.update(currentUser);
         currentUser = userRepository.save(currentUser);
+        // 清除使用的缓存
+        clear();
         log.info("用户 [{}]-[{}] 更新（完善）了信息", currentUser.getRealName(), ServletUtils.getRequestIp());
         return currentUser;
     }

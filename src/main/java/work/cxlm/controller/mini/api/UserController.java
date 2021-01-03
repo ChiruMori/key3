@@ -61,7 +61,7 @@ public class UserController {
 
     @ApiOperation(value = "用户登录", notes = "必须传递 code 登录成功将会获得用户登录凭证（accessToken），如果用户不存在则得到字段均为 null 的响应")
     @PostMapping("/login")
-    // @CacheLock(prefix = "login_check") // TODO: 校验去掉此处锁会不会出问题
+    @CacheLock(prefix = "user_token", msg = "正在登录人数过多，请重试")
     public AuthToken userLogin(@Valid @RequestBody UserLoginParam userLoginParam) {
         String openId = userService.getOpenIdBy(userLoginParam);
         return userService.login(openId);
@@ -69,7 +69,7 @@ public class UserController {
 
     @PostMapping("/refresh/{refreshToken}")
     @ApiOperation("刷新用户凭证过期时间，需要使用 refreshToken 进行刷新")
-    @CacheLock(prefix = "refresh_check")
+    @CacheLock(prefix = "user_token", msg = "正在登录人数过多，请重试")
     public AuthToken refresh(@PathVariable("refreshToken") String refreshToken) {
         return userService.refreshToken(refreshToken, StringUtils.EMPTY, User::getWxId, userService::getByOpenId, String.class);
     }

@@ -1,19 +1,24 @@
 package work.cxlm.utils;
 
+import jdk.nashorn.internal.runtime.regexp.joni.exception.InternalException;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.beanutils.ConvertUtils;
+import org.apache.commons.beanutils.Converter;
+import org.apache.commons.beanutils.converters.*;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.BeansException;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 import work.cxlm.exception.BeanUtilsException;
+import work.cxlm.model.enums.UserGender;
+import work.cxlm.model.enums.UserRole;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * Bean 工具类，静态类
@@ -22,7 +27,39 @@ import java.util.stream.Collectors;
  * @author johnniang
  * @author cxlm
  */
+@Slf4j
 public class BeanUtils {
+
+    static {
+        // 注册转换器，处理 Null 值
+        ConvertUtils.register(new LongConverter(null), Long.class);
+        ConvertUtils.register(new ShortConverter(null), Short.class);
+        ConvertUtils.register(new IntegerConverter(null), Integer.class);
+        ConvertUtils.register(new DoubleConverter(null), Double.class);
+        ConvertUtils.register(new BigDecimalConverter(null), BigDecimal.class);
+        ConvertUtils.register(new DateConverter(null), Date.class);
+        // User 属性：枚举类转换器
+        ConvertUtils.register(new Converter() {
+            @Override
+            @SuppressWarnings("unchecked")
+            public <T> T convert(Class<T> type, Object value) {
+                if (value == null) {
+                    return (T) UserGender.UNKNOWN;
+                }
+                return (T) UserGender.valueOf((String) value);
+            }
+        }, UserGender.class);
+        ConvertUtils.register(new Converter() {
+            @Override
+            @SuppressWarnings("unchecked")
+            public <T> T convert(Class<T> type, Object value) {
+                if (value == null) {
+                    return (T) UserRole.NORMAL;
+                }
+                return (T) UserRole.valueOf((String) value);
+            }
+        }, UserRole.class);
+    }
 
     private BeanUtils() {
     }
@@ -73,6 +110,28 @@ public class BeanUtils {
             org.springframework.beans.BeanUtils.copyProperties(source, target, getNullPropertyNames(source));
         } catch (BeansException e) {
             throw new BeanUtilsException("拷贝失败", e);
+        }
+    }
+
+    /**
+     * 将 Map 转化为指定类型的 Bean
+     *
+     * @param domainClass DOMAIN 类对象
+     * @param valueMap    值的 Map
+     * @param <DOMAIN>    DOMAIN 类型参数
+     * @return BEAN
+     */
+    public static <DOMAIN> DOMAIN convertFromMap(@NonNull Class<DOMAIN> domainClass,
+                                                 @NonNull Map<String, ?> valueMap) {
+        Assert.notNull(domainClass, "原对象类不能为 null");
+        Assert.notNull(valueMap, "值 Map 不能为 null");
+        try {
+            DOMAIN instance = domainClass.getConstructor().newInstance();
+            org.apache.commons.beanutils.BeanUtils.populate(instance, valueMap);
+            return instance;
+        } catch (Exception e) {
+            log.error("无法转化", e);
+            throw new InternalException("不支持的转化：Map -> " + domainClass.getName());
         }
     }
 

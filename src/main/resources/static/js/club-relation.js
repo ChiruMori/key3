@@ -100,6 +100,8 @@ $(document).ready(function () {
                     }, commonAjaxFailHandler(error), utils.hideLoading);
                 },
                 onDeleteRow: function (datatable, rowdata, success, error) {
+                    // 隐藏信息显示的模态弹窗
+                    $('.altEditor-modal.modal').modal('hide');
                     utils.prompt('删除成员？',
                         '注意，这会同时删除用户加入社团后产生的全部信息全部信息，包括用户的贡献点数、活动室预约时长、职务信息等，如果您仍要删除，请输入该用户的姓名以进行确认',
                         'text',

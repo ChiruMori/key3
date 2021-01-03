@@ -37,21 +37,21 @@ public class AdminController {
 
     @PostMapping("login")
     @ApiOperation("管理员登录")
-    @CacheLock(autoDelete = false, prefix = "admin_login")
+    @CacheLock(prefix = "admin_token")
     public AuthToken authLogin(@RequestBody @Valid LoginParam loginParam) {
         return adminService.authenticate(loginParam);
     }
 
     @GetMapping("logout")
     @ApiOperation("登出")
-    @CacheLock(autoDelete = false)
+    @CacheLock(prefix = "admin_token")
     public void logout() {
         adminService.clearToken();
     }
 
     @PostMapping("refresh/{refreshToken}")
     @ApiOperation("刷新登录凭证")
-    @CacheLock(autoDelete = false)
+    @CacheLock(prefix = "admin_token")
     public AuthToken refresh(@PathVariable("refreshToken") String refreshToken) {
         return adminService.refreshToken(refreshToken);
     }

@@ -11,6 +11,7 @@ import org.springframework.util.CollectionUtils;
 import work.cxlm.cache.lock.CacheLock;
 import work.cxlm.exception.BadRequestException;
 import work.cxlm.exception.ForbiddenException;
+import work.cxlm.exception.FrequentAccessException;
 import work.cxlm.exception.NotFoundException;
 import work.cxlm.model.dto.TimePeriodSimpleDTO;
 import work.cxlm.model.entity.*;
@@ -144,7 +145,6 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
                     nowTime = new TimePeriod(timeId, du.get());
                     nowTime.setShowText(StringUtils.EMPTY);
                 }
-                // 状态变更
                 // 废弃: 关注状态变更
 
                 // 空闲状态
@@ -156,7 +156,7 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
                     boolean nextWeekOrNotOpen = week > 1 || (week == 1 && !nextFlag);
                     if (nowTimeId > timeId) {
                         nowTime.setState(PASSED);
-                    // 请求未来的周，且未到切换周的时间点
+                        // 请求未来的周，且未到切换周的时间点
                     } else if (nextWeekOrNotOpen) {
                         nowTime.setState(NOT_OPEN);
                     }
@@ -227,10 +227,18 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
     @CacheLock(prefix = "time_dis_lock", expired = 0, msg = "因为操作冲突，您的请求被取消，请重试", argSuffix = "timeId")
     public TimePeriodSimpleDTO occupyTimePeriod(@NonNull Long timeId) {
         Assert.notNull(timeId, "timeId 不能为 null");
+
+        // 得到当前用户
+        User nowUser = SecurityContextHolder.ensureUser();
         // 得到目标时段实体
         TimePeriod timeInDb = getByIdOfNullable(timeId);
         if (timeInDb == null) {
             timeInDb = new TimePeriod(timeId);
+        } else {
+            if (timeInDb.getUserId().equals(nowUser.getId())) {
+                throw new FrequentAccessException("这个时段已经是您的了");
+            }
+            throw new ForbiddenException("手速慢了，该时段被别人抢去了");
         }
 
         // 得到活动室
@@ -243,7 +251,6 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
         }
 
         // 校验用户权限
-        User nowUser = SecurityContextHolder.ensureUser();
         if (!nowUser.getRole().isSystemAdmin() &&
                 !roomService.roomAvailableToUser(targetRoom, nowUser)) {
             throw new ForbiddenException("您的权限不足，无法对该活动室进行操作");
@@ -301,6 +308,8 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
         timeInDb.setState(OCCUPIED);
         // 存储、应用修改（更新或新建）
         timeInDb = timeRepository.save(timeInDb);
+        log.info("用户 [{}] 预定了活动室 [{}] 的时段：{}", nowUser.getRealName(), targetRoom.getName(),
+                new DateUtils(TimeIdGenerator.decodeIdToDate(timeId)).getFormattedTime());
         return new TimePeriodSimpleDTO().convertFrom(timeInDb);
     }
 
@@ -315,6 +324,7 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
         }
         // 从数据库中移除
         remove(target);
+        log.info("用户 [{}] 取消了预约，时段ID：{}", nowUser.getRealName(), timeId);
         return new TimePeriodSimpleDTO().convertFrom(target);
     }
 
@@ -343,6 +353,8 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
         });
         // 存储
         updateInBatch(toSave);
+        // 日志
+        log.info("管理员禁用了时段，禁用的时段 ID，[{}]", toSave);
         // 返回更新后的表格
         return buildTable(targetRoom, param.getWeek(), admin);
     }

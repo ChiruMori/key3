@@ -90,7 +90,7 @@ $().ready(function () {
         utils.select('请选择颜色', '选择指定的颜色，在占用时段后，显示该颜色，点击按钮确认您的选择',
             [{text: '红色', value: 'DISABLED_RED'},
                 {text: '暖渐变色', value: 'DISABLED_WARM'},
-                {text: '冷渐变色', value: 'DISABLED_COOL'}], 'form-control', '取消操作')
+                {text: '冷渐变色', value: 'DISABLED_COOL'}], 'form-control', '请选择占位颜色')
             .then(function (selectedValue) {
                 if (!COLOR_CLASS_MAP[selectedValue]) {
                     utils.alert("操作已取消");

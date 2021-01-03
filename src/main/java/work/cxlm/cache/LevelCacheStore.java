@@ -132,7 +132,7 @@ public class LevelCacheStore extends AbstractStringCacheStore {
         if (!res) {
             putInternal(key, value);
         }
-        return res;
+        return !res;
     }
 
     @Override
