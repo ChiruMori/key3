@@ -1,11 +1,14 @@
 package work.cxlm.service.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+import work.cxlm.event.JoiningOrBelongUpdatedEvent;
 import work.cxlm.model.entity.Belong;
 import work.cxlm.model.entity.Club;
 import work.cxlm.model.entity.Room;
@@ -28,16 +31,20 @@ import java.util.stream.Collectors;
  * create: 2020-11-23 15:20
  **/
 @Service
+@Slf4j
 public class BelongServiceImpl extends AbstractCrudService<Belong, BelongId> implements BelongService {
 
     private final BelongRepository belongRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     private ClubService clubService;
     private RoomService roomService;
 
-    public BelongServiceImpl(BelongRepository belongRepository) {
+    public BelongServiceImpl(BelongRepository belongRepository,
+                             ApplicationEventPublisher eventPublisher) {
         super(belongRepository);
         this.belongRepository = belongRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Autowired
@@ -100,5 +107,11 @@ public class BelongServiceImpl extends AbstractCrudService<Belong, BelongId> imp
         });
         // 删除社团归属关系
         belongRepository.deleteByIdClubId(clubId);
+        log.info("已删除社团[{}]的全部活动室归属关系{}个", clubId, belongs.size());
+    }
+
+    @Override
+    protected void afterModified() {
+        eventPublisher.publishEvent(new JoiningOrBelongUpdatedEvent(this));
     }
 }

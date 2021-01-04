@@ -17,7 +17,7 @@ public interface CacheService<DOMAIN, ID> {
     Map<String, DOMAIN> mapAll();
 
     /**
-     * 跟新缓存数据
+     * 更新缓存数据
      *
      * @param cacheData 新的缓存
      */

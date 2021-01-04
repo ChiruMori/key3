@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import work.cxlm.event.JoiningOrBelongUpdatedEvent;
 import work.cxlm.event.LogEvent;
 import work.cxlm.exception.DataConflictException;
 import work.cxlm.exception.ForbiddenException;
@@ -286,6 +287,11 @@ public class JoiningServiceImpl extends AbstractCrudService<Joining, JoiningId> 
         return userJoining.stream().anyMatch(Joining::getAdmin);
     }
 
+    @Override
+    protected void afterModified() {
+        eventPublisher.publishEvent(new JoiningOrBelongUpdatedEvent(this));
+    }
+
     // **************** Private **********************
 
     private JoiningDTO buildResult(Joining joining, User targetUser) {
@@ -295,6 +301,5 @@ public class JoiningServiceImpl extends AbstractCrudService<Joining, JoiningId> 
         res.setStudentNo(targetUser.getStudentNo());
         return res;
     }
-
 
 }

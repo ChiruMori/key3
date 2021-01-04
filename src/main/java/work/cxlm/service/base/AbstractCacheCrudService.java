@@ -134,65 +134,13 @@ public abstract class AbstractCacheCrudService<DOMAIN, ID> extends AbstractCrudS
     }
 
     @Override
-    @NonNull
-    public DOMAIN create(@NonNull DOMAIN domain) {
-        // 保存后请缓存
-        DOMAIN saved = super.create(domain);
-        clear();
-        return saved;
-    }
-
-    @Override
-    @NonNull
-    public List<DOMAIN> createInBatch(@NonNull Collection<DOMAIN> domains) {
-        List<DOMAIN> savedDomains = super.createInBatch(domains);
-        clear();
-        return savedDomains;
-    }
-
-    @Override
-    @NonNull
-    public DOMAIN update(@NonNull DOMAIN domain) {
-        DOMAIN updated = super.update(domain);
-        clear();
-        return updated;
-    }
-
-    @Override
-    @NonNull
-    public List<DOMAIN> updateInBatch(@NonNull Collection<DOMAIN> domains) {
-        List<DOMAIN> updatedDomains = super.updateInBatch(domains);
-        clear();
-        return updatedDomains;
-    }
-
-    @Override
     public void flush() {
         super.flush();
         clear();
     }
 
     @Override
-    public void remove(@NonNull DOMAIN domain) {
-        super.remove(domain);
-        clear();
-    }
-
-    @Override
-    public void removeInBatch(@NonNull Collection<ID> ids) {
-        super.removeInBatch(ids);
-        clear();
-    }
-
-    @Override
-    public void removeAll(@NonNull Collection<DOMAIN> domains) {
-        super.removeAll(domains);
-        clear();
-    }
-
-    @Override
-    public void removeAll() {
-        super.removeAll();
+    protected void afterModified() {
         clear();
     }
 }
