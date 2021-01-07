@@ -335,4 +335,11 @@ public class UserServiceImpl extends AbstractCacheCrudService<User, Integer> imp
     public Map<Integer, User> getAllUserMap() {
         return ServiceUtils.convertToMap(listAll(), User::getId);
     }
+
+    @Override
+    @NonNull
+    public User getByWxIdIgnoreCache(@NonNull String openId) {
+        Assert.notNull(openId, "openId 不能为 null");
+        return userRepository.findByWxId(openId).orElseThrow(() -> new NotFoundException("不存在该用户"));
+    }
 }

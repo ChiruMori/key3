@@ -13,10 +13,7 @@ import work.cxlm.utils.JsonUtils;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Redis 实现的字符串缓存
@@ -95,7 +92,7 @@ public class RedisCacheStore extends AbstractStringCacheStore {
     // ******** 方法实现 *********
 
     @Override
-    Optional<CacheWrapper<String>> gerInternal(@NonNull String key) {
+    Optional<CacheWrapper<String>> getInternal(@NonNull String key) {
         Assert.hasText(key, "缓存键不能为空");
         String val = REDIS.get(key);
         return StringUtils.isEmpty(val) ? Optional.empty() : jsonToCacheWrapper(val);
@@ -144,5 +141,25 @@ public class RedisCacheStore extends AbstractStringCacheStore {
         Assert.hasText(key, "缓存键不能为空");
         REDIS.del(key);
         log.debug("移除缓存键: [{}]", key);
+    }
+
+    @Override
+    Map<String, CacheWrapper<String>> getAllInternal() {
+        Set<String> keys = REDIS.keys("*");
+        HashMap<String, CacheWrapper<String>> res = new HashMap<>(keys.size());
+        for (String key : keys) {
+            Optional<CacheWrapper<String>> val = getInternal(key);
+            if (!val.isPresent()) {
+                continue;
+            }
+            res.put(key, val.get());
+        }
+        return res;
+    }
+
+    @Override
+    public void clear() {
+        Set<String> keys = REDIS.keys("*");
+        keys.forEach(k -> REDIS.del(k));
     }
 }

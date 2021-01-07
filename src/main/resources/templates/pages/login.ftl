@@ -39,7 +39,8 @@
                                         <small id="passcodeHint" class="form-text text-danger ml-3"></small>
                                     </div>
                                     <div id="errMsgDiv" class="text-danger small mb-2 ml-2"></div>
-                                    <a id="loginBtn" href="#" class="btn btn-primary btn-user btn-block">Login</a>
+                                    <a id="loginBtn" href="#" class="btn btn-primary btn-user btn-block">登录管理后台</a>
+                                    <a id="maintainBtn" href="#" class="btn btn-outline-danger btn-user btn-block">登录维护后台</a>
                                 </form>
                                 <hr>
                                 <div class="text-center">

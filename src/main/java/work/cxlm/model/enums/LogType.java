@@ -39,6 +39,12 @@ public enum LogType implements ValueEnum<Integer> {
     DELETE_CLUB(31),
 
     /**
+     * 救急工具包相关日志
+     */
+    EMERGENCY_KIT(40),
+
+
+    /**
      * 社团级日志
      */
     CLUB_EVENT(100),

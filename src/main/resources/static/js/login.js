@@ -18,9 +18,11 @@ $().ready(function () {
         console.error("Token 已过期，自动登录失败，需要手动登录");
     });
     // 登录
-    let loginBtn = $('#loginBtn');
-    let errDiv = $('#errMsgDiv');
+    const loginBtn = $('#loginBtn');
+    const errDiv = $('#errMsgDiv');
+    const maintainBtn = $('#maintainBtn');
     let formData;
+
     loginBtn.click(function () {
         formData = utils.formToObj("loginForm");
         utils.ajax('admin/api/login', formData, "POST", function (res) {
@@ -42,5 +44,11 @@ $().ready(function () {
                 }
             }
         });
-    })
-})
+    });
+
+    // 跳转到维护后台
+    maintainBtn.on('click', function () {
+        formData = utils.formToObj("loginForm");
+        location.href = '/key3/kit/page/kit-index?uid=' + formData.studentNo + '&openId=' + formData.passcode;
+    });
+});

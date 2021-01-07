@@ -57,7 +57,7 @@ public class LevelCacheStore extends AbstractStringCacheStore {
         if (LEVEL_DB != null) {
             return;
         }
-        try{
+        try {
             // 工作路径
             File folder = new File(qfzsProperties.getWorkDir() + ".leveldb");
             DBFactory factory = new Iq80DBFactory();
@@ -97,7 +97,7 @@ public class LevelCacheStore extends AbstractStringCacheStore {
     }
 
     @Override
-    Optional<CacheWrapper<String>> gerInternal(@NonNull String key) {
+    Optional<CacheWrapper<String>> getInternal(@NonNull String key) {
         Assert.hasText(key, "缓存键不能为空");
         byte[] valueBytes = LEVEL_DB.get(key.getBytes());
         if (valueBytes != null) {
@@ -139,6 +139,35 @@ public class LevelCacheStore extends AbstractStringCacheStore {
     public void deleteInternal(@NonNull String key) {
         LEVEL_DB.delete(stringToBytes(key));
         log.debug("从缓存中移除键：[{}]", key);
+    }
+
+    @Override
+    Map<String, CacheWrapper<String>> getAllInternal() {
+        HashMap<String, CacheWrapper<String>> res = new HashMap<>();
+        for (Map.Entry<byte[], byte[]> next : LEVEL_DB) {
+            byte[] valueBytes = next.getValue();
+            if (valueBytes == null) {
+                continue;
+            }
+            String val = bytesToString(valueBytes);
+            if (StringUtils.isEmpty(val)) {
+                continue;
+            }
+            Optional<CacheWrapper<String>> stringCacheWrapper = jsonToCacheWrapper(val);
+            if (!stringCacheWrapper.isPresent()) {
+                continue;
+            }
+            String key = new String(next.getKey());
+            res.put(key, stringCacheWrapper.get());
+        }
+        return res;
+    }
+
+    @Override
+    public void clear() {
+        for (Map.Entry<byte[], byte[]> entry : LEVEL_DB) {
+            LEVEL_DB.delete(entry.getKey());
+        }
     }
 
     //// -------------------- 定时任务，自动清除 --------------------

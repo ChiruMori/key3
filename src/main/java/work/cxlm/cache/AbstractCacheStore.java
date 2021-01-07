@@ -31,7 +31,14 @@ public abstract class AbstractCacheStore<K, V> implements CacheStore<K, V> {
      * @param key 缓存键
      * @return 包装在 Optional 中的 CacheWrapper 缓存值
      */
-    abstract Optional<CacheWrapper<V>> gerInternal(@NonNull K key);
+    abstract Optional<CacheWrapper<V>> getInternal(@NonNull K key);
+
+    /**
+     * 获取全部缓存的键值对
+     *
+     * @return Map，键为缓存键、值为 CacheWrapper 包装的缓存值
+     */
+    abstract Map<K, CacheWrapper<V>> getAllInternal();
 
     /**
      * 设置缓存，由子类实现
@@ -65,7 +72,7 @@ public abstract class AbstractCacheStore<K, V> implements CacheStore<K, V> {
     private <T> Optional<T> readAndDelete(@NonNull K key, Function<CacheWrapper<V>, T> converter) {
         Assert.notNull(key, "缓存键不能为 null");
 
-        return gerInternal(key).map(cacheWrapper -> {
+        return getInternal(key).map(cacheWrapper -> {
             if (cacheWrapper.getExpireAt() != null && cacheWrapper.getExpireAt().before(QfzsDateUtils.now())) {
                 log.warn("缓存已过期：[{}]", key);
                 delete(key);  // 惰性删除
@@ -104,6 +111,23 @@ public abstract class AbstractCacheStore<K, V> implements CacheStore<K, V> {
     @Override
     public void put(@NonNull K key, @NonNull V value) {
         putInternal(key, wrapCacheValue(value, 0, null));
+    }
+
+    @Override
+    public Map<K, V> getAll() {
+        Map<K, CacheWrapper<V>> allCache = getAllInternal();
+        Map<K, V> allConvertedCache = new HashMap<>(allCache.size());
+        Date now = new Date();
+        for (Map.Entry<K, CacheWrapper<V>> cacheEntry : allCache.entrySet()) {
+            CacheWrapper<V> wrappedValue = cacheEntry.getValue();
+            if (wrappedValue.getExpireAt() != null && wrappedValue.getExpireAt().before(now)) {
+                // 清除过期缓存
+                delete(cacheEntry.getKey());
+                continue;
+            }
+            allConvertedCache.put(cacheEntry.getKey(), wrappedValue.getData());
+        }
+        return allConvertedCache;
     }
 
     /**

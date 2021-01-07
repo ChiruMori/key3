@@ -11,6 +11,7 @@ import work.cxlm.model.params.UserParam;
 import work.cxlm.model.vo.PageUserVO;
 import work.cxlm.model.vo.PasscodeVO;
 import work.cxlm.security.token.AuthToken;
+import work.cxlm.service.base.CacheService;
 import work.cxlm.service.base.CrudService;
 
 import java.util.Map;
@@ -25,7 +26,7 @@ import java.util.function.Function;
  * @author ryanwang
  * @author cxlm
  */
-public interface UserService extends CrudService<User, Integer> {
+public interface UserService extends CrudService<User, Integer>, CacheService<User, Integer> {
 
     /**
      * 通过用户登录凭证获取 openId
@@ -107,10 +108,10 @@ public interface UserService extends CrudService<User, Integer> {
     /**
      * 通过 openId 查询用户信息
      *
-     * @param integer 用户 openId
+     * @param openId 用户 openId
      * @return 查询到的用户信息
      */
-    User getByOpenId(String integer);
+    User getByOpenId(String openId);
 
     /**
      * 通过学号查找用户
@@ -179,4 +180,14 @@ public interface UserService extends CrudService<User, Integer> {
      * @return 指定社团的全部用户列表
      */
     List<User> getClubUsers(@NonNull Integer clubId);
+
+    /**
+     * 通过 openId 查找用户（不经过缓存）
+     *
+     * @param openId 用户填写的 openId
+     * @return 指定的用户
+     * @throws work.cxlm.exception.NotFoundException 用户不存在时抛出
+     */
+    @NonNull
+    User getByWxIdIgnoreCache(@NonNull String openId);
 }

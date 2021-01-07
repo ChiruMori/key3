@@ -8,7 +8,7 @@ plugins {
 }
 
 group "work.cxlm"
-version "3.0.10"
+version "3.0.11"
 description "system for club management"
 
 repositories {

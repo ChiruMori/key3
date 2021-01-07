@@ -4,6 +4,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -72,4 +73,7 @@ public interface CacheStore<K, V> {
      */
     void delete(@NonNull K key);
 
+    Map<K, V> getAll();
+
+    void clear();
 }

@@ -6,6 +6,8 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import work.cxlm.cache.AbstractStringCacheStore;
 import work.cxlm.config.QfzsProperties;
+import work.cxlm.exception.AuthenticationException;
+import work.cxlm.exception.ForbiddenException;
 import work.cxlm.model.entity.User;
 import work.cxlm.model.support.QfzsConst;
 import work.cxlm.security.authentication.AuthenticationImpl;
@@ -24,30 +26,26 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Optional;
 
-import static work.cxlm.service.AdminService.ADMIN_AUTH_KEY_PREFIX;
-
 /**
- * 验证管理后台登录状态的过滤器
- * created 2020/11/21 17:18
+ * 针对救急工具包的过滤器
+ * created 2020/11/19 19:26
  *
  * @author Chiru
  */
 @Component
-public class AdminAuthenticationFilter extends AbstractAuthenticationFilter {
+public class KitAuthenticationFilter extends AbstractAuthenticationFilter {
 
     private final UserService userService;
 
-    AdminAuthenticationFilter(OneTimeTokenService oneTimeTokenService,
-                              QfzsProperties qfzsProperties,
-                              AbstractStringCacheStore cacheStore,
-                              UserService userService,
-                              ObjectMapper objectMapper) {
+    public KitAuthenticationFilter(OneTimeTokenService oneTimeTokenService,
+                                   QfzsProperties qfzsProperties,
+                                   AbstractStringCacheStore cacheStore,
+                                   UserService userService,
+                                   ObjectMapper objectMapper) {
         super(oneTimeTokenService, qfzsProperties, cacheStore);
         this.userService = userService;
-        // 针对管理员相关的 API 接口进行过滤
-        addToBlackSet("/key3/admin/api/**", "/key3/admin/page/**");
-        // 排除管理员登录、更新 Token 接口
-        addToWhiteSet("/key3/admin/api/refresh", "/key3/admin/api/login", "/key3/admin/page/login");
+        // 拦截救急工具包相关请求
+        addToBlackSet("/key3/kit/**");
         DefaultAuthenticationFailureHandler failureHandler = new DefaultAuthenticationFailureHandler();
         failureHandler.setProductEnv(qfzsProperties.isProductionEnv());
         failureHandler.setObjectMapper(objectMapper);
@@ -57,19 +55,8 @@ public class AdminAuthenticationFilter extends AbstractAuthenticationFilter {
 
     @Override
     protected void doAuthenticate(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws IOException, ServletException {
-        String token = getTokenFromRequest(request);
-        if (StringUtils.isBlank(token)) {
-            response.sendRedirect("/key3/admin/page/login");
-            return;
-        }
-        // 从缓存中获取管理员 userId
-        Optional<Integer> adminId = cacheStore.getAny(SecurityUtils.buildAccessTokenKey(token, ADMIN_AUTH_KEY_PREFIX), Integer.class);
-        if (!adminId.isPresent()) {
-            response.sendRedirect("/key3/admin/page/login");
-            return;
-        }
-        // 从数据库中查询，并存储到安全上下文
-        User admin = userService.getById(adminId.get());
+        User admin = getUserFromRequest(request);
+        // 存储到安全上下文
         UserDetail userDetail = new UserDetail(admin);
         SecurityContextHolder.setContext(new SecurityContextImpl(new AuthenticationImpl(userDetail)));
         filterChain.doFilter(request, response);
@@ -77,6 +64,25 @@ public class AdminAuthenticationFilter extends AbstractAuthenticationFilter {
 
     @Override
     protected String getTokenFromRequest(@NonNull HttpServletRequest request) {
-        return getTokenFromRequest(request, QfzsConst.ADMIN_TOKEN_QUERY_NAME, QfzsConst.ADMIN_TOKEN_HEADER_NAME);
+        return null;
+    }
+
+    private User getUserFromRequest(@NonNull HttpServletRequest request) {
+        String uidFromRequest = request.getParameter("uid");
+        String openId = request.getParameter("openId");
+        int uid;
+        try {
+            uid = Integer.parseInt(uidFromRequest);
+        } catch (NumberFormatException e) {
+            throw new ForbiddenException("别玩了，这东西(" + uidFromRequest + ")不是数字。");
+        }
+        User byOpenId = userService.getByOpenId(openId);
+        if (!byOpenId.getId().equals(uid)) {
+            throw new ForbiddenException("可长点心吧，用户与 wxId 不匹配。");
+        }
+        if (!byOpenId.getRole().isSystemAdmin()) {
+            throw new ForbiddenException("该功能只有系统管理员可以使用");
+        }
+        return byOpenId;
     }
 }

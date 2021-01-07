@@ -5,6 +5,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 
 import javax.annotation.PreDestroy;
+import java.util.Map;
 import java.util.Optional;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
@@ -54,7 +55,7 @@ public class InMemoryCacheStore extends AbstractStringCacheStore {
     }
 
     @Override
-    Optional<CacheWrapper<String>> gerInternal(@NonNull String key) {
+    Optional<CacheWrapper<String>> getInternal(@NonNull String key) {
         Assert.hasText(key, "缓存键不能为空");
 
         return Optional.ofNullable(CACHE_CONTAINER.get(key));
@@ -98,6 +99,16 @@ public class InMemoryCacheStore extends AbstractStringCacheStore {
 
         CACHE_CONTAINER.remove(key);
         log.debug("移除缓存：[{}]", key);
+    }
+
+    @Override
+    Map<String, CacheWrapper<String>> getAllInternal() {
+        return CACHE_CONTAINER;
+    }
+
+    @Override
+    public void clear() {
+        CACHE_CONTAINER.clear();
     }
 
     /**
