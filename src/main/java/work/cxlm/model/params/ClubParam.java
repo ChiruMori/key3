@@ -29,7 +29,7 @@ public class ClubParam implements InputConverter<Club> {
     @Size(max = 50)
     private String name;
 
-    @ApiModelProperty("初始资产")
+    @ApiModelProperty("当前资产")
     private BigDecimal assets;
 
     @ApiModelProperty("是否开启财务功能")

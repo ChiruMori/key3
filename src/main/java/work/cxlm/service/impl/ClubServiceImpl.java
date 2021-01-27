@@ -24,10 +24,7 @@ import work.cxlm.utils.ServiceUtils;
 import work.cxlm.utils.ValidationUtils;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * created 2020/11/21 15:24
@@ -47,14 +44,12 @@ public class ClubServiceImpl extends AbstractCrudService<Club, Integer> implemen
     private BelongService belongService;
     private AnnouncementService announcementService;
 
-    private final ClubRepository clubRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     public ClubServiceImpl(ClubRepository repository,
                            ApplicationEventPublisher eventPublisher) {
         super(repository);
         this.eventPublisher = eventPublisher;
-        clubRepository = repository;
     }
 
     @Autowired
@@ -130,7 +125,10 @@ public class ClubServiceImpl extends AbstractCrudService<Club, Integer> implemen
         if (!userService.managerOfClub(admin, targetClub)) {
             throw new ForbiddenException("权限不足，禁止操作");
         }
-        if (!clubParam.getAssets().equals(targetClub.getAssets())) {
+        // 改动前后均为 0 的情况需要跳过判断，对该逻辑进行单独判断，不同直接使用 equals
+        boolean allZero = (clubParam.getAssets() == null || clubParam.getAssets().compareTo(BigDecimal.ZERO) == 0) &&
+                targetClub.getAssets().compareTo(BigDecimal.ZERO) == 0;
+        if (!allZero && !Objects.equals(clubParam.getAssets(), targetClub.getAssets())) {
             BigDecimal assetChange = clubParam.getAssets().subtract(targetClub.getAssets());
             Bill newBill = new Bill();
             newBill.setAuthorId(admin.getId());

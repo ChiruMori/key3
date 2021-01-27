@@ -143,6 +143,7 @@ public class BillServiceImpl extends AbstractCrudService<Bill, Integer> implemen
         // 移除、更新社团经费
         targetClub.setAssets(targetClub.getAssets().subtract(targetBill.getCost()));
         clubService.update(targetClub);
+        removeById(billId);
         eventPublisher.publishEvent(new LogEvent(this, new LogParam(admin.getId(), targetClub.getId(),
                 "删除了社团收支项：" + targetBill.getInfo())));
         // 响应

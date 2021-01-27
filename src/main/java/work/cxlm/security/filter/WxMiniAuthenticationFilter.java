@@ -47,7 +47,7 @@ public class WxMiniAuthenticationFilter extends AbstractAuthenticationFilter {
         addToBlackSet("/key3/users/api/**", "/key3/time/api/**", "/key3/club/api/**",
                 "/key3/notice/api/**", "/key3/room/api/**", "/key3/announcement/api/**", "/key3/joining/api/**");
         // 排除用户登录、更新接口、帮助接口
-        addToWhiteSet("/key3/users/api/update", "/key3/users/api/login", "/key3/users/api/refresh", "/key3/users/api/help");
+        addToWhiteSet("/key3/users/api/update", "/key3/users/api/login", "/key3/users/api/refresh/*", "/key3/users/api/help");
         DefaultAuthenticationFailureHandler failureHandler = new DefaultAuthenticationFailureHandler();
         failureHandler.setProductEnv(qfzsProperties.isProductionEnv());
         failureHandler.setObjectMapper(objectMapper);
