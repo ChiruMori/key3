@@ -145,7 +145,7 @@ public class AnnouncementServiceImpl extends AbstractCrudService<Announcement, I
 
     private void ensureAuthority(User admin, Integer clubId) {
         // 权限校验，注意：系统管理员无视权限
-        boolean notSystemAdmin = admin.getRole().isSystemAdmin();
+        boolean notSystemAdmin = !admin.getRole().isSystemAdmin();
         boolean notManagerOfClub = clubId == -1 || !userService.managerOfClub(admin, clubId);
         if (notSystemAdmin && notManagerOfClub) {
             throw new ForbiddenException("您的权限不足，无法操作公告信息");
