@@ -3,6 +3,7 @@ package work.cxlm.task;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -73,6 +74,7 @@ public class RoomRefreshTask {
                 if (!club2JoiningMap.containsKey(clubId)) {
                     return;
                 }
+                // 删除不接受通知的用户
                 club2JoiningMap.get(clubId).forEach(joining -> {
                     Integer userId = joining.getId().getUserId();
                     boolean listening = userMap.containsKey(userId);
@@ -95,6 +97,7 @@ public class RoomRefreshTask {
      * 秒 分 时 日 月 星期
      */
     @Async
+    // @Scheduled(cron = "0 2 12 16 2 ?")
     @Scheduled(cron = "0 0 * ? * SUN")
     public void notifyUsersAtTheEndOfWeekend() {
         if (room2UserMap == null) {
@@ -116,7 +119,10 @@ public class RoomRefreshTask {
             sb.deleteCharAt(sb.length() - 1);
         }
         noticeService.saveAndNotifyInBatch(notices);
-        log.info("已向活动室【{}】用户发送重置通知", sb.toString());
+        // 当前时间点存在有活动室发生了重置时，记录日志
+        if (!StringUtils.isEmpty(sb)) {
+            log.info("已向活动室【{}】用户发送重置通知", sb.toString());
+        }
     }
 
     @Data
