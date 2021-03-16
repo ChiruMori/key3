@@ -2,6 +2,7 @@ package work.cxlm.repository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.lang.NonNull;
 import work.cxlm.model.entity.Joining;
 import work.cxlm.model.entity.id.JoiningId;
 
@@ -62,4 +63,12 @@ public interface JoiningRepository extends BaseRepository<Joining, JoiningId> {
      * @param clubId 指定社团 id
      */
     void deleteByIdClubId(Integer clubId);
+
+    /**
+     * 查询 userId 在指定列表内的全部 Joining，需要全表扫描，建立索引可以避免
+     *
+     * @param userIds 目标 user id 列表
+     * @return userId 在指定列表内的全部 Joining
+     */
+    List<Joining> findAllByIdUserIdIn(@NonNull List<Integer> userIds);
 }

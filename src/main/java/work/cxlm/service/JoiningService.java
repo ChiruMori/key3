@@ -161,4 +161,11 @@ public interface JoiningService extends CrudService<Joining, JoiningId> {
      */
     boolean adminOfAny(@NonNull User targetUser);
 
+    /**
+     * 根据 userId 集合获取全部 Joining
+     *
+     * @param userIds userId 列表
+     * @return 用户 id 列表关联的全部 Joining 实例
+     */
+    List<Joining> listAllJoiningByUserIdIn(@NonNull List<Integer> userIds);
 }

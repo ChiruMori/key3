@@ -10,6 +10,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import work.cxlm.event.JoiningOrBelongUpdatedEvent;
 import work.cxlm.event.LogEvent;
@@ -290,6 +291,15 @@ public class JoiningServiceImpl extends AbstractCrudService<Joining, JoiningId> 
     @Override
     protected void afterModified() {
         eventPublisher.publishEvent(new JoiningOrBelongUpdatedEvent(this));
+    }
+
+    @Override
+    public List<Joining> listAllJoiningByUserIdIn(@NonNull List<Integer> userIds) {
+        Assert.notNull(userIds, "userIds 不能为 null");
+        if(CollectionUtils.isEmpty(userIds)) {
+            return Collections.emptyList();
+        }
+        return joiningRepository.findAllByIdUserIdIn(userIds);
     }
 
     // **************** Private **********************

@@ -11,6 +11,8 @@ import work.cxlm.model.params.TimeParam;
 import work.cxlm.model.vo.TimeTableVO;
 import work.cxlm.service.base.CrudService;
 
+import java.util.List;
+
 /**
  * 预约时段业务处理接口
  * created 2020/11/16 23:05
@@ -99,4 +101,13 @@ public interface TimeService extends CrudService<TimePeriod, Long> {
      */
     @Transactional(rollbackFor = Exception.class)
     void removeOutTime(@NonNull Room targetRoom);
+
+    /**
+     * 查询在指定时间内全部的有效时段
+     *
+     * @param minId 开始时间的 ID
+     * @param maxId 结束时间的 ID
+     * @return 时间区间内的有效时段
+     */
+    List<TimePeriod> listAllTimeByIdBetween(@NonNull Long minId, @NonNull Long maxId);
 }

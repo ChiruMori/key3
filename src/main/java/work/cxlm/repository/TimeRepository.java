@@ -25,9 +25,19 @@ public interface TimeRepository extends BaseRepository<TimePeriod, Long> {
     List<TimePeriod> findAllByRoomIdAndIdBetween(@NonNull Integer roomId, @NonNull Long minId, @NonNull Long maxId);
 
     /**
+     * 查询某段时间内的全部有效时段
+     *
+     * @param minId 开始时间的 ID
+     * @param maxId 结束时间的 ID
+     * @return 时间区间内的有效时段
+     */
+    List<TimePeriod> findAllByIdBetween(@NonNull Long minId, @NonNull Long maxId);
+
+    /**
      * 删除某用户预约的全部时段
      *
      * @param userId 用户 ID
      */
     void deleteByUserId(Integer userId);
+
 }

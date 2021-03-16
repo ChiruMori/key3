@@ -439,4 +439,11 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
         removeAll(timeToDelete);
         noticeService.saveAndNotifyInBatch(notices);
     }
+
+    @Override
+    public List<TimePeriod> listAllTimeByIdBetween(@NonNull Long minId, @NonNull Long maxId) {
+        Assert.notNull(minId, "minId 不能为 null");
+        Assert.notNull(maxId, "maxId 不能为 null");
+        return timeRepository.findAllByIdBetween(minId, maxId);
+    }
 }

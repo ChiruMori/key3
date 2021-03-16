@@ -1,5 +1,6 @@
 package work.cxlm.model.entity.support;
 
+import jdk.nashorn.internal.runtime.regexp.joni.exception.InternalException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.id.IdentityGenerator;
 import org.springframework.lang.NonNull;
@@ -19,6 +20,8 @@ import java.util.Date;
  * @author Chiru
  */
 public class TimeIdGenerator extends IdentityGenerator {
+
+    public static final long MAX_ROOM_ID = 10000L;
 
     public static int decodeHourFromId(Long id) {
         return (int) (id % 10000_0000 / 100_0000);
@@ -40,23 +43,26 @@ public class TimeIdGenerator extends IdentityGenerator {
      */
     public static long encodeId(@NonNull Date date, int roomId) {
         Assert.notNull(date, "date 不能为 null");
+        if (roomId >= MAX_ROOM_ID) {
+            throw new InternalException("错误！roomId 超出设定范围，roomId 为：" + roomId + "，请联系管理员报告此问题。");
+        }
 
-        return DateUtils.codeOfDate(date) * 10000L + roomId;
+        return DateUtils.codeOfDate(date) * MAX_ROOM_ID + roomId;
     }
 
     public static long encodeId(@NonNull DateUtils du, int roomId) {
-        return du.encode() * 10000L + roomId;
+        return du.encode() * MAX_ROOM_ID + roomId;
     }
 
     public static Date decodeIdToDate(@NonNull Long id) {
         Assert.notNull(id, "id 不能为 null");
-        id /= 10000L;
+        id /= MAX_ROOM_ID;
         int year = (int) (id / 10000_0000L);
         id %= 10000_0000L;
         int month = (int) (id / 100_0000L) - 1;
         id %= 100_0000L;
-        int day = (int) (id / 10000L);
-        id %= 10000L;
+        int day = (int) (id / MAX_ROOM_ID);
+        id %= MAX_ROOM_ID;
         int hour = (int) (id / 100L);
         id %= 100L;
         return new Calendar.Builder().
@@ -76,6 +82,6 @@ public class TimeIdGenerator extends IdentityGenerator {
      * 从 ID 中得到 roomId
      */
     public static int getRoomId(Long timeId) {
-        return (int) (timeId % 10000);
+        return (int) (timeId % MAX_ROOM_ID);
     }
 }
