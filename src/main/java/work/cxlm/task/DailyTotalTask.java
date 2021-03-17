@@ -12,11 +12,8 @@ import work.cxlm.model.entity.support.TimeIdGenerator;
 import work.cxlm.model.enums.NoticeType;
 import work.cxlm.service.*;
 import work.cxlm.utils.DateUtils;
-import work.cxlm.utils.ServiceUtils;
 
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -31,18 +28,12 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DailyTotalTask {
 
-    private final BelongService belongService;
     private final JoiningService joiningService;
-    private final RoomService roomService;
     private final TimeService timeService;
 
-    public DailyTotalTask(BelongService belongService,
-                          JoiningService joiningService,
-                          RoomService roomService,
+    public DailyTotalTask(JoiningService joiningService,
                           TimeService timeService) {
-        this.belongService = belongService;
         this.joiningService = joiningService;
-        this.roomService = roomService;
         this.timeService = timeService;
     }
 
@@ -63,19 +54,18 @@ public class DailyTotalTask {
             return;
         }
 
-        // 整理活动室、社团映射关系
-        List<Belong> belongList = belongService.listAll();
-        Map<Integer, Integer> roomId2ClubIdMap = ServiceUtils.convertToMap(belongList, belong -> belong.getId().getRoomId(), belong -> belong.getId().getClubId());
-
         List<Integer> userIds = validTimePeriodsInYesterday.stream().map(TimePeriod::getUserId).collect(Collectors.toList());
         List<Joining> joiningOfYesterday = joiningService.listAllJoiningByUserIdIn(userIds);
 
         int[] counter = new int[]{0};
         validTimePeriodsInYesterday.forEach(timePeriod -> {
-            Integer targetClubId = roomId2ClubIdMap.get(TimeIdGenerator.getRoomId(timePeriod.getId()));
+            // 跳过系统用户
+            if (timePeriod.getId() == -1) {
+                return;
+            }
             joiningOfYesterday.forEach(joining -> {
-                // 为该活动室归属的社团与当前用户的 Joining 实例的 total 字段加 1
-                if (joining.getId().getClubId().equals(targetClubId)) {
+                // 针对每个时段为当前用户的 Joining 实例的 total 字段加 1 用户加入的多个社团拥有同一个活动室时，每个社团的 joining 都会加一
+                if (joining.getId().getUserId().equals(timePeriod.getUserId())) {
                     joining.setTotal(joining.getTotal() + 1);
                     counter[0]++;
                 }
