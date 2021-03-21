@@ -122,6 +122,7 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
         }
         // 获得当前时间点的 ID
         long nowTimeId = TimeIdGenerator.encodeId(du.lastHour(), 0);
+        du.nextHour();
         // 移动到指定周周一
         du.changeWeek(week).weekStart();
         for (int i = startHour; i < endHour; i++) {

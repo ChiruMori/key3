@@ -238,4 +238,12 @@ public class DateUtils {
         calendar.add(Calendar.HOUR_OF_DAY, -1);
         return this;
     }
+
+    /**
+     * 向前移动一个小时
+     */
+    public DateUtils nextHour() {
+        calendar.add(Calendar.HOUR_OF_DAY, 1);
+        return this;
+    }
 }
