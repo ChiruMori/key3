@@ -17,14 +17,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.util.NestedServletException;
 import work.cxlm.controller.admin.content.model.AdminModel;
-import work.cxlm.exception.AbstractQfzsException;
+import work.cxlm.exception.AbstractKey3Exception;
 import work.cxlm.exception.NotFoundException;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Collections;
 import java.util.Map;
 
-import static work.cxlm.model.support.QfzsConst.DEFAULT_ERROR_PATH;
+import static work.cxlm.model.support.Key3Const.DEFAULT_ERROR_PATH;
 
 /**
  * 错误页面的 Controller
@@ -99,11 +99,11 @@ public class ErrorController extends AbstractErrorController {
         if (throwable instanceof NestedServletException) {
             log.error("捕获 NestedServletException", throwable);
             Throwable rootCause = ((NestedServletException) throwable).getRootCause();
-            if (rootCause instanceof AbstractQfzsException) {
-                AbstractQfzsException qfzsException = (AbstractQfzsException) rootCause;
-                request.setAttribute("javax.servlet.error.status_code", qfzsException.getStatus().value());
+            if (rootCause instanceof AbstractKey3Exception) {
+                AbstractKey3Exception key3Exception = (AbstractKey3Exception) rootCause;
+                request.setAttribute("javax.servlet.error.status_code", key3Exception.getStatus().value());
                 request.setAttribute("javax.servlet.error.exception", rootCause);
-                request.setAttribute("javax.servlet.error.message", qfzsException.getMessage());
+                request.setAttribute("javax.servlet.error.message", key3Exception.getMessage());
             }
         } else if (StringUtils.startsWithIgnoreCase(throwable.getMessage(), COULD_NOT_RESOLVE_VIEW_WITH_NAME_PREFIX)) {
             log.debug("捕获异常，无法找到 View 模板文件", throwable);

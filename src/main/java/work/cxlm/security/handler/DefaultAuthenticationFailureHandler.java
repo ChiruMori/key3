@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.http.MediaType;
 import org.springframework.util.Assert;
-import work.cxlm.exception.AbstractQfzsException;
+import work.cxlm.exception.AbstractKey3Exception;
 import work.cxlm.model.support.BaseResponse;
 import work.cxlm.utils.JsonUtils;
 import work.cxlm.utils.ServletUtils;
@@ -33,7 +33,7 @@ public class DefaultAuthenticationFailureHandler implements AuthenticationFailur
      * 根据异常的信息给出响应
      */
     @Override
-    public void onFailure(HttpServletRequest request, HttpServletResponse response, AbstractQfzsException exception) throws IOException {
+    public void onFailure(HttpServletRequest request, HttpServletResponse response, AbstractKey3Exception exception) throws IOException {
         log.debug("处理非法的用户请求: [{}]", ServletUtils.getRequestIp());
         log.error("异常详情：{}, status: {}, Data: {}", exception.getMessage(), exception.getStatus(), exception.getErrorData());
 

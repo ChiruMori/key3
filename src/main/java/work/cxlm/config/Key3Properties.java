@@ -3,14 +3,14 @@ package work.cxlm.config;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import work.cxlm.model.enums.Mode;
-import work.cxlm.utils.QfzsUtils;
+import work.cxlm.utils.Key3Utils;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 
-import static work.cxlm.model.support.QfzsConst.FILE_SEPARATOR;
-import static work.cxlm.model.support.QfzsConst.USER_HOME;
+import static work.cxlm.model.support.Key3Const.FILE_SEPARATOR;
+import static work.cxlm.model.support.Key3Const.USER_HOME;
 
 /**
  * 系统配置
@@ -20,15 +20,15 @@ import static work.cxlm.model.support.QfzsConst.USER_HOME;
  * @author cxlm
  */
 @Data
-@ConfigurationProperties("qfzs")
-public class QfzsProperties {
+@ConfigurationProperties("key3")
+public class Key3Properties {
 
     /**
      * 上传路径前缀
      */
     private String uploadUrlPrefix = "upload";
 
-    private String workDir = QfzsUtils.ensureSuffix(USER_HOME, FILE_SEPARATOR) + ".my_font" + FILE_SEPARATOR;
+    private String workDir = Key3Utils.ensureSuffix(USER_HOME, FILE_SEPARATOR) + ".my_font" + FILE_SEPARATOR;
 
     /**
      * 缓存保存的位置

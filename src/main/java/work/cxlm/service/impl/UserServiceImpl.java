@@ -13,7 +13,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import work.cxlm.cache.AbstractStringCacheStore;
-import work.cxlm.config.QfzsProperties;
+import work.cxlm.config.Key3Properties;
 import work.cxlm.event.LogEvent;
 import work.cxlm.exception.*;
 import work.cxlm.model.entity.Club;
@@ -28,7 +28,7 @@ import work.cxlm.model.params.UserParam;
 import work.cxlm.rpc.RpcClient;
 import work.cxlm.rpc.code2session.Code2SessionParam;
 import work.cxlm.rpc.code2session.Code2SessionResponse;
-import work.cxlm.model.support.QfzsConst;
+import work.cxlm.model.support.Key3Const;
 import work.cxlm.model.vo.PageUserVO;
 import work.cxlm.model.vo.PasscodeVO;
 import work.cxlm.repository.UserRepository;
@@ -64,19 +64,19 @@ public class UserServiceImpl extends AbstractCacheCrudService<User, Integer> imp
     private ClubService clubService;
 
     private final UserRepository userRepository;
-    private final QfzsProperties qfzsProperties;
+    private final Key3Properties key3Properties;
     private final ApplicationEventPublisher eventPublisher;
     private final AbstractStringCacheStore cacheStore;
 
 
     public UserServiceImpl(UserRepository userRepository,
                            ApplicationEventPublisher eventPublisher,
-                           QfzsProperties qfzsProperties,
+                           Key3Properties key3Properties,
                            AbstractStringCacheStore cacheStore) {
         super(userRepository, cacheStore, User::getId, User.class, "user.map.cache");
         this.userRepository = userRepository;
         this.eventPublisher = eventPublisher;
-        this.qfzsProperties = qfzsProperties;
+        this.key3Properties = key3Properties;
         this.cacheStore = cacheStore;
     }
 
@@ -98,9 +98,9 @@ public class UserServiceImpl extends AbstractCacheCrudService<User, Integer> imp
         if (StringUtils.isEmpty(loginParam.getCode())) {
             throw new MissingPropertyException("必须指定 code 或 open Id 以完成登录");
         }
-        Code2SessionParam param = new Code2SessionParam(qfzsProperties.getAppId(), qfzsProperties.getAppSecret(),
+        Code2SessionParam param = new Code2SessionParam(key3Properties.getAppId(), key3Properties.getAppSecret(),
                 loginParam.getCode(), "authorization_code");
-        Code2SessionResponse response = RpcClient.getUrl(qfzsProperties.getAppRequestUrl(), Code2SessionResponse.class, param);
+        Code2SessionResponse response = RpcClient.getUrl(key3Properties.getAppRequestUrl(), Code2SessionResponse.class, param);
         if (response.getOpenid() == null) {
             throw new ServiceException("错误的响应").setErrorData(response);
         }
@@ -133,9 +133,9 @@ public class UserServiceImpl extends AbstractCacheCrudService<User, Integer> imp
         // Generate new token
         AuthToken token = new AuthToken();
 
-        token.setAccessToken(QfzsUtils.randomUuidWithoutDash());
+        token.setAccessToken(Key3Utils.randomUuidWithoutDash());
         token.setExpiredIn(ACCESS_TOKEN_EXPIRED_SECONDS);
-        token.setRefreshToken(QfzsUtils.randomUuidWithoutDash());
+        token.setRefreshToken(Key3Utils.randomUuidWithoutDash());
 
         // Cache those tokens, just for clearing
         cacheStore.putAny(SecurityUtils.buildAccessTokenKey(user, keyPrefix), token.getAccessToken(), ACCESS_TOKEN_EXPIRED_SECONDS, TimeUnit.SECONDS);
@@ -237,7 +237,7 @@ public class UserServiceImpl extends AbstractCacheCrudService<User, Integer> imp
             throw new ForbiddenException("权限不足，拒绝访问");
         }
         String nowPasscode = RandomUtil.randomString(6);
-        String passcodeCacheKey = QfzsConst.ADMIN_PASSCODE_PREFIX + currentUser.getId();
+        String passcodeCacheKey = Key3Const.ADMIN_PASSCODE_PREFIX + currentUser.getId();
         cacheStore.putAny(passcodeCacheKey, nowPasscode, 5, TimeUnit.MINUTES);
         PasscodeVO passcodeVO = new PasscodeVO();
         passcodeVO.setPasscode(nowPasscode);

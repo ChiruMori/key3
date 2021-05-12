@@ -9,7 +9,7 @@ import org.springframework.lang.NonNull;
  * @author cxlm
  * @author johnniang
  */
-public class NotFoundException extends AbstractQfzsException {
+public class NotFoundException extends AbstractKey3Exception {
 
     public NotFoundException(String message) {
         super(message);

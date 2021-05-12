@@ -1,6 +1,5 @@
 package work.cxlm.utils;
 
-import jdk.nashorn.internal.runtime.regexp.joni.exception.InternalException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.Converter;
@@ -11,6 +10,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import work.cxlm.exception.BeanUtilsException;
+import work.cxlm.exception.ServiceException;
 import work.cxlm.model.enums.UserGender;
 import work.cxlm.model.enums.UserRole;
 
@@ -131,7 +131,7 @@ public class BeanUtils {
             return instance;
         } catch (Exception e) {
             log.error("无法转化", e);
-            throw new InternalException("不支持的转化：Map -> " + domainClass.getName());
+            throw new ServiceException("不支持的转化：Map -> " + domainClass.getName());
         }
     }
 

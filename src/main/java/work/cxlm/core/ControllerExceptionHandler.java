@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
-import work.cxlm.exception.AbstractQfzsException;
+import work.cxlm.exception.AbstractKey3Exception;
 import work.cxlm.model.support.BaseResponse;
 import work.cxlm.utils.ValidationUtils;
 
@@ -109,8 +109,8 @@ public class ControllerExceptionHandler {
         return baseResponse;
     }
 
-    @ExceptionHandler(AbstractQfzsException.class)
-    public ResponseEntity<BaseResponse<?>> handleHaloException(AbstractQfzsException e) {
+    @ExceptionHandler(AbstractKey3Exception.class)
+    public ResponseEntity<BaseResponse<?>> handleHaloException(AbstractKey3Exception e) {
         BaseResponse<Object> baseResponse = handleBaseException(e);
         baseResponse.setStatus(e.getStatus().value());
         baseResponse.setData(e.getErrorData());

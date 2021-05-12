@@ -1,0 +1,20 @@
+logging:
+  level:
+    work.cxlm: INFO
+  file:
+    path: ${user.home}/key3-prod/logs
+
+spring:
+  datasource:
+    url: jdbc:mysql://127.0.0.1:6621/key3?useSSL=false&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&autoReconnect=true&serverTimezone=UTC
+    username: cxlm
+    password: DB_mima~9749
+  jpa:
+    show-sql: false
+
+key3:
+  doc-disabled: false
+  production-env: true
+  mode: production
+  workDir: ${user.home}/key3-prod/
+  cache: level

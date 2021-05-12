@@ -9,7 +9,7 @@ import org.springframework.lang.NonNull;
  * @author johnniang
  * @author Chiru
  */
-public class AuthenticationException extends AbstractQfzsException {
+public class AuthenticationException extends AbstractKey3Exception {
 
     public AuthenticationException(String message) {
         super(message);

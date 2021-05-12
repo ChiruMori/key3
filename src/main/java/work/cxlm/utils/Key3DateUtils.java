@@ -14,9 +14,9 @@ import java.util.concurrent.TimeUnit;
  * @author johnniang
  * @author cxlm
  */
-public class QfzsDateUtils {
+public class Key3DateUtils {
 
-    private QfzsDateUtils() {
+    private Key3DateUtils() {
     }
 
     /**

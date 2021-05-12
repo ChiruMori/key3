@@ -8,7 +8,7 @@ import org.springframework.util.StringUtils;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisPoolConfig;
-import work.cxlm.config.QfzsProperties;
+import work.cxlm.config.Key3Properties;
 import work.cxlm.utils.JsonUtils;
 
 import javax.annotation.PostConstruct;
@@ -37,8 +37,8 @@ public class RedisCacheStore extends AbstractStringCacheStore {
 
     // ******** 生命周期 *********
 
-    public RedisCacheStore(QfzsProperties qfzsProperties) {
-        super.qfzsProperties = qfzsProperties;
+    public RedisCacheStore(Key3Properties key3Properties) {
+        super.key3Properties = key3Properties;
         initRedis();
     }
 
@@ -49,7 +49,7 @@ public class RedisCacheStore extends AbstractStringCacheStore {
         }
         // 解析 Redis 集群节点
         Set<HostAndPort> nodes = new HashSet<>();
-        for (String hostPort : qfzsProperties.getRedisNodes()) {
+        for (String hostPort : key3Properties.getRedisNodes()) {
             String[] hostPortArr = hostPort.split(":");
             if (hostPortArr.length >= 1) {
                 String host = hostPortArr[0];
@@ -79,7 +79,7 @@ public class RedisCacheStore extends AbstractStringCacheStore {
         config.setMaxWaitMillis(5000);
         // 疑似配置问题，因为代码本身来自 Halo 源码，Jedis 出现 bug 的可能性也不高，日后可以将 Redis 搭起来试一下
         REDIS = new JedisCluster(nodes, 5000, 2000, 3,
-                qfzsProperties.getRedisPwd(), config);
+                key3Properties.getRedisPwd(), config);
         log.info("初始化 Redis 集群，[{}]", REDIS.getClusterNodes());
     }
 

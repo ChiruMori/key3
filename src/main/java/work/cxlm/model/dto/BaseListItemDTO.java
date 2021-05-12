@@ -4,7 +4,7 @@ import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.Nullable;
 import work.cxlm.model.entity.User;
-import work.cxlm.model.support.QfzsConst;
+import work.cxlm.model.support.Key3Const;
 
 import java.util.Date;
 
@@ -22,14 +22,14 @@ public abstract class BaseListItemDTO {
     public void fromUserData(@Nullable User targetUser) {
         if (targetUser == null) {
             who = "不明人士";
-            showHead = QfzsConst.SYSTEM_HEAD;
+            showHead = Key3Const.SYSTEM_HEAD;
             return;
         }
         who = targetUser.getRealName();
         // 头像，如果无效则使用占位图
         showHead = targetUser.getHead();
         if (StringUtils.isBlank(showHead)) {
-            showHead = QfzsConst.ERROR_HEAD_URL;
+            showHead = Key3Const.ERROR_HEAD_URL;
         }
     }
 }

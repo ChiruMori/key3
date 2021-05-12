@@ -8,11 +8,11 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.UrlPathHelper;
 import work.cxlm.cache.AbstractStringCacheStore;
-import work.cxlm.config.QfzsProperties;
-import work.cxlm.exception.AbstractQfzsException;
+import work.cxlm.config.Key3Properties;
+import work.cxlm.exception.AbstractKey3Exception;
 import work.cxlm.exception.BadRequestException;
 import work.cxlm.exception.ForbiddenException;
-import work.cxlm.model.support.QfzsConst;
+import work.cxlm.model.support.Key3Const;
 import work.cxlm.security.context.SecurityContextHolder;
 import work.cxlm.security.handler.AuthenticationFailureHandler;
 import work.cxlm.security.handler.DefaultAuthenticationFailureHandler;
@@ -42,7 +42,7 @@ public abstract class AbstractAuthenticationFilter extends OncePerRequestFilter 
      */
     private final UrlPathHelper urlPathHelper = new UrlPathHelper();
     private final OneTimeTokenService oneTimeTokenService;
-    private final QfzsProperties qfzsProperties;
+    private final Key3Properties key3Properties;
     protected final AbstractStringCacheStore cacheStore;
 
     /**
@@ -51,10 +51,10 @@ public abstract class AbstractAuthenticationFilter extends OncePerRequestFilter 
     private volatile AuthenticationFailureHandler failureHandler;
 
     AbstractAuthenticationFilter(OneTimeTokenService oneTimeTokenService,
-                                 QfzsProperties qfzsProperties,
+                                 Key3Properties key3Properties,
                                  AbstractStringCacheStore cacheStore) {
         this.oneTimeTokenService = oneTimeTokenService;
-        this.qfzsProperties = qfzsProperties;
+        this.key3Properties = key3Properties;
         this.cacheStore = cacheStore;
         antPathMatcher = new AntPathMatcher();
     }
@@ -104,7 +104,7 @@ public abstract class AbstractAuthenticationFilter extends OncePerRequestFilter 
             }
             // 未通过验证
             doAuthenticate(request, response, filterChain);
-        } catch (AbstractQfzsException e) {
+        } catch (AbstractKey3Exception e) {
             // 转入失败处理，给客户端处理厚的错误响应
             getFailHandler().onFailure(request, response, e);
         } finally { // 用户的授权状态置为无效
@@ -131,7 +131,7 @@ public abstract class AbstractAuthenticationFilter extends OncePerRequestFilter 
      */
     private boolean isOneTimeAuthSufficient(HttpServletRequest request) {
         // 获取请求中的传回的 ott
-        final String oneTimeToken = getTokenFromRequest(request, QfzsConst.ONE_TIME_TOKEN_QUERY_NAME, QfzsConst.ONE_TIME_TOKEN_HEADER_NAME);
+        final String oneTimeToken = getTokenFromRequest(request, Key3Const.ONE_TIME_TOKEN_QUERY_NAME, Key3Const.ONE_TIME_TOKEN_HEADER_NAME);
         // 没有 ott
         if (StringUtils.isEmpty(oneTimeToken)) {
             return false;
@@ -177,7 +177,7 @@ public abstract class AbstractAuthenticationFilter extends OncePerRequestFilter 
             synchronized (this) {
                 if (failureHandler == null) {
                     DefaultAuthenticationFailureHandler defaultAuthenticationFailureHandler = new DefaultAuthenticationFailureHandler();
-                    defaultAuthenticationFailureHandler.setProductEnv(qfzsProperties.isProductionEnv());
+                    defaultAuthenticationFailureHandler.setProductEnv(key3Properties.isProductionEnv());
                     this.failureHandler = defaultAuthenticationFailureHandler;
                 }
             }

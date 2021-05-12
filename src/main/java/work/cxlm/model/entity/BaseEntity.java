@@ -3,7 +3,7 @@ package work.cxlm.model.entity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import work.cxlm.utils.QfzsDateUtils;
+import work.cxlm.utils.Key3DateUtils;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -34,7 +34,7 @@ public abstract class BaseEntity {
      */
     @PrePersist
     protected void prePersist() {
-        Date now = QfzsDateUtils.now();
+        Date now = Key3DateUtils.now();
         if (createTime == null) {
             createTime = now;
         }
@@ -47,6 +47,6 @@ public abstract class BaseEntity {
     @PreUpdate
     @PreRemove
     protected void preUpdate() {
-        updateTime = QfzsDateUtils.now();
+        updateTime = Key3DateUtils.now();
     }
 }

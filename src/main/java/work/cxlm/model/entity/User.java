@@ -8,7 +8,7 @@ import org.hibernate.annotations.GenericGenerator;
 import org.springframework.util.StringUtils;
 import work.cxlm.model.enums.UserGender;
 import work.cxlm.model.enums.UserRole;
-import work.cxlm.model.support.QfzsConst;
+import work.cxlm.model.support.Key3Const;
 
 import javax.persistence.*;
 
@@ -113,7 +113,7 @@ public class User extends BaseEntity {
             role = UserRole.NORMAL;
         }
         if (StringUtils.isEmpty(sign)) {
-            sign = QfzsConst.DEFAULT_USER_SIGNATURE;
+            sign = Key3Const.DEFAULT_USER_SIGNATURE;
         }
         if (receiveMsg == null) {
             receiveMsg = false;

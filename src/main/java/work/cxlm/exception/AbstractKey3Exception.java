@@ -8,15 +8,15 @@ import org.springframework.lang.Nullable;
  * @author cxlm
  * created 2020/10/19 14:29
  */
-public abstract class AbstractQfzsException extends RuntimeException {
+public abstract class AbstractKey3Exception extends RuntimeException {
 
     private Object errData;
 
-    public AbstractQfzsException(String msg) {
+    public AbstractKey3Exception(String msg) {
         super(msg);
     }
 
-    public AbstractQfzsException(String msg, Throwable cause) {
+    public AbstractKey3Exception(String msg, Throwable cause) {
         super(msg, cause);
     }
 
@@ -37,7 +37,7 @@ public abstract class AbstractQfzsException extends RuntimeException {
      * 设置详细错误数据
      */
     @NonNull
-    public AbstractQfzsException setErrorData(@Nullable Object errData) {
+    public AbstractKey3Exception setErrorData(@Nullable Object errData) {
         this.errData = errData;
         return this;
     }

@@ -10,7 +10,7 @@ import org.springframework.lang.NonNull;
  * @author johnniang
  * @author cxlm
  */
-public class BeanUtilsException extends AbstractQfzsException {
+public class BeanUtilsException extends AbstractKey3Exception {
 
     public BeanUtilsException(String message) {
         super(message);

@@ -7,9 +7,9 @@ import org.iq80.leveldb.impl.Iq80DBFactory;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import work.cxlm.config.QfzsProperties;
+import work.cxlm.config.Key3Properties;
 import work.cxlm.utils.JsonUtils;
-import work.cxlm.utils.QfzsDateUtils;
+import work.cxlm.utils.Key3DateUtils;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -45,8 +45,8 @@ public class LevelCacheStore extends AbstractStringCacheStore {
 
     //// -------------------- 生命周期 --------------------
 
-    public LevelCacheStore(QfzsProperties properties) {
-        super.qfzsProperties = properties;
+    public LevelCacheStore(Key3Properties properties) {
+        super.key3Properties = properties;
         init();
         timerPool = new ScheduledThreadPoolExecutor(1, t -> new Thread(t, "缓存自动清除线程"));
         timerPool.scheduleAtFixedRate(new CacheExpiryCleaner(), 0, PERIOD, TimeUnit.SECONDS);
@@ -59,7 +59,7 @@ public class LevelCacheStore extends AbstractStringCacheStore {
         }
         try {
             // 工作路径
-            File folder = new File(qfzsProperties.getWorkDir() + ".leveldb");
+            File folder = new File(key3Properties.getWorkDir() + ".leveldb");
             DBFactory factory = new Iq80DBFactory();
             Options options = new Options();
             options.createIfMissing(true);
@@ -180,7 +180,7 @@ public class LevelCacheStore extends AbstractStringCacheStore {
             WriteBatch deleteBatch = LEVEL_DB.createWriteBatch();
 
             DBIterator iterator = LEVEL_DB.iterator();
-            Date now = QfzsDateUtils.now();
+            Date now = Key3DateUtils.now();
             while (iterator.hasNext()) {
                 Map.Entry<byte[], byte[]> next = iterator.next();  // Level DB 的键值均为字节数组
                 if (next.getKey() == null || next.getValue() == null) {

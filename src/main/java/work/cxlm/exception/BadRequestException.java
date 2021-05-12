@@ -8,7 +8,7 @@ import org.springframework.lang.NonNull;
  *
  * @author cxlm
  */
-public class BadRequestException extends AbstractQfzsException {
+public class BadRequestException extends AbstractKey3Exception {
 
     public BadRequestException(String message) {
         super(message);

@@ -105,7 +105,7 @@
     + CacheWrapper 缓存值的包装类，封装了过期、创建时间属性
     + AbstractCacheStore 声明了任意类型键值的缓存，并提供部分实现
     + AbstractStringCacheStore 字符串类型键值的缓存，并提供类型转换相关的方法，使其可以操作支持序列化的任何对象
-    + InMemoryCacheStore, LevelCacheStore, RedisCacheStore 均为 AbstractStringCacheStore 的子类，分别为内存实现、Level DB 实现、Redis 集群实现。通过调整系统配置（QfzsConfiguration）可以选择使用不同的实现
+    + InMemoryCacheStore, LevelCacheStore, RedisCacheStore 均为 AbstractStringCacheStore 的子类，分别为内存实现、Level DB 实现、Redis 集群实现。通过调整系统配置（Key3Configuration）可以选择使用不同的实现
 
 ## 用户验证模块
 

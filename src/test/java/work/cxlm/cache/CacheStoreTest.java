@@ -4,7 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import work.cxlm.config.QfzsProperties;
+import work.cxlm.config.Key3Properties;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -24,18 +24,18 @@ public class CacheStoreTest {
 
     List<CacheStore<String, String>> stores;
 
-    private QfzsProperties qfzsProperties;
+    private Key3Properties key3Properties;
 
     @Autowired
-    public void setMyFontProperties(QfzsProperties qfzsProperties) {
-        this.qfzsProperties = qfzsProperties;
+    public void setMyFontProperties(Key3Properties key3Properties) {
+        this.key3Properties = key3Properties;
     }
 
     @BeforeEach
     void setUp() {
         stores = new LinkedList<>();
-        stores.add(new LevelCacheStore(qfzsProperties));
-        stores.add(new RedisCacheStore(qfzsProperties));
+        stores.add(new LevelCacheStore(key3Properties));
+        stores.add(new RedisCacheStore(key3Properties));
         stores.add(new InMemoryCacheStore());
     }
 

@@ -9,7 +9,7 @@ import org.springframework.lang.NonNull;
  *
  * @author Chiru
  */
-public class DataConflictException extends AbstractQfzsException {
+public class DataConflictException extends AbstractKey3Exception {
     public DataConflictException(String msg) {
         super(msg);
     }

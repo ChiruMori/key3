@@ -1,10 +1,10 @@
 package work.cxlm.model.entity.support;
 
-import jdk.nashorn.internal.runtime.regexp.joni.exception.InternalException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.id.IdentityGenerator;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
+import work.cxlm.exception.ServiceException;
 import work.cxlm.model.entity.TimePeriod;
 import work.cxlm.utils.DateUtils;
 
@@ -44,7 +44,7 @@ public class TimeIdGenerator extends IdentityGenerator {
     public static long encodeId(@NonNull Date date, int roomId) {
         Assert.notNull(date, "date 不能为 null");
         if (roomId >= MAX_ROOM_ID) {
-            throw new InternalException("错误！roomId 超出设定范围，roomId 为：" + roomId + "，请联系管理员报告此问题。");
+            throw new ServiceException("错误！roomId 超出设定范围，roomId 为：" + roomId + "，请联系管理员报告此问题。");
         }
 
         return DateUtils.codeOfDate(date) * MAX_ROOM_ID + roomId;

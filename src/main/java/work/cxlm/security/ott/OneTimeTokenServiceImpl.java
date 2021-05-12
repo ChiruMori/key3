@@ -4,7 +4,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import work.cxlm.cache.AbstractStringCacheStore;
-import work.cxlm.utils.QfzsUtils;
+import work.cxlm.utils.Key3Utils;
 
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -41,7 +41,7 @@ public class OneTimeTokenServiceImpl implements OneTimeTokenService {
     public String create(@NonNull String uri) {
         Assert.hasText(uri, "请求链接不能为空");
         // 使用 UUID 生成 OTT
-        String ott = QfzsUtils.randomUuidWithoutDash();
+        String ott = Key3Utils.randomUuidWithoutDash();
         cacheStore.put(ott, uri, OTT_EXPIRE_DAY, TimeUnit.DAYS);
         return ott;
     }

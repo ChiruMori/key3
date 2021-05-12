@@ -10,7 +10,7 @@ import org.springframework.lang.NonNull;
  *
  * Service 层异常：内部服务器错误（500）
  */
-public class ServiceException extends AbstractQfzsException {
+public class ServiceException extends AbstractKey3Exception {
     public ServiceException(String msg) {
         super(msg);
     }

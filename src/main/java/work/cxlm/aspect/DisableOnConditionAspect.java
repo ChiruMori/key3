@@ -7,7 +7,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.stereotype.Component;
 import work.cxlm.annotation.DisableOnCondition;
-import work.cxlm.config.QfzsProperties;
+import work.cxlm.config.Key3Properties;
 import work.cxlm.exception.ForbiddenException;
 import work.cxlm.model.enums.Mode;
 
@@ -23,10 +23,10 @@ import work.cxlm.model.enums.Mode;
 @Component
 public class DisableOnConditionAspect {
 
-    private final QfzsProperties qfzsProperties;
+    private final Key3Properties key3Properties;
 
-    public DisableOnConditionAspect(QfzsProperties qfzsProperties) {
-        this.qfzsProperties = qfzsProperties;
+    public DisableOnConditionAspect(Key3Properties key3Properties) {
+        this.key3Properties = key3Properties;
     }
 
     @Pointcut("@annotation(work.cxlm.annotation.DisableOnCondition)")
@@ -37,7 +37,7 @@ public class DisableOnConditionAspect {
     public Object around(ProceedingJoinPoint joinPoint,
                          DisableOnCondition disableApi) throws Throwable {
         Mode mode = disableApi.mode();
-        if (qfzsProperties.getMode().equals(mode)) {
+        if (key3Properties.getMode().equals(mode)) {
             throw new ForbiddenException("禁止访问");
         }
 

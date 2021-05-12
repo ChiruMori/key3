@@ -22,7 +22,7 @@ import springfox.documentation.swagger.web.SecurityConfiguration;
 import springfox.documentation.swagger.web.SecurityConfigurationBuilder;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 import work.cxlm.model.entity.User;
-import work.cxlm.model.support.QfzsConst;
+import work.cxlm.model.support.Key3Const;
 import work.cxlm.security.support.UserDetail;
 
 import java.lang.reflect.Type;
@@ -45,7 +45,7 @@ import static springfox.documentation.schema.AlternateTypeRules.newRule;
 @Slf4j
 public class SwaggerConfiguration {
 
-    private final QfzsProperties qfzsProperties;
+    private final Key3Properties key3Properties;
 
     private final List<ResponseMessage> globalResponses = Arrays.asList(
             new ResponseMessageBuilder().code(200).message("Success").build(),
@@ -55,16 +55,16 @@ public class SwaggerConfiguration {
             new ResponseMessageBuilder().code(404).message("Not found").build(),
             new ResponseMessageBuilder().code(500).message("Internal server error").build());
 
-    public SwaggerConfiguration(QfzsProperties qfzsProperties) {
-        this.qfzsProperties = qfzsProperties;
+    public SwaggerConfiguration(Key3Properties key3Properties) {
+        this.key3Properties = key3Properties;
     }
 
     /**
      * 非管理员功能 API 文档
      */
     @Bean
-    public Docket qfzsDefaultDocket() {
-        if (qfzsProperties.isDocDisabled()) {
+    public Docket key3DefaultDocket() {
+        if (key3Properties.isDocDisabled()) {
             log.debug("文档未开启");
         }
 
@@ -73,15 +73,15 @@ public class SwaggerConfiguration {
                 "/key3/users/api/**")
                 .securitySchemes(contentApiKeys())
                 .securityContexts(contentSecurityContext())
-                .enable(!qfzsProperties.isDocDisabled());
+                .enable(!key3Properties.isDocDisabled());
     }
 
     /**
      * 管理员功能 API 文档
      */
     @Bean
-    public Docket qfzsAdminApi() {
-        if (qfzsProperties.isDocDisabled()) {
+    public Docket key3AdminApi() {
+        if (key3Properties.isDocDisabled()) {
             log.debug("文档未开启");
         }
 
@@ -90,15 +90,15 @@ public class SwaggerConfiguration {
                 "/key3/admin/api/**")
                 .securitySchemes(adminApiKeys())
                 .securityContexts(adminSecurityContext())
-                .enable(!qfzsProperties.isDocDisabled());
+                .enable(!key3Properties.isDocDisabled());
     }
 
     /**
      * 管理员功能 API 文档
      */
     @Bean
-    public Docket qfzsTimeApi() {
-        if (qfzsProperties.isDocDisabled()) {
+    public Docket key3TimeApi() {
+        if (key3Properties.isDocDisabled()) {
             log.debug("文档未开启");
         }
 
@@ -107,7 +107,7 @@ public class SwaggerConfiguration {
                 "/key3/time/api/**")
                 .securitySchemes(adminApiKeys())
                 .securityContexts(adminSecurityContext())
-                .enable(!qfzsProperties.isDocDisabled());
+                .enable(!key3Properties.isDocDisabled());
     }
 
     @Bean
@@ -145,8 +145,8 @@ public class SwaggerConfiguration {
 
     private List<ApiKey> adminApiKeys() {
         return Arrays.asList(
-                new ApiKey("Token from header", QfzsConst.ADMIN_TOKEN_HEADER_NAME, In.HEADER.name()),
-                new ApiKey("Token from query", QfzsConst.ADMIN_TOKEN_QUERY_NAME, In.QUERY.name())
+                new ApiKey("Token from header", Key3Const.ADMIN_TOKEN_HEADER_NAME, In.HEADER.name()),
+                new ApiKey("Token from query", Key3Const.ADMIN_TOKEN_QUERY_NAME, In.QUERY.name())
         );
     }
 
@@ -161,8 +161,8 @@ public class SwaggerConfiguration {
 
     private List<ApiKey> contentApiKeys() {
         return Arrays.asList(
-                new ApiKey("Access key from header", QfzsConst.API_ACCESS_KEY_HEADER_NAME, In.HEADER.name()),
-                new ApiKey("Access key from query", QfzsConst.API_ACCESS_KEY_QUERY_NAME, In.QUERY.name())
+                new ApiKey("Access key from header", Key3Const.API_ACCESS_KEY_HEADER_NAME, In.HEADER.name()),
+                new ApiKey("Access key from query", Key3Const.API_ACCESS_KEY_QUERY_NAME, In.QUERY.name())
         );
     }
 
@@ -191,7 +191,7 @@ public class SwaggerConfiguration {
         return new ApiInfoBuilder()
                 .title("Key3 API 文档")
                 .description("描述程序后端接口的 API 文档")
-                .version(qfzsProperties.getVersion())
+                .version(key3Properties.getVersion())
                 .termsOfServiceUrl("https://github.com/first-snow/myfont")
                 .contact(new Contact("myfont", "https://github.com/first-snow/myfont/issues", "cxlm@cxlm.work"))
                 .license("GNU General Public License v3.0")

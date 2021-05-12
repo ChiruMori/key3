@@ -11,7 +11,7 @@ import java.util.UUID;
  *
  * @author cxlm
  */
-public class QfzsUtils {
+public class Key3Utils {
 
     /**
      * 将字符串的指定部分替换为 * 号

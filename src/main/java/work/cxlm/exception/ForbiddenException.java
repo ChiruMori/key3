@@ -9,7 +9,7 @@ import org.springframework.lang.NonNull;
  * @author johnniang
  * @author cxlm
  */
-public class ForbiddenException extends AbstractQfzsException {
+public class ForbiddenException extends AbstractKey3Exception {
 
     public ForbiddenException(String message) {
         super(message);

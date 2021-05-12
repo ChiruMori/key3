@@ -6,8 +6,8 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
-import work.cxlm.model.support.QfzsConst;
-import work.cxlm.utils.QfzsUtils;
+import work.cxlm.model.support.Key3Const;
+import work.cxlm.utils.Key3Utils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashSet;
@@ -21,16 +21,16 @@ import java.util.Set;
  * @author Chiru
  */
 @Slf4j
-public class QfzsRequestMappingHandlerMapping extends RequestMappingHandlerMapping {
+public class Key3RequestMappingHandlerMapping extends RequestMappingHandlerMapping {
 
     private final Set<String> blackPatterns = new HashSet<>();
 
     private final PathMatcher pathMatcher;
 
-    private final QfzsProperties qfzsProperties;
+    private final Key3Properties key3Properties;
 
-    public QfzsRequestMappingHandlerMapping(QfzsProperties qfzsProperties) {
-        this.qfzsProperties = qfzsProperties;
+    public Key3RequestMappingHandlerMapping(Key3Properties key3Properties) {
+        this.key3Properties = key3Properties;
         initBlackPatterns();
         pathMatcher = new AntPathMatcher();
     }
@@ -48,7 +48,7 @@ public class QfzsRequestMappingHandlerMapping extends RequestMappingHandlerMappi
     }
 
     private void initBlackPatterns() {
-        String uploadUrlPattern = QfzsUtils.ensureBoth(qfzsProperties.getUploadUrlPrefix(), QfzsConst.URL_SEPARATOR) + "**";
+        String uploadUrlPattern = Key3Utils.ensureBoth(key3Properties.getUploadUrlPrefix(), Key3Const.URL_SEPARATOR) + "**";
 
         blackPatterns.add("/key3/js/**");
         blackPatterns.add("/key3/images/**");

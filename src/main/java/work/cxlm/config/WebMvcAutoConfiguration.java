@@ -21,14 +21,13 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.ViewResolverRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerViewResolver;
 import work.cxlm.model.enums.support.StringToEnumConverterFactory;
-import work.cxlm.model.support.QfzsConst;
+import work.cxlm.model.support.Key3Const;
 import work.cxlm.security.resolver.AuthenticationArgumentResolver;
-import work.cxlm.utils.QfzsUtils;
+import work.cxlm.utils.Key3Utils;
 
 import java.io.IOException;
 import java.util.List;
@@ -51,14 +50,14 @@ public class WebMvcAutoConfiguration extends WebMvcConfigurationSupport {
 
     private final SortHandlerMethodArgumentResolver sortResolver;
 
-    private final QfzsProperties qfzsProperties;
+    private final Key3Properties key3Properties;
 
     public WebMvcAutoConfiguration(PageableHandlerMethodArgumentResolver pageableResolver,
                                    SortHandlerMethodArgumentResolver sortResolver,
-                                   QfzsProperties qfzsProperties) {
+                                   Key3Properties key3Properties) {
         this.pageableResolver = pageableResolver;
         this.sortResolver = sortResolver;
-        this.qfzsProperties = qfzsProperties;
+        this.key3Properties = key3Properties;
     }
 
     @Override
@@ -92,20 +91,20 @@ public class WebMvcAutoConfiguration extends WebMvcConfigurationSupport {
      */
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        String workDir = FILE_PROTOCOL + QfzsUtils.ensureSuffix(qfzsProperties.getWorkDir(), QfzsConst.FILE_SEPARATOR);
+        String workDir = FILE_PROTOCOL + Key3Utils.ensureSuffix(key3Properties.getWorkDir(), Key3Const.FILE_SEPARATOR);
 
         // register /** resource handler.
         registry.addResourceHandler("/key3/**")
                 .addResourceLocations("classpath:/static/")
                 .addResourceLocations(workDir + "/static/");
 
-        String uploadUrlPattern = QfzsUtils.ensureBoth(qfzsProperties.getUploadUrlPrefix(), QfzsConst.URL_SEPARATOR) + "**";
+        String uploadUrlPattern = Key3Utils.ensureBoth(key3Properties.getUploadUrlPrefix(), Key3Const.URL_SEPARATOR) + "**";
         // String adminPathPattern = MyFontUtils.ensureSuffix(myFontProperties.getAdminPath(), MyFontConst.URL_SEPARATOR) + "**";
 
         registry.addResourceHandler(uploadUrlPattern)
                 .setCacheControl(CacheControl.maxAge(7L, TimeUnit.DAYS))
                 .addResourceLocations(workDir + "upload/");
-        if (!qfzsProperties.isDocDisabled()) {
+        if (!key3Properties.isDocDisabled()) {
             // 启用文档接口
             registry.addResourceHandler("/swagger-ui.html")
                     .addResourceLocations("classpath:/META-INF/resources/");
@@ -127,9 +126,9 @@ public class WebMvcAutoConfiguration extends WebMvcConfigurationSupport {
      * @return FreeMarkerConfigurer 实例
      */
     @Bean
-    public FreeMarkerConfigurer freemarkerConfig(QfzsProperties qfzsProperties) throws IOException, TemplateException {
+    public FreeMarkerConfigurer freemarkerConfig(Key3Properties key3Properties) throws IOException, TemplateException {
         FreeMarkerConfigurer configurer = new FreeMarkerConfigurer();
-        configurer.setTemplateLoaderPaths(FILE_PROTOCOL + qfzsProperties.getWorkDir() + "templates/", "classpath:/templates/");
+        configurer.setTemplateLoaderPaths(FILE_PROTOCOL + key3Properties.getWorkDir() + "templates/", "classpath:/templates/");
         configurer.setDefaultEncoding("UTF-8");
 
         Properties properties = new Properties();
@@ -140,7 +139,7 @@ public class WebMvcAutoConfiguration extends WebMvcConfigurationSupport {
         // 预定义配置
         freemarker.template.Configuration configuration = configurer.createConfiguration();
         configuration.setNewBuiltinClassResolver(TemplateClassResolver.SAFER_RESOLVER);
-        if (qfzsProperties.isProductionEnv()) {
+        if (key3Properties.isProductionEnv()) {
             configuration.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
         }
 
@@ -160,7 +159,7 @@ public class WebMvcAutoConfiguration extends WebMvcConfigurationSupport {
         resolver.setExposeRequestAttributes(false);
         resolver.setExposeSessionAttributes(false);
         resolver.setExposeSpringMacroHelpers(true);
-        resolver.setSuffix(QfzsConst.SUFFIX_FTL);
+        resolver.setSuffix(Key3Const.SUFFIX_FTL);
         resolver.setContentType("text/html; charset=UTF-8");
         registry.viewResolver(resolver);
     }
@@ -168,7 +167,7 @@ public class WebMvcAutoConfiguration extends WebMvcConfigurationSupport {
     @Override
     @NonNull
     public RequestMappingHandlerMapping createRequestMappingHandlerMapping() {
-        return new QfzsRequestMappingHandlerMapping(qfzsProperties);
+        return new Key3RequestMappingHandlerMapping(key3Properties);
     }
 
 }

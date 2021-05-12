@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import work.cxlm.model.entity.User;
 import work.cxlm.model.enums.UserGender;
 import work.cxlm.model.enums.UserRole;
-import work.cxlm.model.support.QfzsConst;
+import work.cxlm.model.support.Key3Const;
 import work.cxlm.service.UserService;
 
 /**
@@ -31,7 +31,7 @@ public class InitialCommandLineRunner implements CommandLineRunner {
         if (systemCoreUser == null) {
             systemCoreUser = new User();
             systemCoreUser.setRealName("系统");
-            systemCoreUser.setHead(QfzsConst.SYSTEM_HEAD);
+            systemCoreUser.setHead(Key3Const.SYSTEM_HEAD);
             systemCoreUser.setId(-1);
             systemCoreUser.setStudentNo(-1L);
             systemCoreUser.setReceiveMsg(false);

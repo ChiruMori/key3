@@ -5,9 +5,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import work.cxlm.cache.AbstractStringCacheStore;
-import work.cxlm.config.QfzsProperties;
+import work.cxlm.config.Key3Properties;
 import work.cxlm.model.entity.User;
-import work.cxlm.model.support.QfzsConst;
+import work.cxlm.model.support.Key3Const;
 import work.cxlm.security.authentication.AuthenticationImpl;
 import work.cxlm.security.context.SecurityContextHolder;
 import work.cxlm.security.context.SecurityContextImpl;
@@ -38,18 +38,18 @@ public class AdminAuthenticationFilter extends AbstractAuthenticationFilter {
     private final UserService userService;
 
     AdminAuthenticationFilter(OneTimeTokenService oneTimeTokenService,
-                              QfzsProperties qfzsProperties,
+                              Key3Properties key3Properties,
                               AbstractStringCacheStore cacheStore,
                               UserService userService,
                               ObjectMapper objectMapper) {
-        super(oneTimeTokenService, qfzsProperties, cacheStore);
+        super(oneTimeTokenService, key3Properties, cacheStore);
         this.userService = userService;
         // 针对管理员相关的 API 接口进行过滤
         addToBlackSet("/key3/admin/api/**", "/key3/admin/page/**");
         // 排除管理员登录、更新 Token 接口
         addToWhiteSet("/key3/admin/api/refresh/*", "/key3/admin/api/login", "/key3/admin/page/login");
         DefaultAuthenticationFailureHandler failureHandler = new DefaultAuthenticationFailureHandler();
-        failureHandler.setProductEnv(qfzsProperties.isProductionEnv());
+        failureHandler.setProductEnv(key3Properties.isProductionEnv());
         failureHandler.setObjectMapper(objectMapper);
 
         setFailureHandler(failureHandler);
@@ -77,6 +77,6 @@ public class AdminAuthenticationFilter extends AbstractAuthenticationFilter {
 
     @Override
     protected String getTokenFromRequest(@NonNull HttpServletRequest request) {
-        return getTokenFromRequest(request, QfzsConst.ADMIN_TOKEN_QUERY_NAME, QfzsConst.ADMIN_TOKEN_HEADER_NAME);
+        return getTokenFromRequest(request, Key3Const.ADMIN_TOKEN_QUERY_NAME, Key3Const.ADMIN_TOKEN_HEADER_NAME);
     }
 }

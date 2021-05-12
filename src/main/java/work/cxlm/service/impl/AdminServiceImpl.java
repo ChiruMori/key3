@@ -23,13 +23,12 @@ import work.cxlm.model.enums.UserRole;
 import work.cxlm.model.params.LoginParam;
 import work.cxlm.model.params.AuthorityParam;
 import work.cxlm.model.params.UserParam;
-import work.cxlm.model.support.QfzsConst;
+import work.cxlm.model.support.Key3Const;
 import work.cxlm.model.vo.DashboardVO;
 import work.cxlm.repository.UserRepository;
 import work.cxlm.security.authentication.Authentication;
 import work.cxlm.security.context.SecurityContextHolder;
 import work.cxlm.security.token.AuthToken;
-import work.cxlm.security.util.SecurityUtils;
 import work.cxlm.service.*;
 import work.cxlm.utils.ServiceUtils;
 
@@ -89,7 +88,7 @@ public class AdminServiceImpl implements AdminService {
         if (!targetUser.getRole().isAdminRole()) {
             throw new ForbiddenException("您的权限不足，无法访问");
         }
-        String passcodeCacheKey = QfzsConst.ADMIN_PASSCODE_PREFIX + targetUser.getId();
+        String passcodeCacheKey = Key3Const.ADMIN_PASSCODE_PREFIX + targetUser.getId();
         String requirePasscode = cacheStore.getAny(passcodeCacheKey, String.class).
                 orElseThrow(() -> new ForbiddenException("请使用小程序中生成的合法登录口令登录"));
         if (!Objects.equals(loginParam.getPasscode(), requirePasscode)) {

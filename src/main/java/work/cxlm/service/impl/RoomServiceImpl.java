@@ -21,7 +21,7 @@ import work.cxlm.model.entity.id.BelongId;
 import work.cxlm.model.entity.support.TimeIdGenerator;
 import work.cxlm.model.params.LogParam;
 import work.cxlm.model.params.RoomParam;
-import work.cxlm.model.support.QfzsConst;
+import work.cxlm.model.support.Key3Const;
 import work.cxlm.repository.RoomRepository;
 import work.cxlm.security.context.SecurityContextHolder;
 import work.cxlm.service.*;
@@ -216,7 +216,7 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
     @NonNull
     @SuppressWarnings("rawtypes, unchecked")
     public List<LocationDTO> getLocations(@NonNull Integer clubId) {
-        Optional<List> locations = cacheStore.getAny(QfzsConst.LOCATION_KEY, List.class);
+        Optional<List> locations = cacheStore.getAny(Key3Const.LOCATION_KEY, List.class);
         // 这里的转化不能删除，否则在 JDK8 环境将报错
         return (List<LocationDTO>) locations.
                 map(list -> ServiceUtils.convertList(list, o -> (LocationDTO) o)).

@@ -1,6 +1,6 @@
 package work.cxlm.security.handler;
 
-import work.cxlm.exception.AbstractQfzsException;
+import work.cxlm.exception.AbstractKey3Exception;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -24,6 +24,6 @@ public interface AuthenticationFailureHandler {
      * @throws IOException      网络 IO 出错时抛出
      * @throws ServletException Servlet 层错误
      */
-    void onFailure(HttpServletRequest request, HttpServletResponse response, AbstractQfzsException exception)
+    void onFailure(HttpServletRequest request, HttpServletResponse response, AbstractKey3Exception exception)
             throws IOException, ServletException;
 }

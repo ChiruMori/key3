@@ -1,22 +1,18 @@
 package work.cxlm.security.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import work.cxlm.cache.AbstractStringCacheStore;
-import work.cxlm.config.QfzsProperties;
-import work.cxlm.exception.AuthenticationException;
+import work.cxlm.config.Key3Properties;
 import work.cxlm.exception.ForbiddenException;
 import work.cxlm.model.entity.User;
-import work.cxlm.model.support.QfzsConst;
 import work.cxlm.security.authentication.AuthenticationImpl;
 import work.cxlm.security.context.SecurityContextHolder;
 import work.cxlm.security.context.SecurityContextImpl;
 import work.cxlm.security.handler.DefaultAuthenticationFailureHandler;
 import work.cxlm.security.ott.OneTimeTokenService;
 import work.cxlm.security.support.UserDetail;
-import work.cxlm.security.util.SecurityUtils;
 import work.cxlm.service.UserService;
 
 import javax.servlet.FilterChain;
@@ -24,7 +20,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Optional;
 
 /**
  * 针对救急工具包的过滤器
@@ -38,16 +33,16 @@ public class KitAuthenticationFilter extends AbstractAuthenticationFilter {
     private final UserService userService;
 
     public KitAuthenticationFilter(OneTimeTokenService oneTimeTokenService,
-                                   QfzsProperties qfzsProperties,
+                                   Key3Properties key3Properties,
                                    AbstractStringCacheStore cacheStore,
                                    UserService userService,
                                    ObjectMapper objectMapper) {
-        super(oneTimeTokenService, qfzsProperties, cacheStore);
+        super(oneTimeTokenService, key3Properties, cacheStore);
         this.userService = userService;
         // 拦截救急工具包相关请求
         addToBlackSet("/key3/kit/**");
         DefaultAuthenticationFailureHandler failureHandler = new DefaultAuthenticationFailureHandler();
-        failureHandler.setProductEnv(qfzsProperties.isProductionEnv());
+        failureHandler.setProductEnv(key3Properties.isProductionEnv());
         failureHandler.setObjectMapper(objectMapper);
 
         setFailureHandler(failureHandler);

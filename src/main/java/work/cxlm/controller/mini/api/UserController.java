@@ -22,7 +22,7 @@ import work.cxlm.service.UserService;
 
 import javax.validation.Valid;
 
-import static work.cxlm.model.support.QfzsConst.USER_HELP;
+import static work.cxlm.model.support.Key3Const.USER_HELP;
 
 /**
  * created 2020/11/15 10:45

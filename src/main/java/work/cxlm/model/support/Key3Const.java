@@ -11,7 +11,7 @@ import java.io.File;
  * @author ryanwang
  * @author cxlm
  */
-public class QfzsConst {
+public class Key3Const {
 
     /**
      * 用户路径

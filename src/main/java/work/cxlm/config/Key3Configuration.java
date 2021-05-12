@@ -21,15 +21,15 @@ import work.cxlm.cache.RedisCacheStore;
  * @author cxlm
  */
 @Configuration
-@EnableConfigurationProperties(QfzsProperties.class)
+@EnableConfigurationProperties(Key3Properties.class)
 @Slf4j
-public class QfzsConfiguration {
+public class Key3Configuration {
 
-    private QfzsProperties qfzsProperties;
+    private Key3Properties key3Properties;
 
     @Autowired
-    public void setMyFontProperties(QfzsProperties qfzsProperties) {
-        this.qfzsProperties = qfzsProperties;
+    public void setMyFontProperties(Key3Properties key3Properties) {
+        this.key3Properties = key3Properties;
     }
 
     @Bean
@@ -43,12 +43,12 @@ public class QfzsConfiguration {
     @ConditionalOnMissingBean
     public AbstractStringCacheStore stringCacheStore() {
         AbstractStringCacheStore stringCacheStore;
-        switch (qfzsProperties.getCache()) {
+        switch (key3Properties.getCache()) {
             case "level":
-                stringCacheStore = new LevelCacheStore(qfzsProperties);
+                stringCacheStore = new LevelCacheStore(key3Properties);
                 break;
             case "redis":
-                stringCacheStore = new RedisCacheStore(qfzsProperties);
+                stringCacheStore = new RedisCacheStore(key3Properties);
                 break;
             case "memory":
             default:

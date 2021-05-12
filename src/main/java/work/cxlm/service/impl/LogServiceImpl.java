@@ -9,7 +9,7 @@ import work.cxlm.exception.ForbiddenException;
 import work.cxlm.model.dto.LogDTO;
 import work.cxlm.model.entity.Log;
 import work.cxlm.model.entity.User;
-import work.cxlm.model.support.QfzsConst;
+import work.cxlm.model.support.Key3Const;
 import work.cxlm.repository.LogRepository;
 import work.cxlm.security.context.SecurityContextHolder;
 import work.cxlm.service.LogService;
@@ -77,7 +77,7 @@ public class LogServiceImpl extends AbstractCrudService<Log, Long> implements Lo
 
     private LogDTO wrapLogWithHeadAndWho(LogDTO logDTO, Map<Integer, User> userMap) {
         if (logDTO.getLogKey() == null || logDTO.getLogKey() == -1) {
-            logDTO.setShowHead(QfzsConst.SYSTEM_HEAD);
+            logDTO.setShowHead(Key3Const.SYSTEM_HEAD);
             logDTO.setWho("系统");
             return logDTO;
         }

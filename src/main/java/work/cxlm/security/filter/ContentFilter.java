@@ -5,7 +5,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import work.cxlm.cache.AbstractStringCacheStore;
-import work.cxlm.config.QfzsProperties;
+import work.cxlm.config.Key3Properties;
 import work.cxlm.security.ott.OneTimeTokenService;
 
 import javax.servlet.FilterChain;
@@ -27,9 +27,9 @@ public class ContentFilter extends AbstractAuthenticationFilter {
 
 
     public ContentFilter(OneTimeTokenService oneTimeTokenService,
-                         QfzsProperties qfzsProperties,
+                         Key3Properties key3Properties,
                          AbstractStringCacheStore cacheStore) {
-        super(oneTimeTokenService, qfzsProperties, cacheStore);
+        super(oneTimeTokenService, key3Properties, cacheStore);
 
         addToBlackSet("/**");
         // 静态资源放行
