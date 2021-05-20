@@ -1,9 +1,6 @@
 package work.cxlm.security.support;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import org.springframework.lang.NonNull;
 import work.cxlm.model.entity.User;
 
@@ -18,16 +15,9 @@ import work.cxlm.model.entity.User;
 @EqualsAndHashCode
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
+@Setter
 public class UserDetail {
 
     private User user;
-
-    @NonNull
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
 }

@@ -36,13 +36,15 @@ public class TimeController {
 
     @ApiOperation(value = "预约时间段", notes = "用户预约指定时段，另外需要传递 access token")
     @PostMapping("/occupy/{timeId}")
-    public TimePeriodSimpleDTO occupyTimePeriod(@ApiParam("时间 ID") @PathVariable("timeId") Long timeId){
-        return timeService.occupyTimePeriod(timeId);
+    public TimePeriodSimpleDTO occupyTimePeriod(@ApiParam("时间 ID") @PathVariable("timeId") Long timeId,
+                                                @ApiParam("社团 ID") @RequestParam(name = "clubId", defaultValue = "null") Integer clubId){
+        return timeService.occupyTimePeriod(timeId, clubId);
     }
 
     @ApiOperation(value = "取消预约时间段", notes = "用户取消指定时段的预约，同时需要传递 access token")
     @DeleteMapping("/cancel/{timeId}")
-    public TimePeriodSimpleDTO noTimePeriod(@ApiParam("时间 ID") @PathVariable("timeId") Long timeId){
-        return timeService.cancelTimePeriod(timeId);
+    public TimePeriodSimpleDTO noTimePeriod(@ApiParam("时间 ID") @PathVariable("timeId") Long timeId,
+                                            @ApiParam("社团 ID") @RequestParam(name = "clubId", defaultValue = "null") Integer clubId){
+        return timeService.cancelTimePeriod(timeId, clubId);
     }
 }

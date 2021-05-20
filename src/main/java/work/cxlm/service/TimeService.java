@@ -1,6 +1,7 @@
 package work.cxlm.service;
 
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.transaction.annotation.Transactional;
 import work.cxlm.model.dto.TimePeriodSimpleDTO;
 import work.cxlm.model.entity.Club;
@@ -34,17 +35,19 @@ public interface TimeService extends CrudService<TimePeriod, Long> {
      * 预定时段
      *
      * @param timeId 时间段 ID
+     * @param clubId 社团 ID
      * @return 时段 DTO
      */
-    TimePeriodSimpleDTO occupyTimePeriod(@NonNull Long timeId);
+    TimePeriodSimpleDTO occupyTimePeriod(@NonNull Long timeId, @Nullable Integer clubId);
 
     /**
      * 用户解除对时间段的占用
      *
      * @param timeId 时段 ID
+     * @param clubId 社团 ID
      * @return 时段 DTO
      */
-    TimePeriodSimpleDTO cancelTimePeriod(@NonNull Long timeId);
+    TimePeriodSimpleDTO cancelTimePeriod(@NonNull Long timeId, @Nullable Integer clubId);
 
     /**
      * 管理员禁用时段

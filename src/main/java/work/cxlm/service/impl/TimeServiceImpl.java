@@ -3,12 +3,15 @@ package work.cxlm.service.impl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import work.cxlm.cache.lock.CacheLock;
+import work.cxlm.event.LogEvent;
 import work.cxlm.exception.BadRequestException;
 import work.cxlm.exception.ForbiddenException;
 import work.cxlm.exception.FrequentAccessException;
@@ -45,6 +48,7 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
     private RoomService roomService;
     private BelongService belongService;
     private NoticeService noticeService;
+    private ApplicationEventPublisher eventPublisher;
 
     private final TimeRepository timeRepository;
     private final OptionService optionService;
@@ -64,6 +68,11 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
     @Autowired
     public void setNoticeService(NoticeService noticeService) {
         this.noticeService = noticeService;
+    }
+
+    @Autowired
+    public void setEventPublisher(ApplicationEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
     }
 
     public TimeServiceImpl(TimeRepository timeRepository,
@@ -226,7 +235,7 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
 
     @Override
     @CacheLock(prefix = "time_dis_lock", expired = 0, msg = "因为操作冲突，您的请求被取消，请重试", argSuffix = "timeId")
-    public TimePeriodSimpleDTO occupyTimePeriod(@NonNull Long timeId) {
+    public TimePeriodSimpleDTO occupyTimePeriod(@NonNull Long timeId, @Nullable Integer clubId) {
         Assert.notNull(timeId, "timeId 不能为 null");
 
         // 得到当前用户
@@ -309,13 +318,16 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
         timeInDb.setState(OCCUPIED);
         // 存储、应用修改（更新或新建）
         timeInDb = timeRepository.save(timeInDb);
-        log.info("用户 [{}] 预定了活动室 [{}] 的时段：{}", nowUser.getRealName(), targetRoom.getName(),
+        String logContent = String.format("用户 [%s] 预定了活动室 [%s] 的时段：%s", nowUser.getRealName(), targetRoom.getName(),
                 new DateUtils(TimeIdGenerator.decodeIdToDate(timeId)).getFormattedTime());
+        log.info(logContent);
+        // 生成社团级别日志
+        eventPublisher.publishEvent(new LogEvent(timeId, nowUser.getId(), clubId, logContent));
         return new TimePeriodSimpleDTO().convertFrom(timeInDb);
     }
 
     @Override
-    public TimePeriodSimpleDTO cancelTimePeriod(@NonNull Long timeId) {
+    public TimePeriodSimpleDTO cancelTimePeriod(@NonNull Long timeId, @Nullable Integer clubId) {
         Assert.notNull(timeId, "timeId 不能为 null");
         TimePeriod target = getById(timeId);
         User nowUser = SecurityContextHolder.ensureUser();
@@ -325,7 +337,10 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
         }
         // 从数据库中移除
         remove(target);
-        log.info("用户 [{}] 取消了预约，时段ID：{}", nowUser.getRealName(), timeId);
+        String logContent = String.format("用户 [%s] 取消了预约，时段ID：%s", nowUser.getRealName(), timeId);
+        log.info(logContent);
+        // 生成社团级别日志
+        eventPublisher.publishEvent(new LogEvent(timeId, nowUser.getId(), clubId, logContent));
         return new TimePeriodSimpleDTO().convertFrom(target);
     }
 

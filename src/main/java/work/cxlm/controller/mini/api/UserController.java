@@ -67,6 +67,8 @@ public class UserController {
         return userService.login(openId);
     }
 
+    // TODO 缓存锁方案检测
+
     @PostMapping("/refresh/{refreshToken}")
     @ApiOperation("刷新用户凭证过期时间，需要使用 refreshToken 进行刷新")
     @CacheLock(prefix = "user_token", msg = "正在登录人数过多，请重试")

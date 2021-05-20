@@ -121,7 +121,7 @@ public class UserServiceImpl extends AbstractCacheCrudService<User, Integer> imp
             throw new BadRequestException("您已登录，无需重复登录");
         }
         log.info("[{}]-[{}] 登录系统", nowUser.getRealName(), ServletUtils.getRequestIp());
-        eventPublisher.publishEvent(new LogEvent(this, new LogParam(nowUser.getId(), LogType.MINI_LOGGED_IN, "用户登录小程序")));
+        // eventPublisher.publishEvent(new LogEvent(this, new LogParam(nowUser.getId(), LogType.MINI_LOGGED_IN, "用户登录小程序")));
         return buildAuthToken(nowUser, StringUtils.EMPTY, User::getWxId);
     }
 
@@ -176,8 +176,8 @@ public class UserServiceImpl extends AbstractCacheCrudService<User, Integer> imp
             throw new NotFoundException("无效的学号，请联系管理员授权后使用");
         }
         // 首次登陆完善学号的情况
-        if (!StringUtils.isEmpty(currentUser.getWxId()) && param.getWxId() != null &&
-                !Objects.equals(currentUser.getWxId(), param.getWxId())) {
+        boolean firstLogin = currentUser.getWxId().isEmpty();
+        if (!firstLogin && param.getWxId() != null && !Objects.equals(currentUser.getWxId(), param.getWxId())) {
             throw new ForbiddenException("该学号已存在，请联系管理员，并提供您的学号");
         }
         // 表单验证：邮件、通知
@@ -189,6 +189,10 @@ public class UserServiceImpl extends AbstractCacheCrudService<User, Integer> imp
         // 清除使用的缓存
         afterModified();
         log.info("用户 [{}]-[{}] 更新（完善）了信息", currentUser.getRealName(), ServletUtils.getRequestIp());
+        if (firstLogin) {
+            eventPublisher.publishEvent(new LogEvent(currentUser, currentUser.getId(), LogType.NEW_USER,
+                    "添加了新的用户：" + currentUser.getRealName()));
+        }
         return currentUser;
     }
 

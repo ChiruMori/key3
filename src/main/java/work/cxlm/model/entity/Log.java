@@ -38,7 +38,7 @@ public class Log extends BaseEntity {
     private String ip;
 
     /**
-     * 一般作为外键使用，关联产生当前日志的东西，通常为社团，系统级日志时为 admin id
+     * 一般作为外键使用，关联产生当前日志的东西，通常为用户 ID，系统级日志时为 admin id
      */
     @Column(name = "log_key")
     private Integer logKey;

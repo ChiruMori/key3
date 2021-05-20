@@ -156,6 +156,7 @@ public class JoiningServiceImpl extends AbstractCrudService<Joining, JoiningId> 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public JoiningDTO newJoiningBy(@NonNull JoiningParam param) {
+        User admin = SecurityContextHolder.ensureUser();
         // 表单校验
         ValidationUtils.validate(param, CreateCheck.class);
         Optional<User> userOptional = userService.getByStudentNo(param.getStudentNo());
@@ -189,7 +190,7 @@ public class JoiningServiceImpl extends AbstractCrudService<Joining, JoiningId> 
         JoiningId joiningId = new JoiningId(targetUser.getId(), targetClub.getId());
         newJoining.setId(joiningId);
         newJoining = joiningRepository.save(newJoining);
-        eventPublisher.publishEvent(new LogEvent(this, new LogParam(targetUser.getId(), targetClub.getId(),
+        eventPublisher.publishEvent(new LogEvent(this, new LogParam(admin.getId(), targetClub.getId(),
                 "增加了社团成员：" + targetUser.getRealName())));
         // 构造返回值
         return buildResult(newJoining, targetUser);
