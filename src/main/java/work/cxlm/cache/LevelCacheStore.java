@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
  * @author Pencilso
  */
 @Slf4j
-public class LevelCacheStore extends AbstractStringCacheStore {
+public class LevelCacheStore extends AbstractStringCacheLayer {
 
     /**
      * 清理器的工作周期
@@ -139,28 +139,6 @@ public class LevelCacheStore extends AbstractStringCacheStore {
     public void deleteInternal(@NonNull String key) {
         LEVEL_DB.delete(stringToBytes(key));
         log.debug("从缓存中移除键：[{}]", key);
-    }
-
-    @Override
-    Map<String, CacheWrapper<String>> getAllInternal() {
-        HashMap<String, CacheWrapper<String>> res = new HashMap<>();
-        for (Map.Entry<byte[], byte[]> next : LEVEL_DB) {
-            byte[] valueBytes = next.getValue();
-            if (valueBytes == null) {
-                continue;
-            }
-            String val = bytesToString(valueBytes);
-            if (StringUtils.isEmpty(val)) {
-                continue;
-            }
-            Optional<CacheWrapper<String>> stringCacheWrapper = jsonToCacheWrapper(val);
-            if (!stringCacheWrapper.isPresent()) {
-                continue;
-            }
-            String key = new String(next.getKey());
-            res.put(key, stringCacheWrapper.get());
-        }
-        return res;
     }
 
     @Override

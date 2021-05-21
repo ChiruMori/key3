@@ -1,4 +1,4 @@
-package work.cxlm.cache.lock;
+package work.cxlm.lock;
 
 import org.springframework.core.annotation.AliasFor;
 

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-import work.cxlm.cache.lock.CacheLock;
+import work.cxlm.lock.CacheLock;
 import work.cxlm.event.LogEvent;
 import work.cxlm.exception.BadRequestException;
 import work.cxlm.exception.ForbiddenException;

@@ -7,21 +7,17 @@ import org.springframework.util.Assert;
 import work.cxlm.exception.ServiceException;
 import work.cxlm.utils.JsonUtils;
 
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
  * 提供一些字符串缓存的实用方法
- * created 2020/11/1 16:08
+ * create 2021/4/16 18:22
  *
- * @author johnniang
- * @author cxlm
- * @deprecated 使用 work.cxlm.cache.AbstractStringCacheLayer 替代
+ * @author Chiru
  */
 @Slf4j
-@Deprecated(forRemoval = true)
-public abstract class AbstractStringCacheStore extends AbstractCacheStore<String, String> {
+public abstract class AbstractStringCacheLayer extends AbstractCacheLayer<String, String> {
 
     @SuppressWarnings("unchecked")
     protected Optional<CacheWrapper<String>> jsonToCacheWrapper(String json) {
@@ -36,22 +32,13 @@ public abstract class AbstractStringCacheStore extends AbstractCacheStore<String
         return Optional.ofNullable(restoredCache);
     }
 
-    public <T> void putAny(@NonNull String key, @NonNull T value, long timeout, @NonNull TimeUnit timeUnit) {
-        try {
-            put(key, JsonUtils.objectToJson(value), timeout, timeUnit);
-        }catch (JsonProcessingException e) {
-            throw new ServiceException("将对象[" + value +"] 转化为 json 失败", e);
-        }
-    }
-
-    public <T> void putAny(@NonNull String key, @NonNull T value) {
-        try {
-            put(key, JsonUtils.objectToJson(value));
-        }catch (JsonProcessingException e) {
-            throw new ServiceException("将对象[" + value +"] 转化为 json 失败", e);
-        }
-    }
-
+    /**
+     * 获取缓存
+     *
+     * @param key  缓存键
+     * @param type 值的类型
+     * @return 缓存值
+     */
     public <T> Optional<T> getAny(@NonNull String key, @NonNull Class<T> type) {
         Assert.notNull(key, "缓存键不能为 null");
 
@@ -63,5 +50,35 @@ public abstract class AbstractStringCacheStore extends AbstractCacheStore<String
                 return null;
             }
         });
+    }
+
+    /**
+     * 设置缓存
+     *
+     * @param key      缓存键
+     * @param value    缓存值
+     * @param timeout  保留时长
+     * @param timeUnit 时间单位
+     */
+    public <T> void putAny(@NonNull String key, @NonNull T value, long timeout, @NonNull TimeUnit timeUnit) {
+        try {
+            put(key, JsonUtils.objectToJson(value), timeout, timeUnit);
+        } catch (JsonProcessingException e) {
+            throw new ServiceException("将对象[" + value + "] 转化为 json 失败", e);
+        }
+    }
+
+    /**
+     * 设置缓存，不过期
+     *
+     * @param key   缓存键
+     * @param value 缓存值
+     */
+    public <T> void putAny(@NonNull String key, @NonNull T value) {
+        try {
+            put(key, JsonUtils.objectToJson(value));
+        } catch (JsonProcessingException e) {
+            throw new ServiceException("将对象[" + value + "] 转化为 json 失败", e);
+        }
     }
 }

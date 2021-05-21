@@ -7,21 +7,21 @@ import org.springframework.util.Assert;
 import work.cxlm.config.Key3Properties;
 import work.cxlm.utils.Key3DateUtils;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
- * 提供部分方法的默认实现
- * created 2020/11/1 15:26
+ * created: 2021/5/21 15:43
  *
  * @author johnniang
- * @author cxlm
+ * @author Chiru
  */
 @Slf4j
-@Deprecated(forRemoval = true)
-public abstract class AbstractCacheStore<K, V> implements CacheStore<K, V> {
+public abstract class AbstractCacheLayer<K, V> implements CacheLayer<K, V> {
 
     protected Key3Properties key3Properties;
     protected HashSet<Consumer<K>> deleteInfoSubscriber = null;
@@ -33,13 +33,6 @@ public abstract class AbstractCacheStore<K, V> implements CacheStore<K, V> {
      * @return 包装在 Optional 中的 CacheWrapper 缓存值
      */
     abstract Optional<CacheWrapper<V>> getInternal(@NonNull K key);
-
-    /**
-     * 获取全部缓存的键值对
-     *
-     * @return Map，键为缓存键、值为 CacheWrapper 包装的缓存值
-     */
-    abstract Map<K, CacheWrapper<V>> getAllInternal();
 
     /**
      * 设置缓存，由子类实现
@@ -66,11 +59,11 @@ public abstract class AbstractCacheStore<K, V> implements CacheStore<K, V> {
      *
      * @param key   缓存键
      * @param value 缓存值
-     * @return 如果键已存在且已经设置了值，则返回 false，键不存在或已过期则返回 true，其他原因则返回 null
+     * @return 如果键已存在且已经设置了值，则返回 false，键不存在或已过期则返回 true，即返回是否操作成功，其他原因则返回 null
      */
     abstract Boolean putInternalIfAbsent(@NonNull K key, @NonNull CacheWrapper<V> value);
 
-    private <T> Optional<T> readAndDelete(@NonNull K key, Function<CacheWrapper<V>, T> converter) {
+    private <T> Optional<T> readAndDeleteExpired(@NonNull K key, Function<CacheWrapper<V>, T> converter) {
         Assert.notNull(key, "缓存键不能为 null");
 
         return getInternal(key).map(cacheWrapper -> {
@@ -86,13 +79,13 @@ public abstract class AbstractCacheStore<K, V> implements CacheStore<K, V> {
     @Override
     @NonNull
     public Optional<V> get(@NonNull K key) {
-        return readAndDelete(key, CacheWrapper::getData);
+        return readAndDeleteExpired(key, CacheWrapper::getData);
     }
 
     @Override
     @Nullable
     public Date getExpireAt(@NonNull K key) {
-        return readAndDelete(key, CacheWrapper::getExpireAt).orElse(null);
+        return readAndDeleteExpired(key, CacheWrapper::getExpireAt).orElse(null);
     }
 
     @Override
@@ -114,22 +107,6 @@ public abstract class AbstractCacheStore<K, V> implements CacheStore<K, V> {
         putInternal(key, wrapCacheValue(value, 0, null));
     }
 
-    @Override
-    public Map<K, V> getAll() {
-        Map<K, CacheWrapper<V>> allCache = getAllInternal();
-        Map<K, V> allConvertedCache = new HashMap<>(allCache.size());
-        Date now = new Date();
-        for (Map.Entry<K, CacheWrapper<V>> cacheEntry : allCache.entrySet()) {
-            CacheWrapper<V> wrappedValue = cacheEntry.getValue();
-            if (wrappedValue.getExpireAt() != null && wrappedValue.getExpireAt().before(now)) {
-                // 清除过期缓存
-                delete(cacheEntry.getKey());
-                continue;
-            }
-            allConvertedCache.put(cacheEntry.getKey(), wrappedValue.getData());
-        }
-        return allConvertedCache;
-    }
 
     /**
      * 包装缓存值对象为 CacheWrapper 对象
@@ -157,6 +134,8 @@ public abstract class AbstractCacheStore<K, V> implements CacheStore<K, V> {
         cacheWrapper.setData(value);
         return cacheWrapper;
     }
+
+
 
     /**
      * 添加缓存删除时间的监听器

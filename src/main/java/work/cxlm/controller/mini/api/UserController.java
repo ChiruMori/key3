@@ -9,7 +9,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import work.cxlm.cache.lock.CacheLock;
+import work.cxlm.lock.CacheLock;
 import work.cxlm.model.dto.UserDTO;
 import work.cxlm.model.entity.User;
 import work.cxlm.model.params.UserLoginParam;

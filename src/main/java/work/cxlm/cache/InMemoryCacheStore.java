@@ -23,7 +23,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author Chiru
  */
 @Slf4j
-public class InMemoryCacheStore extends AbstractStringCacheStore {
+public class InMemoryCacheStore extends AbstractStringCacheLayer {
 
     /**
      * 清理器的工作周期
@@ -102,11 +102,6 @@ public class InMemoryCacheStore extends AbstractStringCacheStore {
     }
 
     @Override
-    Map<String, CacheWrapper<String>> getAllInternal() {
-        return CACHE_CONTAINER;
-    }
-
-    @Override
     public void clear() {
         CACHE_CONTAINER.clear();
     }
@@ -119,7 +114,7 @@ public class InMemoryCacheStore extends AbstractStringCacheStore {
         @Override
         public void run() {
             CACHE_CONTAINER.keySet().forEach(k -> {
-                if (!InMemoryCacheStore.this.get(k).isPresent()) {
+                if (InMemoryCacheStore.this.get(k).isEmpty()) {
                     log.debug("已删除缓存：[{}]", k);
                 }
             });

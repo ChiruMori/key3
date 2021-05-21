@@ -18,8 +18,14 @@ spring:
     show-sql: false
   profiles:
     active: dev
+    configure:
+      includes:
+        - work.cxlm.redis.config.JedisConfig
+        - work.cxlm.redis.config.RedisAddConfig
+        - work.cxlm.redis.config.RedisConfiguration
+        - work.cxlm.cache.config.MultiCacheConfiguration
 
-qfzs:
+key3:
   cache: level
   version: @app_version@
   app-id: wx037c071037531864
@@ -28,3 +34,42 @@ qfzs:
   system-admin-doc: "https://cxlm.work/s/key3-system-admin-doc"
   club-admin-doc: "https://cxlm.work/s/key3-club-admin-doc"
   user-doc: "https://cxlm.work/s/key3-user-doc"
+
+redis:
+  default-name: single
+  clients:
+    single:  # 单点集群
+      mode: SINGLE
+      address: redis://127.0.0.1:6379
+      password: REDIS_mima~9749
+      database: 0
+      codec-bean-name: jsonJacksonCodec
+      min-idle: 10
+      max-active: 100
+      max-idle-timeout: 1800_000   #最大空闲时间
+
+# jedis配置，为了兼容redisLock
+jedis:
+  timeout: 1000
+  pool:
+    max-total: 200
+    max-wait-millis: 2000
+    max-idle: 100
+    min-idle: 10
+    min-evictable-idle-time-millis: 1800000
+  master-s1:
+    host: 127.0.0.1
+    port: 6379
+    name: master-s1
+    password: REDIS_mima~9749
+  slave-s1:
+    host: 127.0.0.1
+    port: 6379
+    name: slave-s1
+    password: REDIS_mima~9749
+
+cache:
+  layers:
+    # 越靠上的越接近 DB，编号越小
+    - redis
+    - guava

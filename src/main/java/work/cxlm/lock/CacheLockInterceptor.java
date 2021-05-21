@@ -1,4 +1,4 @@
-package work.cxlm.cache.lock;
+package work.cxlm.lock;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -39,7 +39,7 @@ public class CacheLockInterceptor {
         this.cacheStore = cacheStore;
     }
 
-    @Around("@annotation(work.cxlm.cache.lock.CacheLock)")
+    @Around("@annotation(work.cxlm.lock.CacheLock)")
     public Object interceptCacheLock(ProceedingJoinPoint joinPoint) throws Throwable {
         // 获取方法签名
         MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();

@@ -1,22 +1,13 @@
 package work.cxlm.controller.admin.api;
 
 import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
-import work.cxlm.cache.lock.CacheLock;
-import work.cxlm.model.dto.UserDTO;
+import work.cxlm.lock.CacheLock;
 import work.cxlm.model.params.LoginParam;
 import work.cxlm.model.params.AuthorityParam;
-import work.cxlm.model.params.UserParam;
 import work.cxlm.model.vo.DashboardVO;
-import work.cxlm.model.vo.PageUserVO;
 import work.cxlm.security.token.AuthToken;
 import work.cxlm.service.AdminService;
-import work.cxlm.service.UserService;
 
 import javax.validation.Valid;
 
