@@ -1,9 +1,10 @@
 package work.cxlm.security.ott;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-import work.cxlm.cache.AbstractStringCacheStore;
+import work.cxlm.cache.MultiStringCache;
 import work.cxlm.utils.Key3Utils;
 
 import java.util.Optional;
@@ -18,22 +19,23 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class OneTimeTokenServiceImpl implements OneTimeTokenService {
 
-    private final AbstractStringCacheStore cacheStore;
+    private final MultiStringCache multiCache;
 
     /**
      * OTT 有效天数
      */
     private static final int OTT_EXPIRE_DAY = 1;
 
-    public OneTimeTokenServiceImpl(AbstractStringCacheStore cacheStore) {
-        this.cacheStore = cacheStore;
+    @Autowired
+    public OneTimeTokenServiceImpl(MultiStringCache multiCache) {
+        this.multiCache = multiCache;
     }
 
     @Override
     @NonNull
     public Optional<String> get(@NonNull String oneTimeToken) {
         Assert.hasText(oneTimeToken, "oneTimeToken 不能为空");
-        return cacheStore.get(oneTimeToken);
+        return multiCache.get(oneTimeToken);
     }
 
     @Override
@@ -42,13 +44,13 @@ public class OneTimeTokenServiceImpl implements OneTimeTokenService {
         Assert.hasText(uri, "请求链接不能为空");
         // 使用 UUID 生成 OTT
         String ott = Key3Utils.randomUuidWithoutDash();
-        cacheStore.put(ott, uri, OTT_EXPIRE_DAY, TimeUnit.DAYS);
+        multiCache.put(ott, uri, OTT_EXPIRE_DAY, TimeUnit.DAYS);
         return ott;
     }
 
     @Override
     public void revoke(@NonNull String oneTimeToken) {
         Assert.hasText(oneTimeToken, "");
-        cacheStore.delete(oneTimeToken);
+        multiCache.delete(oneTimeToken);
     }
 }

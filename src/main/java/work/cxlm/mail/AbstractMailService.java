@@ -10,6 +10,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.util.Assert;
 import work.cxlm.exception.EmailException;
 import work.cxlm.model.properties.EmailProperties;
+import work.cxlm.service.MailService;
 import work.cxlm.service.OptionService;
 
 import javax.mail.MessagingException;

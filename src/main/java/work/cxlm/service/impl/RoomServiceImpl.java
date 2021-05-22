@@ -7,7 +7,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
-import work.cxlm.cache.AbstractStringCacheStore;
+import work.cxlm.cache.MultiStringCache;
 import work.cxlm.event.LogEvent;
 import work.cxlm.event.RoomInfoUpdatedEvent;
 import work.cxlm.exception.DataConflictException;
@@ -43,7 +43,7 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
     // ------------------ Autowired ---------------------
 
     private final RoomRepository roomRepository;
-    private final AbstractStringCacheStore cacheStore;
+    private final MultiStringCache multiCache;
     private final ApplicationEventPublisher eventPublisher;
 
     private ClubService clubService;
@@ -53,11 +53,11 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
     private TimeService timeService;
 
     protected RoomServiceImpl(RoomRepository roomRepository,
-                              AbstractStringCacheStore cacheStore,
+                              MultiStringCache multiCache,
                               ApplicationEventPublisher eventPublisher) {
         super(roomRepository);
         this.roomRepository = roomRepository;
-        this.cacheStore = cacheStore;
+        this.multiCache = multiCache;
         this.eventPublisher = eventPublisher;
     }
 
@@ -216,7 +216,7 @@ public class RoomServiceImpl extends AbstractCrudService<Room, Integer> implemen
     @NonNull
     @SuppressWarnings("rawtypes, unchecked")
     public List<LocationDTO> getLocations(@NonNull Integer clubId) {
-        Optional<List> locations = cacheStore.getAny(Key3Const.LOCATION_KEY, List.class);
+        Optional<List> locations = multiCache.getAny(Key3Const.LOCATION_KEY, List.class);
         // 这里的转化不能删除，否则在 JDK8 环境将报错
         return (List<LocationDTO>) locations.
                 map(list -> ServiceUtils.convertList(list, o -> (LocationDTO) o)).

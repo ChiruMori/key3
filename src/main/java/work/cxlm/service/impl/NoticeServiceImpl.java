@@ -8,7 +8,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import work.cxlm.mail.MailContentHelper;
-import work.cxlm.mail.MailService;
+import work.cxlm.service.MailService;
 import work.cxlm.model.dto.NoticeDTO;
 import work.cxlm.model.entity.Announcement;
 import work.cxlm.model.entity.Notice;

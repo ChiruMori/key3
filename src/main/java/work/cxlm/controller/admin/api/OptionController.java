@@ -2,11 +2,10 @@ package work.cxlm.controller.admin.api;
 
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
-import work.cxlm.mail.MailService;
+import work.cxlm.service.MailService;
 import work.cxlm.model.support.BaseResponse;
 import work.cxlm.service.OptionService;
 
-import javax.validation.Valid;
 import java.util.Map;
 
 /**

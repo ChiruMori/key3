@@ -10,12 +10,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-import work.cxlm.lock.CacheLock;
 import work.cxlm.event.LogEvent;
 import work.cxlm.exception.BadRequestException;
 import work.cxlm.exception.ForbiddenException;
 import work.cxlm.exception.FrequentAccessException;
 import work.cxlm.exception.NotFoundException;
+import work.cxlm.lock.DsLock;
+import work.cxlm.lock.helper.RejectionPolicy;
 import work.cxlm.model.dto.TimePeriodSimpleDTO;
 import work.cxlm.model.entity.*;
 import work.cxlm.model.entity.support.TimeIdGenerator;
@@ -234,7 +235,8 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
     }
 
     @Override
-    @CacheLock(prefix = "time_dis_lock", expired = 0, msg = "因为操作冲突，您的请求被取消，请重试", argSuffix = "timeId")
+    // 针对时段 ID 加锁，非阻塞锁，重复获取锁时失败，方法结束后自动解锁，防止多用户同时操作造成的数据不一致
+    @DsLock(name = "'time.' + #timeId", reject = RejectionPolicy.REPEAT_ABORT, block = false)
     public TimePeriodSimpleDTO occupyTimePeriod(@NonNull Long timeId, @Nullable Integer clubId) {
         Assert.notNull(timeId, "timeId 不能为 null");
 

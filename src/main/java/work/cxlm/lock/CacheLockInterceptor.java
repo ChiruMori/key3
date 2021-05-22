@@ -9,7 +9,7 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
-import work.cxlm.cache.AbstractStringCacheStore;
+import work.cxlm.cache.MultiStringCache;
 import work.cxlm.exception.FrequentAccessException;
 import work.cxlm.exception.ServiceException;
 import work.cxlm.utils.ServletUtils;
@@ -23,20 +23,22 @@ import java.util.Objects;
  *
  * @author johnniang
  * @author cxlm
+ * @deprecated 使用 DsLock 方案替代
  */
 @Slf4j
 @Aspect
 @Configuration
+@Deprecated
 public class CacheLockInterceptor {
 
     private static final String CACHE_LOCK_PREFIX = "cache_lock_";
 
     private static final String CACHE_LOCK_VALUE = "locked";
 
-    private final AbstractStringCacheStore cacheStore;
+    private final MultiStringCache multiCache;
 
-    public CacheLockInterceptor(AbstractStringCacheStore cacheStore) {
-        this.cacheStore = cacheStore;
+    public CacheLockInterceptor(MultiStringCache multiCache) {
+        this.multiCache = multiCache;
     }
 
     @Around("@annotation(work.cxlm.lock.CacheLock)")
@@ -52,7 +54,7 @@ public class CacheLockInterceptor {
         String cacheLockKey = buildCacheLockKey(cacheLock, joinPoint);
         log.debug("建立的 cache key: [{}]", cacheLockKey);
         try {
-            Boolean cacheResult = cacheStore.putIfAbsent(cacheLockKey, CACHE_LOCK_VALUE, cacheLock.expired(), cacheLock.timeUnit());
+            Boolean cacheResult = multiCache.putIfAbsent(cacheLockKey, CACHE_LOCK_VALUE, cacheLock.expired(), cacheLock.timeUnit());
             if (cacheResult == null) {
                 throw new ServiceException("未知的缓存状态：" + cacheLockKey).setErrorData(cacheLockKey);
             }
@@ -63,7 +65,7 @@ public class CacheLockInterceptor {
             return joinPoint.proceed();
         } finally {
             if (cacheLock.autoDelete()) {
-                cacheStore.delete(cacheLockKey);
+                multiCache.delete(cacheLockKey);
                 log.debug("删除缓存锁：[{}]", cacheLock);
             }
         }

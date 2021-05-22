@@ -95,7 +95,17 @@ public class Key3Const {
     public static final String LOCATION_KEY = "room_locate";
 
     /**
-     * 显示在帮助页面的信息
+     * 管理员验证 token 前缀
+     */
+    public static final String ADMIN_AUTH_KEY_PREFIX = "admin.";
+
+    /**
+     * 缓存模块：系统配置缓存键
+     */
+    public static final String OPTION_KEY = "options";
+
+    /**
+     * TODO: 显示在帮助页面的信息，这玩意放在别的地方
      */
     public static final String[][] USER_HELP = {
             {"授权说明",

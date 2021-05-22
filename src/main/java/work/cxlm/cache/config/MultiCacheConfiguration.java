@@ -9,6 +9,7 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
@@ -17,6 +18,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.Ordered;
 import org.springframework.core.env.Environment;
@@ -24,6 +26,7 @@ import org.springframework.lang.NonNull;
 import work.cxlm.cache.AbstractStringCacheLayer;
 import work.cxlm.cache.CacheLayerBuilder;
 import work.cxlm.cache.MultiStringCache;
+import work.cxlm.utils.spring.SpringContextUtils;
 
 import java.util.HashSet;
 import java.util.List;
@@ -38,6 +41,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Configuration
+@DependsOn("springContextUtils")
 @EnableConfigurationProperties(MultiCacheProperties.class)
 @Import(MultiCacheConfiguration.CacheLayerRegister.class)
 public class MultiCacheConfiguration implements ApplicationContextAware {

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
-import work.cxlm.cache.AbstractStringCacheStore;
+import work.cxlm.cache.MultiStringCache;
 import work.cxlm.config.Key3Properties;
 import work.cxlm.exception.AuthenticationException;
 import work.cxlm.model.entity.User;
@@ -38,10 +38,10 @@ public class WxMiniAuthenticationFilter extends AbstractAuthenticationFilter {
 
     public WxMiniAuthenticationFilter(OneTimeTokenService oneTimeTokenService,
                                       Key3Properties key3Properties,
-                                      AbstractStringCacheStore cacheStore,
+                                      MultiStringCache multiCache,
                                       UserService userService,
                                       ObjectMapper objectMapper) {
-        super(oneTimeTokenService, key3Properties, cacheStore);
+        super(oneTimeTokenService, key3Properties, multiCache);
         this.userService = userService;
         // 针对用户相关的 API 接口进行过滤
         addToBlackSet("/key3/users/api/**", "/key3/time/api/**", "/key3/club/api/**",
@@ -62,8 +62,8 @@ public class WxMiniAuthenticationFilter extends AbstractAuthenticationFilter {
             throw new AuthenticationException("未登录，请登录后访问");
         }
         // 从缓存中获取 openId
-        Optional<String> userOpenId = cacheStore.getAny(SecurityUtils.buildAccessTokenKey(token, StringUtils.EMPTY), String.class);
-        if (!userOpenId.isPresent()) {
+        Optional<String> userOpenId = multiCache.getAny(SecurityUtils.buildAccessTokenKey(token, StringUtils.EMPTY), String.class);
+        if (userOpenId.isEmpty()) {
             throw new AuthenticationException("登录凭证过期或不存在，请重新登录").setErrorData(token);
         }
         // 从数据库中查询，并存储到安全上下文

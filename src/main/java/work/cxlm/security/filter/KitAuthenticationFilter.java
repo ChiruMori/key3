@@ -3,7 +3,7 @@ package work.cxlm.security.filter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
-import work.cxlm.cache.AbstractStringCacheStore;
+import work.cxlm.cache.MultiStringCache;
 import work.cxlm.config.Key3Properties;
 import work.cxlm.exception.ForbiddenException;
 import work.cxlm.model.entity.User;
@@ -34,10 +34,10 @@ public class KitAuthenticationFilter extends AbstractAuthenticationFilter {
 
     public KitAuthenticationFilter(OneTimeTokenService oneTimeTokenService,
                                    Key3Properties key3Properties,
-                                   AbstractStringCacheStore cacheStore,
+                                   MultiStringCache multiCache,
                                    UserService userService,
                                    ObjectMapper objectMapper) {
-        super(oneTimeTokenService, key3Properties, cacheStore);
+        super(oneTimeTokenService, key3Properties, multiCache);
         this.userService = userService;
         // 拦截救急工具包相关请求
         addToBlackSet("/key3/kit/**");

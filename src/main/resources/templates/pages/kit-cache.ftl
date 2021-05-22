@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-
+<html>
 <head>
     <#include "../common/table-header.ftl">
     <title>维护后台 - 缓存维护</title>
@@ -35,6 +35,27 @@
                     </div>
 
                     <div class="card-body">
+                        <div class="pb-3">
+                            <label for="cache-form">选择要进行维护的缓存选项，根据提示填写信息后提交，然后在数据表格中进行维护</label>
+                            <form id="cache-form" onsubmit="return false">
+                                <div class="input-group">
+                                    <select class="form-control" id="cacheTypeSelect">
+                                        <option class="text-black-50" value="sample" disabled>选择操作选项</option>
+                                        <option value="user-cache" >用户缓存</option>
+                                        <option value="system-options">系统配置</option>
+                                        <option value="locations">坐标维护</option>
+                                        <option value="special">指定缓存</option>
+                                    </select>
+
+                                    <input type="text" class="form-control" id="cacheValueInput"
+                                           placeholder="要查询的用户 ID">
+                                    <div class="input-group-append">
+                                        <button id="cache-btn" class="btn btn-primary mb-2">查询</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
                         <div class="table-responsive">
                             <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                                 <thead>
@@ -63,7 +84,9 @@
 <!-- End of Page Wrapper -->
 <#include "../common/table-footer.ftl">
 <script>
-    let dataTableInstant;
+    let dataTableInstant = null;
+    let cacheType = 'user-cache';
+    let cacheValue = null;
 
     const commonAjaxFailHandler = function (error) {
         return function (res) {
@@ -73,83 +96,117 @@
     };
 
     $().ready(() => {
-        utils.showLoading('下载缓存数据中');
         const dataTable = $('#dataTable');
-        dataTableInstant = dataTable.DataTable({
-            language: {
-                url: '/key3/js/datatable-zh.json'
-            },
-            dom: "Bfrtip",
-            ajax: {
-                url: '/key3/kit/api/mappingCache' + location.search,
-                dataSrc: function (resp) {
-                    let dataToUse = [];
-                    for (let key in resp.data) {
-                        if (!resp.data.hasOwnProperty(key)) continue;
-                        dataToUse.push({key: key, value: resp.data[key]});
-                    }
-                    utils.hideLoading();
-                    return dataToUse;
-                },
-            },
 
-            order: [0, 'desc'],
-            select: 'single',
-            responsive: true,
-            altEditor: true, // Enable altEditor
-            columns: [{
-                data: 'key',
-                required: true
-            }, {
-                data: 'value',
-                required: true,
-                type: 'textarea',
-                render: function (value) {
-                    if (value.length > 100) {
-                        return value.substring(0, 99) + '...';
+        const refreshTable = function() {
+            if (null === dataTableInstant) {
+                dataTableInstant = dataTable.DataTable({
+                    language: {
+                        url: '/key3/js/datatable-zh.json'
+                    },
+                    dom: "Bfrtip",
+                    ajax: {
+                        url: '/key3/kit/api/getCache' + location.search + '&type=' + cacheType + '&addParam=' + cacheValue,
+                        dataSrc: function (resp) {
+                            let dataToUse = [];
+                            for (let key in resp.data) {
+                                if (!resp.data.hasOwnProperty(key)) continue;
+                                dataToUse.push({key: key, value: resp.data[key]});
+                            }
+                            return dataToUse;
+                        },
+                    },
+
+                    order: [0, 'desc'],
+                    select: 'single',
+                    responsive: true,
+                    altEditor: true, // Enable altEditor
+                    columns: [{
+                        data: 'key',
+                        required: true
+                    }, {
+                        data: 'value',
+                        required: true,
+                        type: 'textarea',
+                        render: function (value) {
+                            if (value.length > 100) {
+                                return value.substring(0, 99) + '...';
+                            }
+                            return value;
+                        },
+                    }],
+                    buttons: [{
+                        extend: 'selected',
+                        text: '<i class="fas fa-pen-square pr-1"></i>编辑',
+                        name: 'edit',
+                        className: 'btn btn-info'
+                    }, {
+                        text: '<i class="fas fa-plus-square pr-1"></i>添加',
+                        name: 'add',
+                        className: 'btn btn-success'
+                    }, {
+                        extend: 'selected',
+                        text: '<i class="fas fa-trash-alt pr-1"></i>删除',
+                        name: 'delete',
+                        className: 'btn btn-danger'
+                    }],
+                    onAddRow: function (datatable, rowdata, success, error) {
+                        utils.showLoading('UPLOADING...');
+                        utils.ajax("kit/api/updateCache" + location.search, rowdata, 'POST', function () {
+                            success(rowdata);
+                            utils.success("操作成功", "刷新页面以对缓存重新分类")
+                        }, commonAjaxFailHandler(error), utils.hideLoading);
+                    },
+                    onDeleteRow: function (datatable, rowdata, success, error) {
+                        utils.confirm('删除缓存？', '您的操作将可能引起系统不稳定、数据错误，如果您不明确了解自己在做什么，请不要尝试', '算了', '是的').then(ok => {
+                            if (ok) return utils.alert('您取消了危险的尝试');
+                            utils.showLoading('DELETING...');
+                            utils.ajax("kit/api/deleteCache/" + rowdata.key + location.search, {}, 'DELETE', function (res) {
+                                success(res.data);
+                                utils.success("操作成功", "已删除指定的缓存");
+                            }, commonAjaxFailHandler(error), utils.hideLoading);
+                        });
+                    },
+                    onEditRow: function (datatable, rowdata, success, error) {
+                        utils.showLoading('UPLOADING...');
+                        utils.ajax("kit/api/updateCache" + location.search, rowdata, 'POST', function () {
+                            success(rowdata);
+                        }, commonAjaxFailHandler(error), utils.hideLoading);
                     }
-                    return value;
-                },
-                // altEditorRender: function (role) {
-                //     return role === 'SYSTEM_ADMIN';
-                // }
-            }],
-            buttons: [{
-                extend: 'selected',
-                text: '<i class="fas fa-pen-square pr-1"></i>编辑',
-                name: 'edit',
-                className: 'btn btn-info'
-            }, {
-                text: '<i class="fas fa-plus-square pr-1"></i>添加',
-                name: 'add',
-                className: 'btn btn-success'
-            }, {
-                extend: 'selected',
-                text: '<i class="fas fa-trash-alt pr-1"></i>删除',
-                name: 'delete',
-                className: 'btn btn-danger'
-            }],
-            onAddRow: function (datatable, rowdata, success, error) {
-                utils.showLoading('UPLOADING...');
-                utils.ajax("kit/api/updateCache" + location.search, rowdata, 'POST', function () {
-                    success(rowdata);
-                }, commonAjaxFailHandler(error), utils.hideLoading);
-            },
-            onDeleteRow: function (datatable, rowdata, success, error) {
-                utils.confirm('删除缓存？', '您的操作将可能引起系统不稳定、数据错误，如果您不明确了解自己在做什么，请不要尝试', '算了', '是的').then(ok => {
-                    if (ok) return utils.alert('您取消了危险的尝试');
-                    utils.showLoading('DELETING...');
-                    utils.ajax("kit/api/deleteCache/" + rowdata.key + location.search, {}, 'DELETE', function (res) {
-                        success(res.data);
-                        utils.success("操作成功", "已删除指定的缓存");
-                    }, commonAjaxFailHandler(error), utils.hideLoading);
                 });
-            },
-            onEditRow: function (datatable, rowdata, success, error) {
-                utils.showLoading('UPLOADING...');
-                utils.ajax("kit/api/updateCache" + location.search, rowdata, 'POST', function () {
-                    success(rowdata);
-                }, commonAjaxFailHandler(error), utils.hideLoading);
+            } else {
+                dataTableInstant.ajax.url('/key3/kit/api/getCache' + location.search + '&type=' + cacheType + '&addParam=' + cacheValue).load();
+            }
+        }
+        const cacheTypeSelect = $('#cacheTypeSelect');
+        const cacheValueInput = $('#cacheValueInput');
+        const cacheBtn = $('#cache-btn');
+
+        cacheTypeSelect.on('change', () => {
+            cacheType = cacheTypeSelect.val();
+            switch (cacheType) {
+                case 'user-cache':
+                    cacheValueInput.attr('disabled', false);
+                    cacheValueInput.attr('placeholder', '要查询的用户 ID');
+                    break;
+                case 'special':
+                    cacheValueInput.attr('disabled', false);
+                    cacheValueInput.attr('placeholder', '要查询的缓存键');
+                    break;
+                case 'system-options':
+                case 'locations':
+                default:
+                    cacheValueInput.attr('disabled', true);
+                    cacheValueInput.attr('placeholder', '当前选项无需参数');
+            }
+        });
+
+        cacheBtn.on('click', () => {
+            cacheValue = cacheValueInput.val();
+            if (!cacheValue && (cacheType === 'user-cache' || cacheType === 'special')) {
+                utils.alert('请补全信息后再进行查询');
+            } else {
+                refreshTable();
             }
         });
 

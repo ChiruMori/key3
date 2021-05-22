@@ -35,8 +35,6 @@ public interface AdminService {
      */
     int REFRESH_TOKEN_EXPIRED_DAYS = 30;
 
-    String ADMIN_AUTH_KEY_PREFIX = "admin_auth.";
-
     /**
      * 管理员登录后台
      *

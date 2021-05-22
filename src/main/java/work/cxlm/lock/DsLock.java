@@ -38,7 +38,7 @@ public @interface DsLock {
     /**
      * 抛出异常时的提示信息
      */
-    String msg() default "请勿重复提交";
+    String msg() default "缓存服务异常，取锁失败";
 
     /**
      * 分布式锁的过期时间，单位秒，默认 10s

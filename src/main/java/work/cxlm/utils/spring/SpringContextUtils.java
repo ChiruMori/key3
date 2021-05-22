@@ -1,4 +1,4 @@
-package work.cxlm.utils;
+package work.cxlm.utils.spring;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -6,11 +6,12 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.stereotype.Component;
 
 /**
- * 操作 SpringApplicationContext 相关的工具类
+ * 操作 SpringApplicationContext 相关的工具类，使用本类时，需要在主类扫描本类所在包
  * create 2021/4/11 18:15
  *
  * @author Chiru

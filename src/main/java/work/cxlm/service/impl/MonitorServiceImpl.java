@@ -5,18 +5,22 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-import work.cxlm.cache.AbstractStringCacheStore;
+import work.cxlm.cache.MultiStringCache;
 import work.cxlm.event.JoiningOrBelongUpdatedEvent;
 import work.cxlm.event.LogEvent;
 import work.cxlm.exception.ServiceException;
 import work.cxlm.model.entity.User;
 import work.cxlm.model.enums.LogType;
+import work.cxlm.model.support.Key3Const;
 import work.cxlm.security.context.SecurityContextHolder;
+import work.cxlm.security.util.SecurityUtils;
 import work.cxlm.service.MonitorService;
 import work.cxlm.service.UserService;
 
+import javax.validation.ValidationException;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -38,14 +42,14 @@ public class MonitorServiceImpl implements MonitorService {
     private String logFileDir;
     private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
     private final UserService userService;
-    private final AbstractStringCacheStore cacheStore;
+    private final MultiStringCache multiCache;
     private final ApplicationEventPublisher eventPublisher;
 
     public MonitorServiceImpl(UserService userService,
-                              AbstractStringCacheStore cacheStore,
+                              MultiStringCache multiCache,
                               ApplicationEventPublisher eventPublisher) {
         this.userService = userService;
-        this.cacheStore = cacheStore;
+        this.multiCache = multiCache;
         this.eventPublisher = eventPublisher;
     }
 
@@ -77,7 +81,7 @@ public class MonitorServiceImpl implements MonitorService {
 
     @Override
     public String getDateLog(Date targetDate) {
-        User admin = SecurityContextHolder.ensureUser();
+        User admin = SecurityContextHolder.ensureSystemAdmin();
         String targetDateString = sdf.format(targetDate);
         File logPath = new File(logFileDir);
         File[] logFiles;
@@ -101,19 +105,79 @@ public class MonitorServiceImpl implements MonitorService {
 
     @Override
     public void killAllCacheData() {
-        User admin = SecurityContextHolder.ensureUser();
+        User admin = SecurityContextHolder.ensureSystemAdmin();
         // 缓存中间件
-        cacheStore.clear();
+        multiCache.clear();
         userService.clear();
         eventPublisher.publishEvent(new JoiningOrBelongUpdatedEvent(this));
         eventPublisher.publishEvent(new LogEvent(this, admin.getId(), LogType.EMERGENCY_KIT, "指令：清除全部缓存"));
     }
 
+    private void buildTokenPairToMap(Map<String, String> cacheMap, String prefix, Integer uid) {
+        // AccessToken
+        String accK1 = SecurityUtils.buildAccessTokenKey(uid, prefix);
+        Optional<String> accessOptional = multiCache.get(accK1);
+        if (accessOptional.isPresent()) {
+            cacheMap.put(accK1, accessOptional.get());
+            String accK2 = SecurityUtils.buildAccessTokenKey(accessOptional.get(), prefix);
+            String accId = multiCache.get(accK2).orElse("");
+            cacheMap.put(accK2, accId);
+            // RefreshToken，只在 accessToken 存在时才有可能存在
+            String refK1 = SecurityUtils.buildRefreshTokenKey(uid, prefix);
+            Optional<String> refreshOptional = multiCache.get(refK1);
+            if (refreshOptional.isPresent()) {
+                cacheMap.put(refK1, refreshOptional.get());
+                String refK2 = SecurityUtils.buildRefreshTokenKey(refreshOptional.get(), prefix);
+                String refId = multiCache.get(refK2).orElse("");
+                cacheMap.put(refK2, refId);
+            }
+        }
+    }
+
     @Override
-    public Map<String, String> getAllCachedData() {
-        User admin = SecurityContextHolder.ensureUser();
-        eventPublisher.publishEvent(new LogEvent(this, admin.getId(), LogType.EMERGENCY_KIT, "指令：查看全部缓存"));
-        return cacheStore.getAll();
+    public Map<String, String> getCachedData(@NonNull String type, @Nullable String val) {
+        User admin = SecurityContextHolder.ensureSystemAdmin();
+        eventPublisher.publishEvent(new LogEvent(this, admin.getId(), LogType.EMERGENCY_KIT,
+                "指令：查看缓存，" + type + ":" + val));
+        Map<String, String> res = new HashMap<>(16);
+        switch (type) {
+            case "user-cache":
+                int id;
+                try {
+                    if (null == val) {
+                        throw new ValidationException("查询用户缓存时，必须指定用户 ID");
+                    }
+                    id = Integer.parseInt(val);
+                } catch (NumberFormatException e) {
+                    throw new ValidationException("用户 id 必须为纯数字形式");
+                }
+                // TOKEN
+                buildTokenPairToMap(res, StringUtils.EMPTY, id);
+                buildTokenPairToMap(res, Key3Const.ADMIN_AUTH_KEY_PREFIX, id);
+                // passcode
+                String passcodeCacheKey = Key3Const.ADMIN_PASSCODE_PREFIX + id;
+                Optional<String> passcodeOptional = multiCache.get(passcodeCacheKey);
+                passcodeOptional.ifPresent(s -> res.put(passcodeCacheKey, s));
+                break;
+            case "system-options":
+                Optional<String> optionsOptional = multiCache.get(Key3Const.OPTION_KEY);
+                optionsOptional.ifPresent(s -> res.put(Key3Const.OPTION_KEY, s));
+                break;
+            case "locations":
+                Optional<String> locationOptional = multiCache.get(Key3Const.LOCATION_KEY);
+                locationOptional.ifPresent(s -> res.put(Key3Const.LOCATION_KEY, s));
+                break;
+            case "special":
+                if (null == val) {
+                    throw new ValidationException("必须指定要查询的键");
+                }
+                Optional<String> valOptional = multiCache.get(val);
+                valOptional.ifPresent(s -> res.put(val, s));
+                break;
+            default:
+                break;
+        }
+        return res;
     }
 
     @Override
@@ -121,15 +185,15 @@ public class MonitorServiceImpl implements MonitorService {
         Assert.notNull(k, "缓存键不能为 null");
         Assert.hasText(v, "缓存值不能为空");
 
-        User admin = SecurityContextHolder.ensureUser();
-        cacheStore.put(k, v);
+        User admin = SecurityContextHolder.ensureSystemAdmin();
+        multiCache.put(k, v);
         eventPublisher.publishEvent(new LogEvent(this, admin.getId(), LogType.EMERGENCY_KIT, "指令：设置缓存"));
     }
 
     @Override
     public void deleteCache(String k) {
-        User admin = SecurityContextHolder.ensureUser();
-        cacheStore.delete(k);
+        User admin = SecurityContextHolder.ensureSystemAdmin();
+        multiCache.delete(k);
         eventPublisher.publishEvent(new LogEvent(this, admin.getId(), LogType.EMERGENCY_KIT, "指令：删除指定缓存"));
     }
 

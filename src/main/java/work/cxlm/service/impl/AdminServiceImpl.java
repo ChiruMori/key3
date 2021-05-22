@@ -10,7 +10,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
-import work.cxlm.cache.AbstractStringCacheStore;
+import work.cxlm.cache.MultiStringCache;
 import work.cxlm.event.LogEvent;
 import work.cxlm.exception.*;
 import work.cxlm.model.dto.UserDTO;
@@ -38,6 +38,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static work.cxlm.model.support.Key3Const.ADMIN_AUTH_KEY_PREFIX;
+
 /**
  * created 2020/11/21 14:01
  *
@@ -49,7 +51,7 @@ public class AdminServiceImpl implements AdminService {
 
     private final UserService userService;
     private final JoiningService joiningService;
-    private final AbstractStringCacheStore cacheStore;
+    private final MultiStringCache multiCache;
     private final NoticeService noticeService;
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
@@ -59,7 +61,7 @@ public class AdminServiceImpl implements AdminService {
     private final TimeService timeService;
 
     public AdminServiceImpl(UserService userService,
-                            AbstractStringCacheStore cacheStore,
+                            MultiStringCache multiCache,
                             UserRepository userRepository,
                             ApplicationEventPublisher eventPublisher,
                             ClubService clubService,
@@ -69,7 +71,7 @@ public class AdminServiceImpl implements AdminService {
                             NoticeService noticeService,
                             TimeService timeService) {
         this.userService = userService;
-        this.cacheStore = cacheStore;
+        this.multiCache = multiCache;
         this.userRepository = userRepository;
         this.eventPublisher = eventPublisher;
         this.clubService = clubService;
@@ -89,14 +91,14 @@ public class AdminServiceImpl implements AdminService {
             throw new ForbiddenException("您的权限不足，无法访问");
         }
         String passcodeCacheKey = Key3Const.ADMIN_PASSCODE_PREFIX + targetUser.getId();
-        String requirePasscode = cacheStore.getAny(passcodeCacheKey, String.class).
+        String requirePasscode = multiCache.getAny(passcodeCacheKey, String.class).
                 orElseThrow(() -> new ForbiddenException("请使用小程序中生成的合法登录口令登录"));
         if (!Objects.equals(loginParam.getPasscode(), requirePasscode)) {
             eventPublisher.publishEvent(new LogEvent(this, targetUser.getId(), LogType.LOGGED_FAILED, "作为[" + targetUser.getRealName() + "]登录失败"));
             throw new ForbiddenException("错误的登录口令");
         }
         // 清除用完的 passcode key
-        cacheStore.delete(passcodeCacheKey);
+        multiCache.delete(passcodeCacheKey);
         eventPublisher.publishEvent(new LogEvent(this, targetUser.getId(), LogType.LOGGED_IN, targetUser.getRealName() + "登录后台"));
         return userService.buildAuthToken(targetUser, ADMIN_AUTH_KEY_PREFIX, User::getId);
     }

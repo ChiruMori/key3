@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
-import work.cxlm.cache.AbstractStringCacheStore;
+import work.cxlm.cache.MultiStringCache;
 import work.cxlm.config.Key3Properties;
 import work.cxlm.security.ott.OneTimeTokenService;
 
@@ -28,8 +28,8 @@ public class ContentFilter extends AbstractAuthenticationFilter {
 
     public ContentFilter(OneTimeTokenService oneTimeTokenService,
                          Key3Properties key3Properties,
-                         AbstractStringCacheStore cacheStore) {
-        super(oneTimeTokenService, key3Properties, cacheStore);
+                         MultiStringCache multiCache) {
+        super(oneTimeTokenService, key3Properties, multiCache);
 
         addToBlackSet("/**");
         // 静态资源放行

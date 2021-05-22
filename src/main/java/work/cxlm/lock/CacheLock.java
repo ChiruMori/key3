@@ -11,11 +11,13 @@ import java.util.concurrent.TimeUnit;
  *
  * @author johnniang
  * @author cxlm
+ * @deprecated 使用 @DsLock 替代，分布式锁的实现方案
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
+@Deprecated
 public @interface CacheLock {
 
     /**

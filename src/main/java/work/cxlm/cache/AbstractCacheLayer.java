@@ -23,7 +23,6 @@ import java.util.function.Function;
 @Slf4j
 public abstract class AbstractCacheLayer<K, V> implements CacheLayer<K, V> {
 
-    protected Key3Properties key3Properties;
     protected HashSet<Consumer<K>> deleteInfoSubscriber = null;
 
     /**

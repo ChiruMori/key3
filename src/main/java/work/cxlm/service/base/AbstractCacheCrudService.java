@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
-import work.cxlm.cache.AbstractStringCacheStore;
+import work.cxlm.cache.MultiStringCache;
 import work.cxlm.repository.BaseRepository;
 import work.cxlm.utils.BeanUtils;
 import work.cxlm.utils.ServiceUtils;
@@ -25,19 +25,19 @@ import java.util.stream.Collectors;
 public abstract class AbstractCacheCrudService<DOMAIN, ID> extends AbstractCrudService<DOMAIN, ID> implements CacheService<DOMAIN, ID> {
 
     private final String cacheKey;
-    private final AbstractStringCacheStore cacheStore;
+    private final MultiStringCache multiCache;
     private final Function<DOMAIN, ID> idGetter;
     private final Class<DOMAIN> domainClass;
     private WeakReference<Map<String, DOMAIN>> cachedMap;
 
     protected AbstractCacheCrudService(BaseRepository<DOMAIN, ID> repository,
-                                       AbstractStringCacheStore cacheStore,
+                                       MultiStringCache multiCache,
                                        Function<DOMAIN, ID> idGetter,
                                        Class<DOMAIN> domainClass,
                                        String cacheKey) {
         super(repository);
         this.cacheKey = cacheKey;
-        this.cacheStore = cacheStore;
+        this.multiCache = multiCache;
         this.domainClass = domainClass;
         this.idGetter = idGetter;
         this.cachedMap = new WeakReference<>(null);
@@ -50,10 +50,10 @@ public abstract class AbstractCacheCrudService<DOMAIN, ID> extends AbstractCrudS
         if (weakCachedMap != null) {
             return weakCachedMap;
         }
-        Map<String, Object> rawRes = cacheStore.getAny(cacheKey, Map.class).orElseGet(() -> {
+        Map<String, Object> rawRes = multiCache.getAny(cacheKey, Map.class).orElseGet(() -> {
             List<DOMAIN> domains = super.listAll();
             Map<String, DOMAIN> idDomainMap = ServiceUtils.convertToMap(domains, domain -> idGetter.apply(domain).toString());
-            cacheStore.putAny(cacheKey, idDomainMap);
+            multiCache.putAny(cacheKey, idDomainMap);
             cachedMap.clear();
             cachedMap = new WeakReference<>(idDomainMap);
             return idDomainMap;
@@ -73,13 +73,13 @@ public abstract class AbstractCacheCrudService<DOMAIN, ID> extends AbstractCrudS
     public void updateBy(Map<String, DOMAIN> cacheData) {
         cachedMap.clear();
         cachedMap = new WeakReference<>(cacheData);
-        cacheStore.putAny(cacheKey, cacheData);
+        multiCache.putAny(cacheKey, cacheData);
     }
 
     @Override
     public void clear() {
         // 先清 Redis 再清内存
-        cacheStore.delete(cacheKey);
+        multiCache.delete(cacheKey);
         cachedMap.clear();
         log.info("已清除 {} 缓存", domainClass.getName());
     }

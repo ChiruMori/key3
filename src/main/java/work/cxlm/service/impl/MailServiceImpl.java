@@ -1,4 +1,4 @@
-package work.cxlm.mail;
+package work.cxlm.service.impl;
 
 import freemarker.template.Template;
 import lombok.extern.slf4j.Slf4j;
@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerConfig;
 import work.cxlm.event.OptionUpdatedEvent;
+import work.cxlm.mail.AbstractMailService;
 import work.cxlm.service.OptionService;
 
 import java.nio.file.Path;

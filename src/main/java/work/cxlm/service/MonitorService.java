@@ -1,6 +1,7 @@
 package work.cxlm.service;
 
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import work.cxlm.model.entity.User;
 
 import java.util.Date;
@@ -38,8 +39,10 @@ public interface MonitorService {
      * 获取全部缓存
      *
      * @return 全部系统缓存（中间件缓存）的键值对
+     * @param type 操作类型，包括：user-cache, system-options, locations, special
+     * @param val 在类型为 user-cache 时，传递用户 id，special 时，传递 key
      */
-    Map<String, String> getAllCachedData();
+    Map<String, String> getCachedData(@NonNull String type, @Nullable String val);
 
     /**
      * 设置缓存

@@ -7,7 +7,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.UrlPathHelper;
-import work.cxlm.cache.AbstractStringCacheStore;
+import work.cxlm.cache.MultiStringCache;
 import work.cxlm.config.Key3Properties;
 import work.cxlm.exception.AbstractKey3Exception;
 import work.cxlm.exception.BadRequestException;
@@ -43,7 +43,7 @@ public abstract class AbstractAuthenticationFilter extends OncePerRequestFilter 
     private final UrlPathHelper urlPathHelper = new UrlPathHelper();
     private final OneTimeTokenService oneTimeTokenService;
     private final Key3Properties key3Properties;
-    protected final AbstractStringCacheStore cacheStore;
+    protected final MultiStringCache multiCache;
 
     /**
      * 未通过验证的错误处理
@@ -52,10 +52,10 @@ public abstract class AbstractAuthenticationFilter extends OncePerRequestFilter 
 
     AbstractAuthenticationFilter(OneTimeTokenService oneTimeTokenService,
                                  Key3Properties key3Properties,
-                                 AbstractStringCacheStore cacheStore) {
+                                 MultiStringCache multiCache) {
         this.oneTimeTokenService = oneTimeTokenService;
         this.key3Properties = key3Properties;
-        this.cacheStore = cacheStore;
+        this.multiCache = multiCache;
         antPathMatcher = new AntPathMatcher();
     }
 

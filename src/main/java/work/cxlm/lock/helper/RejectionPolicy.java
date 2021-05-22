@@ -33,7 +33,7 @@ public enum RejectionPolicy {
         @Override
         public void reject(DsLock lock, JoinPoint point) {
             log.error("加锁超时，中止任务: {}", SpringExpressionParser.parse(lock.name(), point));
-            throw new LockException("获取分布式锁超时！");
+            throw new LockException("获取锁超时！");
         }
     },
 
@@ -44,7 +44,7 @@ public enum RejectionPolicy {
         @Override
         public void reject(DsLock lock, JoinPoint point) {
             log.error("加锁失败，中止任务: {}", SpringExpressionParser.parse(lock.name(), point));
-            throw new LockException("请勿重复提交！");
+            throw new LockException("请勿重复操作！");
         }
     },
 
@@ -54,7 +54,7 @@ public enum RejectionPolicy {
     IGNORE() {
         @Override
         public void reject(DsLock lock, JoinPoint point) {
-            log.error("加锁失败：{}，已忽略任务", SpringExpressionParser.parse(lock.name(), point));
+            log.warn("加锁失败：{}，已忽略任务", SpringExpressionParser.parse(lock.name(), point));
         }
     };
 

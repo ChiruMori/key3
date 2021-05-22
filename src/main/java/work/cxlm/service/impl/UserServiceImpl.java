@@ -12,10 +12,12 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-import work.cxlm.cache.AbstractStringCacheStore;
+import work.cxlm.cache.MultiStringCache;
 import work.cxlm.config.Key3Properties;
 import work.cxlm.event.LogEvent;
 import work.cxlm.exception.*;
+import work.cxlm.lock.DsLock;
+import work.cxlm.lock.helper.RejectionPolicy;
 import work.cxlm.model.entity.Club;
 import work.cxlm.model.entity.Joining;
 import work.cxlm.model.entity.User;
@@ -66,18 +68,18 @@ public class UserServiceImpl extends AbstractCacheCrudService<User, Integer> imp
     private final UserRepository userRepository;
     private final Key3Properties key3Properties;
     private final ApplicationEventPublisher eventPublisher;
-    private final AbstractStringCacheStore cacheStore;
+    private final MultiStringCache multiCache;
 
 
     public UserServiceImpl(UserRepository userRepository,
                            ApplicationEventPublisher eventPublisher,
                            Key3Properties key3Properties,
-                           AbstractStringCacheStore cacheStore) {
-        super(userRepository, cacheStore, User::getId, User.class, "user.map.cache");
+                           MultiStringCache multiCache) {
+        super(userRepository, multiCache, User::getId, User.class, "user.map.cache");
         this.userRepository = userRepository;
         this.eventPublisher = eventPublisher;
         this.key3Properties = key3Properties;
-        this.cacheStore = cacheStore;
+        this.multiCache = multiCache;
     }
 
     @Autowired
@@ -108,6 +110,8 @@ public class UserServiceImpl extends AbstractCacheCrudService<User, Integer> imp
     }
 
     @Override
+    // 针对用户 openId 加锁，非阻塞锁，重复获取锁时失败，方法结束后自动解锁，防止用户在使用小程序时意外造成重新登陆的情况
+    @DsLock(name = "'user.login.' + #openId", reject = RejectionPolicy.REPEAT_ABORT, block = false)
     public AuthToken login(@Nullable String openId) {
         if (openId == null) {
             log.debug("openId 为空，无法登录");
@@ -138,12 +142,12 @@ public class UserServiceImpl extends AbstractCacheCrudService<User, Integer> imp
         token.setRefreshToken(Key3Utils.randomUuidWithoutDash());
 
         // Cache those tokens, just for clearing
-        cacheStore.putAny(SecurityUtils.buildAccessTokenKey(user, keyPrefix), token.getAccessToken(), ACCESS_TOKEN_EXPIRED_SECONDS, TimeUnit.SECONDS);
-        cacheStore.putAny(SecurityUtils.buildRefreshTokenKey(user, keyPrefix), token.getRefreshToken(), REFRESH_TOKEN_EXPIRED_DAYS, TimeUnit.DAYS);
+        multiCache.putAny(SecurityUtils.buildAccessTokenKey(user, keyPrefix), token.getAccessToken(), ACCESS_TOKEN_EXPIRED_SECONDS, TimeUnit.SECONDS);
+        multiCache.putAny(SecurityUtils.buildRefreshTokenKey(user, keyPrefix), token.getRefreshToken(), REFRESH_TOKEN_EXPIRED_DAYS, TimeUnit.DAYS);
 
         // Cache those tokens with open id
-        cacheStore.putAny(SecurityUtils.buildAccessTokenKey(token.getAccessToken(), keyPrefix), converter.apply(user), ACCESS_TOKEN_EXPIRED_SECONDS, TimeUnit.SECONDS);
-        cacheStore.putAny(SecurityUtils.buildRefreshTokenKey(token.getRefreshToken(), keyPrefix), converter.apply(user), REFRESH_TOKEN_EXPIRED_DAYS, TimeUnit.DAYS);
+        multiCache.putAny(SecurityUtils.buildAccessTokenKey(token.getAccessToken(), keyPrefix), converter.apply(user), ACCESS_TOKEN_EXPIRED_SECONDS, TimeUnit.SECONDS);
+        multiCache.putAny(SecurityUtils.buildRefreshTokenKey(token.getRefreshToken(), keyPrefix), converter.apply(user), REFRESH_TOKEN_EXPIRED_DAYS, TimeUnit.DAYS);
 
         return token;
     }
@@ -153,16 +157,16 @@ public class UserServiceImpl extends AbstractCacheCrudService<User, Integer> imp
         Assert.notNull(user, "目标用户不能为 null");
 
         // Clear access token
-        cacheStore.getAny(SecurityUtils.buildAccessTokenKey(user, keyPrefix), String.class).ifPresent(accessToken -> {
+        multiCache.getAny(SecurityUtils.buildAccessTokenKey(user, keyPrefix), String.class).ifPresent(accessToken -> {
             // Delete token
-            cacheStore.delete(SecurityUtils.buildAccessTokenKey(accessToken, keyPrefix));
-            cacheStore.delete(SecurityUtils.buildAccessTokenKey(user, keyPrefix));
+            multiCache.delete(SecurityUtils.buildAccessTokenKey(accessToken, keyPrefix));
+            multiCache.delete(SecurityUtils.buildAccessTokenKey(user, keyPrefix));
         });
 
         // Clear refresh token
-        cacheStore.getAny(SecurityUtils.buildRefreshTokenKey(user, keyPrefix), String.class).ifPresent(refreshToken -> {
-            cacheStore.delete(SecurityUtils.buildRefreshTokenKey(refreshToken, keyPrefix));
-            cacheStore.delete(SecurityUtils.buildRefreshTokenKey(user, keyPrefix));
+        multiCache.getAny(SecurityUtils.buildRefreshTokenKey(user, keyPrefix), String.class).ifPresent(refreshToken -> {
+            multiCache.delete(SecurityUtils.buildRefreshTokenKey(refreshToken, keyPrefix));
+            multiCache.delete(SecurityUtils.buildRefreshTokenKey(user, keyPrefix));
         });
     }
 
@@ -242,7 +246,7 @@ public class UserServiceImpl extends AbstractCacheCrudService<User, Integer> imp
         }
         String nowPasscode = RandomUtil.randomString(6);
         String passcodeCacheKey = Key3Const.ADMIN_PASSCODE_PREFIX + currentUser.getId();
-        cacheStore.putAny(passcodeCacheKey, nowPasscode, 5, TimeUnit.MINUTES);
+        multiCache.putAny(passcodeCacheKey, nowPasscode, 5, TimeUnit.MINUTES);
         PasscodeVO passcodeVO = new PasscodeVO();
         passcodeVO.setPasscode(nowPasscode);
         return passcodeVO;
@@ -253,18 +257,18 @@ public class UserServiceImpl extends AbstractCacheCrudService<User, Integer> imp
                                       Function<T, User> userGetter, Class<T> idType) {
         Assert.hasText(refreshToken, "Refresh token 不能为空");
 
-        T usingId = cacheStore.getAny(SecurityUtils.buildRefreshTokenKey(refreshToken, keyPrefix), idType)
+        T usingId = multiCache.getAny(SecurityUtils.buildRefreshTokenKey(refreshToken, keyPrefix), idType)
                 .orElseThrow(() -> new BadRequestException("登录状态已失效，请重新登录").setErrorData(refreshToken));
 
         // 获取用户信息
         User user = userGetter.apply(usingId);
 
         // 清除原 Token
-        cacheStore.getAny(SecurityUtils.buildAccessTokenKey(user, keyPrefix), String.class)
-                .ifPresent(accessToken -> cacheStore.delete(SecurityUtils.buildAccessTokenKey(accessToken, keyPrefix)));
-        cacheStore.delete(SecurityUtils.buildRefreshTokenKey(refreshToken, keyPrefix));
-        cacheStore.delete(SecurityUtils.buildAccessTokenKey(user, keyPrefix));
-        cacheStore.delete(SecurityUtils.buildRefreshTokenKey(user, keyPrefix));
+        multiCache.getAny(SecurityUtils.buildAccessTokenKey(user, keyPrefix), String.class)
+                .ifPresent(accessToken -> multiCache.delete(SecurityUtils.buildAccessTokenKey(accessToken, keyPrefix)));
+        multiCache.delete(SecurityUtils.buildRefreshTokenKey(refreshToken, keyPrefix));
+        multiCache.delete(SecurityUtils.buildAccessTokenKey(user, keyPrefix));
+        multiCache.delete(SecurityUtils.buildRefreshTokenKey(user, keyPrefix));
         // 建立新的 Token
         return buildAuthToken(user, keyPrefix, idGetter);
     }

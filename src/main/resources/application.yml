@@ -20,6 +20,10 @@ spring:
     active: dev
     configure:
       includes:
+        - work.cxlm.config.Key3Configuration
+        - work.cxlm.config.Key3Properties
+        - work.cxlm.config.WebMvcAutoConfiguration
+        - work.cxlm.config.SwaggerConfiguration
         - work.cxlm.redis.config.JedisConfig
         - work.cxlm.redis.config.RedisAddConfig
         - work.cxlm.redis.config.RedisConfiguration
@@ -38,7 +42,7 @@ key3:
 redis:
   default-name: single
   clients:
-    single:  # 单点集群
+    single: # single node cluster
       mode: SINGLE
       address: redis://127.0.0.1:6379
       password: REDIS_mima~9749
@@ -46,9 +50,9 @@ redis:
       codec-bean-name: jsonJacksonCodec
       min-idle: 10
       max-active: 100
-      max-idle-timeout: 1800_000   #最大空闲时间
+      max-idle-timeout: 1800_000
 
-# jedis配置，为了兼容redisLock
+# jedis properties, for redis lock
 jedis:
   timeout: 1000
   pool:
@@ -70,6 +74,6 @@ jedis:
 
 cache:
   layers:
-    # 越靠上的越接近 DB，编号越小
+    # 越靠上的越接近 DB，编号越小（中文注释有问题？）
     - redis
-    - guava
+    - caffeine

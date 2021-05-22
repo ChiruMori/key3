@@ -5,7 +5,6 @@ import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 
 import javax.annotation.PreDestroy;
-import java.util.Map;
 import java.util.Optional;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,7 +22,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author Chiru
  */
 @Slf4j
-public class InMemoryCacheStore extends AbstractStringCacheLayer {
+public class InMemoryCacheLayer extends AbstractStringCacheLayer {
 
     /**
      * 清理器的工作周期
@@ -42,7 +41,7 @@ public class InMemoryCacheStore extends AbstractStringCacheLayer {
 
     private final Lock lock = new ReentrantLock();
 
-    public InMemoryCacheStore() {
+    public InMemoryCacheLayer() {
         timerPool = new ScheduledThreadPoolExecutor(1, t -> new Thread(t, "缓存自动清除线程"));
         timerPool.scheduleAtFixedRate(new CacheExpiryCleaner(), 0, PERIOD, TimeUnit.SECONDS);
     }
@@ -114,7 +113,7 @@ public class InMemoryCacheStore extends AbstractStringCacheLayer {
         @Override
         public void run() {
             CACHE_CONTAINER.keySet().forEach(k -> {
-                if (InMemoryCacheStore.this.get(k).isEmpty()) {
+                if (InMemoryCacheLayer.this.get(k).isEmpty()) {
                     log.debug("已删除缓存：[{}]", k);
                 }
             });

@@ -18,9 +18,14 @@ public enum LogType implements ValueEnum<Integer> {
     LOGGED_FAILED(11),
 
     /**
-     * 指定了新的用户，15 之前被用作用户登录小程序的日志，但因为生成太多的日志信息被弃用
+     * 用户登录小程序的日志，因为生成太多的日志信息已弃用
      */
-    // MINI_LOGGED_IN(15),
+    @Deprecated
+    MINI_LOGGED_IN(15),
+
+    /**
+     * 指定了新的用户
+     */
     NEW_USER(16),
 
     /**

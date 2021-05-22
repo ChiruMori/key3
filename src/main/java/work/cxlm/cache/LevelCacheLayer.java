@@ -29,7 +29,9 @@ import java.util.concurrent.TimeUnit;
  * @author Pencilso
  */
 @Slf4j
-public class LevelCacheStore extends AbstractStringCacheLayer {
+public class LevelCacheLayer extends AbstractStringCacheLayer {
+
+    private Key3Properties key3Properties;
 
     /**
      * 清理器的工作周期
@@ -45,9 +47,9 @@ public class LevelCacheStore extends AbstractStringCacheLayer {
 
     //// -------------------- 生命周期 --------------------
 
-    public LevelCacheStore(Key3Properties properties) {
-        super.key3Properties = properties;
+    public LevelCacheLayer(Key3Properties properties) {
         init();
+        this.key3Properties = properties;
         timerPool = new ScheduledThreadPoolExecutor(1, t -> new Thread(t, "缓存自动清除线程"));
         timerPool.scheduleAtFixedRate(new CacheExpiryCleaner(), 0, PERIOD, TimeUnit.SECONDS);
     }

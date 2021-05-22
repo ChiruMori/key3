@@ -16,8 +16,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RedisAddConfig {
 
-    private RedissonClient redissonClient;
-
     @Bean
     JsonJacksonCodec jsonJacksonCodec() {
         return new JsonJacksonCodec();

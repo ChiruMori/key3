@@ -1,4 +1,4 @@
-package work.cxlm.mail;
+package work.cxlm.service;
 
 import java.util.Map;
 

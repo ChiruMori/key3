@@ -39,10 +39,10 @@ public class KitApiController {
         return StringVO.from(responseText);
     }
 
-    @ApiOperation("列出全部的缓存（K-V 键值对）")
-    @GetMapping("mappingCache")
-    public Map<String, String> getAllCache() {
-        return monitorService.getAllCachedData();
+    @ApiOperation("根据查询条件查询匹配的缓存（K-V 键值对）")
+    @GetMapping("getCache")
+    public Map<String, String> getCache(@RequestParam("type") String type, @RequestParam("addParam") String val) {
+        return monitorService.getCachedData(type, val);
     }
 
     @ApiOperation("新建（更新）缓存")

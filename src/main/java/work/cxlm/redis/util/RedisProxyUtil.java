@@ -6,7 +6,7 @@ import redis.clients.jedis.ShardedJedis;
 import redis.clients.jedis.ShardedJedisPool;
 import work.cxlm.lock.helper.ExtendedJedisCommands;
 import work.cxlm.utils.DefaultValueHelper;
-import work.cxlm.utils.SpringContextUtils;
+import work.cxlm.utils.spring.SpringContextUtils;
 
 import java.lang.reflect.Proxy;
 import java.util.Collections;

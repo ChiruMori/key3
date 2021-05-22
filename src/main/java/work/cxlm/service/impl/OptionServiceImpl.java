@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-import work.cxlm.cache.AbstractStringCacheStore;
+import work.cxlm.cache.MultiStringCache;
 import work.cxlm.event.OptionUpdatedEvent;
 import work.cxlm.exception.MissingPropertyException;
 import work.cxlm.model.dto.OptionSimpleDTO;
@@ -30,6 +30,8 @@ import work.cxlm.utils.ValidationUtils;
 import javax.persistence.criteria.Predicate;
 import java.util.*;
 
+import static work.cxlm.model.support.Key3Const.OPTION_KEY;
+
 /**
  * created 2020/11/9 20:53
  *
@@ -42,17 +44,17 @@ import java.util.*;
 public class OptionServiceImpl extends AbstractCrudService<Option, Integer> implements OptionService {
 
     private final OptionRepository optionRepository;
-    private final AbstractStringCacheStore cacheStore;
+    private final MultiStringCache multiCache;
     private final ApplicationEventPublisher eventPublisher;
 
     private final Map<String, PropertyEnum> propertyEnumMap;
 
     protected OptionServiceImpl(OptionRepository optionRepository,
-                                AbstractStringCacheStore cacheStore,
+                                MultiStringCache multiCache,
                                 ApplicationEventPublisher eventPublisher) {
         super(optionRepository);
         this.optionRepository = optionRepository;
-        this.cacheStore = cacheStore;
+        this.multiCache = multiCache;
         this.eventPublisher = eventPublisher;
 
         propertyEnumMap = Collections.unmodifiableMap(PropertyEnum.getValuePropertyEnumType());
@@ -171,7 +173,7 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
     @SuppressWarnings("unchecked")
     public Map<String, Object> listOptions() {
         // 优先查找缓存，如果没有则执行查询
-        return cacheStore.getAny(OPTION_KEY, Map.class).orElseGet(() -> {
+        return multiCache.getAny(OPTION_KEY, Map.class).orElseGet(() -> {
             List<Option> allOptions = listAll();
             Set<String> ids = ServiceUtils.fetchIdOfDataCollections(allOptions, Option::getKey);
 
@@ -197,7 +199,7 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
                         }
                         result.put(key, PropertyEnum.convertTo(defaultVal, propertyEnum));
                     });
-            cacheStore.putAny(OPTION_KEY, result);  // 缓存整个 map
+            multiCache.putAny(OPTION_KEY, result);  // 缓存整个 map
             return result;
         });
     }
@@ -337,6 +339,6 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
     }
 
     private void cleanCache() {
-        cacheStore.delete(OPTION_KEY);
+        multiCache.delete(OPTION_KEY);
     }
 }

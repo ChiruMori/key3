@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
-import work.cxlm.cache.AbstractStringCacheStore;
+import work.cxlm.cache.MultiStringCache;
 import work.cxlm.config.Key3Properties;
 import work.cxlm.model.entity.User;
 import work.cxlm.model.support.Key3Const;
@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Optional;
 
-import static work.cxlm.service.AdminService.ADMIN_AUTH_KEY_PREFIX;
+import static work.cxlm.model.support.Key3Const.ADMIN_AUTH_KEY_PREFIX;
 
 /**
  * 验证管理后台登录状态的过滤器
@@ -39,10 +39,10 @@ public class AdminAuthenticationFilter extends AbstractAuthenticationFilter {
 
     AdminAuthenticationFilter(OneTimeTokenService oneTimeTokenService,
                               Key3Properties key3Properties,
-                              AbstractStringCacheStore cacheStore,
+                              MultiStringCache multiCache,
                               UserService userService,
                               ObjectMapper objectMapper) {
-        super(oneTimeTokenService, key3Properties, cacheStore);
+        super(oneTimeTokenService, key3Properties, multiCache);
         this.userService = userService;
         // 针对管理员相关的 API 接口进行过滤
         addToBlackSet("/key3/admin/api/**", "/key3/admin/page/**");
@@ -63,8 +63,8 @@ public class AdminAuthenticationFilter extends AbstractAuthenticationFilter {
             return;
         }
         // 从缓存中获取管理员 userId
-        Optional<Integer> adminId = cacheStore.getAny(SecurityUtils.buildAccessTokenKey(token, ADMIN_AUTH_KEY_PREFIX), Integer.class);
-        if (!adminId.isPresent()) {
+        Optional<Integer> adminId = multiCache.getAny(SecurityUtils.buildAccessTokenKey(token, ADMIN_AUTH_KEY_PREFIX), Integer.class);
+        if (adminId.isEmpty()) {
             response.sendRedirect("/key3/admin/page/login");
             return;
         }

@@ -27,8 +27,6 @@ import java.util.Optional;
  */
 public interface OptionService extends CrudService<Option, Integer> {
 
-    String OPTION_KEY = "options";
-
     /**
      * 批量保存配置项
      *

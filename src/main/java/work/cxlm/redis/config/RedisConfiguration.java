@@ -27,7 +27,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.util.StringUtils;
 import work.cxlm.redis.properties.RedisProperties;
 import work.cxlm.redis.redisson.RedissonClientFactory;
-import work.cxlm.utils.SpringContextUtils;
+import work.cxlm.utils.spring.SpringContextUtils;
 
 import java.util.Map;
 
