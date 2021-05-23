@@ -17,7 +17,6 @@ import work.cxlm.service.UserService;
 import work.cxlm.service.base.AbstractCrudService;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -43,45 +42,42 @@ public class LogServiceImpl extends AbstractCrudService<Log, Long> implements Lo
     public Page<LogDTO> pageClubLatest(int top, Integer clubId) {
         Assert.isTrue(top > 0, "每页条目必须大于 0");
         User admin = SecurityContextHolder.ensureUser();
-        // 因为需要用户信息，一次查询以避免多次数据库 IO
-        Map<Integer, User> userMap = userService.getAllUserMap();
         PageRequest latestPageable = PageRequest.of(0, top, Sort.by(Sort.Direction.DESC, "createTime"));
         if (admin.getRole().isSystemAdmin()) {
-            return listAll(latestPageable).map(log -> wrapLogWithHeadAndWho(new LogDTO().convertFrom(log), userMap));
+            return listAll(latestPageable).map(log -> wrapLogWithHeadAndWho(new LogDTO().convertFrom(log)));
         }
         if (!userService.managerOfClub(admin, clubId)) {
             throw new ForbiddenException("权限不足，禁止操作");
         }
         // 按创建时间降序排序，并取第一页
         return logRepository.findAllByGroupId(clubId, latestPageable).
-                map(log -> wrapLogWithHeadAndWho(new LogDTO().convertFrom(log), userMap));
+                map(log -> wrapLogWithHeadAndWho(new LogDTO().convertFrom(log)));
     }
 
     @Override
     public List<LogDTO> listAllByClubId(Integer clubId) {
         User admin = SecurityContextHolder.ensureUser();
         // 因为需要用户信息，一次查询以避免多次数据库 IO
-        Map<Integer, User> userMap = userService.getAllUserMap();
         if (admin.getRole().isAdminRole()) {
             return listAll().stream().
-                    map(log -> wrapLogWithHeadAndWho(new LogDTO().convertFrom(log), userMap)).
+                    map(log -> wrapLogWithHeadAndWho(new LogDTO().convertFrom(log))).
                     collect(Collectors.toList());
         }
         if (!userService.managerOfClub(admin, clubId)) {
             throw new ForbiddenException("权限不足，禁止操作");
         }
         return logRepository.findAllByGroupId(clubId).stream().
-                map(log -> wrapLogWithHeadAndWho(new LogDTO().convertFrom(log), userMap)).
+                map(log -> wrapLogWithHeadAndWho(new LogDTO().convertFrom(log))).
                 collect(Collectors.toList());
     }
 
-    private LogDTO wrapLogWithHeadAndWho(LogDTO logDTO, Map<Integer, User> userMap) {
+    private LogDTO wrapLogWithHeadAndWho(LogDTO logDTO) {
         if (logDTO.getLogKey() == null || logDTO.getLogKey() == -1) {
             logDTO.setShowHead(Key3Const.SYSTEM_HEAD);
             logDTO.setWho("系统");
             return logDTO;
         }
-        User targetUser = userMap.get(logDTO.getLogKey());
+        User targetUser = userService.getById(logDTO.getLogKey());
         logDTO.fromUserData(targetUser);
         return logDTO;
     }

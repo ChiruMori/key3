@@ -14,7 +14,6 @@ public class SecurityUtils {
 
     /**
      * Access Token 缓存前缀
-     * TODO 针对这些键重构针对用户的缓存
      */
     private static final String TOKEN_ACCESS_CACHE_PREFIX = "key3.access.token.";
     private static final String ACCESS_TOKEN_CACHE_PREFIX = "key3.access_token.";

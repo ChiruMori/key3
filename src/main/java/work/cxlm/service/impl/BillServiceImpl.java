@@ -29,7 +29,6 @@ import work.cxlm.service.base.AbstractCrudService;
 import work.cxlm.utils.ServiceUtils;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * created 2020/11/26 14:39
@@ -156,11 +155,10 @@ public class BillServiceImpl extends AbstractCrudService<Bill, Integer> implemen
 
     @Override
     public Page<BillDTO> pageClubBills(Integer clubId, Pageable pageable) {
-        Map<Integer, User> allUserMap = userService.getAllUserMap();
         return ServiceUtils.convertPageElements(billRepository.findAllByClubId(clubId, pageable), pageable,
                 bill -> {
                     BillDTO dto = new BillDTO().convertFrom(bill);
-                    dto.fromUserData(allUserMap.get(bill.getAuthorId()));
+                    dto.fromUserData(userService.getById(bill.getAuthorId()));
                     return dto;
                 });
     }

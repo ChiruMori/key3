@@ -82,7 +82,6 @@ public class NoticeServiceImpl extends AbstractCrudService<Notice, Long> impleme
         Assert.notNull(pageable, "Pageable 对象不能为 null");
         User nowUser = SecurityContextHolder.ensureUser();
 
-        Map<Integer, User> userMap = userService.getAllUserMap();
         Page<Notice> notices = noticeRepository.findAllByTargetUserId(nowUser.getId(), pageable);
         return ServiceUtils.convertPageElements(notices, pageable, notice -> {
             NoticeDTO res = new NoticeDTO().convertFrom(notice);
@@ -90,13 +89,13 @@ public class NoticeServiceImpl extends AbstractCrudService<Notice, Long> impleme
             if (notice.getType().anncounceType()) {
                 targetUserId = -1;
             }
-            res.fromUserData(userMap.get(targetUserId));
+            res.fromUserData(userService.getById(targetUserId));
             return res;
         });
     }
 
     @Override
-    public void notifyAndSave(@NonNull NoticeType type, String content, @NonNull User targetUser, User publisher) {
+    public void notifyByMail(@NonNull NoticeType type, String content, @NonNull User targetUser, User publisher) {
         Assert.notNull(type, "必须指定消息类型");
         Assert.notNull(targetUser, "目标用户不能为 null");
         Assert.isTrue(!type.anncounceType(), "公告通知类型请调用 announceAndSave 方法");
@@ -106,7 +105,7 @@ public class NoticeServiceImpl extends AbstractCrudService<Notice, Long> impleme
             publisherId = publisher.getId();
         }
         Notice newNotice = new Notice(type, content, publisherId, targetUser.getId());
-        create(newNotice);
+        // create(newNotice); 不再进行冗余存储
         mailTo(publisher, targetUser, newNotice);
     }
 
@@ -149,24 +148,19 @@ public class NoticeServiceImpl extends AbstractCrudService<Notice, Long> impleme
     }
 
     @Override
-    public void saveAndNotifyInBatch(@NonNull Collection<Notice> notices) {
+    public void notifyByMailInBatch(@NonNull Collection<Notice> notices) {
         Assert.notNull(notices, "通知列表不能为 null");
-        Map<Integer, User> allUserMap = userService.getAllUserMap();
         notices.forEach(notice -> {
                     if (notice.getTargetUserId() == -1) {
                         log.error("不能向系统用户（id=-1）发送消息！");
                     }
-                    User targetUser = allUserMap.get(notice.getTargetUserId());
-                    if (targetUser == null) {
-                        log.error("找不到用户：[{}]，无法发送通知: [{}]", notice.getTargetUserId(), notice);
-                        return;
-                    }
+                    User targetUser = userService.getById(notice.getTargetUserId());
                     Integer targetUserId = notice.getSrcId();
                     if (notice.getType().anncounceType()) {
                         targetUserId = -1;
                     }
-                    notifyAndSave(notice.getType(), notice.getContent(),
-                            targetUser, allUserMap.get(targetUserId));
+                    notifyByMail(notice.getType(), notice.getContent(),
+                            targetUser, userService.getById(targetUserId));
                 }
         );
     }
@@ -194,6 +188,6 @@ public class NoticeServiceImpl extends AbstractCrudService<Notice, Long> impleme
 
         User publisher = SecurityContextHolder.ensureUser();
         User receiver = userService.getById(param.getTargetUserId());
-        notifyAndSave(NoticeType.NEW_MESSAGE, param.getContent(), receiver, publisher);
+        notifyByMail(NoticeType.NEW_MESSAGE, param.getContent(), receiver, publisher);
     }
 }

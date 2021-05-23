@@ -11,7 +11,6 @@ import work.cxlm.model.params.UserParam;
 import work.cxlm.model.vo.PageUserVO;
 import work.cxlm.model.vo.PasscodeVO;
 import work.cxlm.security.token.AuthToken;
-import work.cxlm.service.base.CacheService;
 import work.cxlm.service.base.CrudService;
 
 import java.util.Map;
@@ -26,7 +25,7 @@ import java.util.function.Function;
  * @author ryanwang
  * @author cxlm
  */
-public interface UserService extends CrudService<User, Integer>, CacheService<User, Integer> {
+public interface UserService extends CrudService<User, Integer> {
 
     /**
      * 通过用户登录凭证获取 openId
@@ -169,8 +168,10 @@ public interface UserService extends CrudService<User, Integer>, CacheService<Us
     /**
      * 获取全部的用户信息，以 id, user 映射的方式返回
      *
+     * @deprecated 尽可能使用缓存替代本方法的使用，除非明确需要全表扫描时
      * @return ID, User 的映射集
      */
+    @Deprecated
     Map<Integer, User> getAllUserMap();
 
     /**

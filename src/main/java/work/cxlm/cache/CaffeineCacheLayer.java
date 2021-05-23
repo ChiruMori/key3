@@ -18,13 +18,16 @@ import java.util.Optional;
 @Slf4j
 public class CaffeineCacheLayer extends AbstractStringCacheLayer {
 
+    // 缓存访问后最短续期时长，单位为纳秒
+    private static final Long MIN_CACHE_RENEW_TIME = 5 * 60 * 1000_000L;
+
     private static final Cache<@org.checkerframework.checker.nullness.qual.NonNull String,
             @org.checkerframework.checker.nullness.qual.NonNull CacheWrapper<String>> CAFFEINE_CACHE =
             Caffeine.newBuilder()
-                    //设置cache的初始大小为10，要合理设置该值
-                    .initialCapacity(10)
+                    //设置cache的初始大小，要合理设置该值
+                    .initialCapacity(20)
                     // 最大值
-                    .maximumSize(10000)
+                    .maximumSize(600)
                     // 非固定的过期时间
                     .expireAfter(new Expiry<String, CacheWrapper<String>>() {
                         @Override
@@ -49,7 +52,7 @@ public class CaffeineCacheLayer extends AbstractStringCacheLayer {
                                 return Long.MAX_VALUE;
                             }
                             // 基于纳秒进行单位换算
-                            return expireAt.getTime() * 1000L - currentTime;
+                            return Math.min(expireAt.getTime() * 1000L - currentTime, MIN_CACHE_RENEW_TIME);
                         }
                     })
                     //构建cache实例
@@ -57,11 +60,7 @@ public class CaffeineCacheLayer extends AbstractStringCacheLayer {
 
     @Override
     Optional<CacheWrapper<String>> getInternal(@NonNull String key) {
-        CacheWrapper<String> valueObj = CAFFEINE_CACHE.getIfPresent(key);
-        if (null != valueObj) {
-            return jsonToCacheWrapper(valueObj.getData());
-        }
-        return Optional.empty();
+        return Optional.ofNullable(CAFFEINE_CACHE.getIfPresent(key));
     }
 
     @Override

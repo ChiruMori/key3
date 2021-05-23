@@ -33,7 +33,7 @@ import work.cxlm.service.ClubService;
 import work.cxlm.service.JoiningService;
 import work.cxlm.service.TimeService;
 import work.cxlm.service.UserService;
-import work.cxlm.service.base.AbstractCrudService;
+import work.cxlm.service.base.AbstractModifyNotifyCrudService;
 import work.cxlm.utils.ServiceUtils;
 import work.cxlm.utils.ValidationUtils;
 
@@ -47,7 +47,7 @@ import java.util.*;
  */
 @Service
 @Slf4j
-public class JoiningServiceImpl extends AbstractCrudService<Joining, JoiningId> implements JoiningService {
+public class JoiningServiceImpl extends AbstractModifyNotifyCrudService<Joining, JoiningId> implements JoiningService {
 
     private UserService userService;
     private ClubService clubService;
@@ -58,7 +58,7 @@ public class JoiningServiceImpl extends AbstractCrudService<Joining, JoiningId> 
 
     protected JoiningServiceImpl(JoiningRepository joiningRepository,
                                  ApplicationEventPublisher eventPublisher) {
-        super(joiningRepository);
+        super(joiningRepository, Joining::getId);
         this.joiningRepository = joiningRepository;
         this.eventPublisher = eventPublisher;
     }
@@ -245,9 +245,8 @@ public class JoiningServiceImpl extends AbstractCrudService<Joining, JoiningId> 
 
     @Override
     public List<JoiningDTO> listAllJoiningDtosByClubId(Integer clubId) {
-        Map<Integer, User> allUserMap = userService.getAllUserMap();
         return ServiceUtils.convertList(listAllJoiningByClubId(clubId), joining -> {
-            User targetUser = allUserMap.get(joining.getId().getUserId());
+            User targetUser = userService.getById(joining.getId().getUserId());
             // 构造返回值
             return buildResult(joining, targetUser);
         });
@@ -290,11 +289,6 @@ public class JoiningServiceImpl extends AbstractCrudService<Joining, JoiningId> 
     }
 
     @Override
-    protected void afterModified() {
-        eventPublisher.publishEvent(new JoiningOrBelongUpdatedEvent(this));
-    }
-
-    @Override
     public List<Joining> listAllJoiningByUserIdIn(@NonNull List<Integer> userIds) {
         Assert.notNull(userIds, "userIds 不能为 null");
         if(CollectionUtils.isEmpty(userIds)) {
@@ -313,4 +307,23 @@ public class JoiningServiceImpl extends AbstractCrudService<Joining, JoiningId> 
         return res;
     }
 
+    @Override
+    protected void afterDeleted(@NonNull JoiningId joiningId) {
+        eventPublisher.publishEvent(new JoiningOrBelongUpdatedEvent(this));
+    }
+
+    @Override
+    protected void afterModified(@NonNull Joining joining) {
+        eventPublisher.publishEvent(new JoiningOrBelongUpdatedEvent(this));
+    }
+
+    @Override
+    protected void afterDeletedBatch(@Nullable Collection<JoiningId> joiningIds) {
+        eventPublisher.publishEvent(new JoiningOrBelongUpdatedEvent(this));
+    }
+
+    @Override
+    protected void afterModifiedBatch(@NonNull Collection<Joining> joinings) {
+        eventPublisher.publishEvent(new JoiningOrBelongUpdatedEvent(this));
+    }
 }

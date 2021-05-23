@@ -455,7 +455,7 @@ public class TimeServiceImpl extends AbstractCrudService<TimePeriod, Long> imple
             }
         });
         removeAll(timeToDelete);
-        noticeService.saveAndNotifyInBatch(notices);
+        noticeService.notifyByMailInBatch(notices);
     }
 
     @Override

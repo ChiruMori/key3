@@ -212,9 +212,7 @@ public abstract class AbstractCrudService<DOMAIN, ID> implements CrudService<DOM
     public DOMAIN create(@NonNull DOMAIN domain) {
         Assert.notNull(domain, domainName + " 不能为 null");
 
-        DOMAIN res = repository.save(domain);
-        afterModified();
-        return res;
+        return repository.save(domain);
     }
 
     /**
@@ -229,9 +227,7 @@ public abstract class AbstractCrudService<DOMAIN, ID> implements CrudService<DOM
         if (CollectionUtils.isEmpty(domains)) {
             return Collections.emptyList();
         }
-        List<DOMAIN> res = repository.saveAll(domains);
-        afterModified();
-        return res;
+        return repository.saveAll(domains);
     }
 
     /**
@@ -245,9 +241,7 @@ public abstract class AbstractCrudService<DOMAIN, ID> implements CrudService<DOM
     public DOMAIN update(@NonNull DOMAIN domain) {
         Assert.notNull(domain, domainName + " 不能为 null");
 
-        DOMAIN res = repository.saveAndFlush(domain);
-        afterModified();
-        return res;
+        return repository.saveAndFlush(domain);
     }
 
     @Override
@@ -267,9 +261,7 @@ public abstract class AbstractCrudService<DOMAIN, ID> implements CrudService<DOM
         if (CollectionUtils.isEmpty(domains)){
             return Collections.emptyList();
         }
-        List<DOMAIN> res = repository.saveAll(domains);
-        afterModified();
-        return res;
+        return repository.saveAll(domains);
     }
 
     /**
@@ -287,7 +279,6 @@ public abstract class AbstractCrudService<DOMAIN, ID> implements CrudService<DOM
 
         // Remove it
         remove(domain);
-        afterModified();
 
         // return the deleted domain
         return domain;
@@ -303,7 +294,6 @@ public abstract class AbstractCrudService<DOMAIN, ID> implements CrudService<DOM
     public DOMAIN removeByIdOfNullable(@NonNull ID id) {
         return fetchById(id).map(domain -> {
             remove(domain);
-            afterModified();
             return domain;
         }).orElse(null);
     }
@@ -318,7 +308,6 @@ public abstract class AbstractCrudService<DOMAIN, ID> implements CrudService<DOM
         Assert.notNull(domain, domainName + " 不能为 null");
 
         repository.delete(domain);
-        afterModified();
     }
 
     /**
@@ -334,7 +323,6 @@ public abstract class AbstractCrudService<DOMAIN, ID> implements CrudService<DOM
         }
 
         repository.deleteByIdIn(ids);
-        afterModified();
     }
 
     /**
@@ -349,7 +337,6 @@ public abstract class AbstractCrudService<DOMAIN, ID> implements CrudService<DOM
             return;
         }
         repository.deleteInBatch(domains);
-        afterModified();
     }
 
     /**
@@ -358,13 +345,6 @@ public abstract class AbstractCrudService<DOMAIN, ID> implements CrudService<DOM
     @Override
     public void removeAll() {
         repository.deleteAll();
-        afterModified();
-    }
-
-    /**
-     * 在执行更新类（新建、删除、修改）操作后进行的操作，可以在本方法上拓展缓存刷新
-     */
-    protected void afterModified() {
     }
 
 }

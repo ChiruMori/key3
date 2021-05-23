@@ -1,9 +1,11 @@
 package work.cxlm.cache;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import work.cxlm.exception.ServiceException;
+import work.cxlm.utils.JsonUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -46,16 +48,23 @@ public class MultiStringCache extends AbstractStringCacheLayer {
      *
      * @param key      缓存键
      * @param supplier 缓存中没有值时，调用的查询函数
+     * @param <V>      缓存参数类型
      * @return 得到的值，缓存中存在则为缓存中的值，否则为 supplier 中的值
      */
-    public String getWithSupplier(@NonNull String key, Supplier<String> supplier) {
-        Optional<String> gotValue = get(key);
-        if (gotValue.isEmpty()) {
-            String generate = supplier.get();
-            put(key, generate);
-            return generate;
+    public <V> Optional<V> getAnyWithSupplier(@NonNull String key, Supplier<V> supplier, Class<V> type) {
+        try {
+            Optional<String> gotValue = get(key);
+            if (gotValue.isEmpty()) {
+                V generate = supplier.get();
+                String toSave = JsonUtils.objectToJson(generate);
+                put(key, toSave);
+                return Optional.of(generate);
+            }
+            return Optional.of(JsonUtils.jsonToObject(gotValue.get(), type));
+        } catch (JsonProcessingException e) {
+            log.error("JSON 转换异常", e);
+            throw new ServiceException("缓存解析出错");
         }
-        return gotValue.get();
     }
 
     /**
@@ -113,7 +122,7 @@ public class MultiStringCache extends AbstractStringCacheLayer {
     }
 
     /**
-     * 清除指定层以上的全部缓存
+     * 清除指定层以上（远离 DB 方向）的全部缓存
      *
      * @param layerIndex 开始清除的层（包含）
      */

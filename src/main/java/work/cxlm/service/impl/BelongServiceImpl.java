@@ -17,12 +17,9 @@ import work.cxlm.repository.BelongRepository;
 import work.cxlm.service.BelongService;
 import work.cxlm.service.ClubService;
 import work.cxlm.service.RoomService;
-import work.cxlm.service.base.AbstractCrudService;
+import work.cxlm.service.base.AbstractModifyNotifyCrudService;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -32,7 +29,7 @@ import java.util.stream.Collectors;
  **/
 @Service
 @Slf4j
-public class BelongServiceImpl extends AbstractCrudService<Belong, BelongId> implements BelongService {
+public class BelongServiceImpl extends AbstractModifyNotifyCrudService<Belong, BelongId> implements BelongService {
 
     private final BelongRepository belongRepository;
     private final ApplicationEventPublisher eventPublisher;
@@ -42,7 +39,7 @@ public class BelongServiceImpl extends AbstractCrudService<Belong, BelongId> imp
 
     public BelongServiceImpl(BelongRepository belongRepository,
                              ApplicationEventPublisher eventPublisher) {
-        super(belongRepository);
+        super(belongRepository, Belong::getId);
         this.belongRepository = belongRepository;
         this.eventPublisher = eventPublisher;
     }
@@ -111,7 +108,22 @@ public class BelongServiceImpl extends AbstractCrudService<Belong, BelongId> imp
     }
 
     @Override
-    protected void afterModified() {
+    protected void afterDeleted(@NonNull BelongId belongId) {
+        eventPublisher.publishEvent(new JoiningOrBelongUpdatedEvent(this));
+    }
+
+    @Override
+    protected void afterModified(@NonNull Belong belong) {
+        eventPublisher.publishEvent(new JoiningOrBelongUpdatedEvent(this));
+    }
+
+    @Override
+    protected void afterDeletedBatch(@Nullable Collection<BelongId> belongIds) {
+        eventPublisher.publishEvent(new JoiningOrBelongUpdatedEvent(this));
+    }
+
+    @Override
+    protected void afterModifiedBatch(@NonNull Collection<Belong> belongs) {
         eventPublisher.publishEvent(new JoiningOrBelongUpdatedEvent(this));
     }
 }

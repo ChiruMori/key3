@@ -97,12 +97,17 @@ public class Key3Const {
     /**
      * 管理员验证 token 前缀
      */
-    public static final String ADMIN_AUTH_KEY_PREFIX = "admin.";
+    public static final String ADMIN_AUTH_KEY_PREFIX = "admin_";
 
     /**
      * 缓存模块：系统配置缓存键
      */
     public static final String OPTION_KEY = "options";
+
+    /**
+     * 单个用户信息的缓存前缀
+     */
+    public static final String USER_INFO_CACHE_PREFIX = "key3_u_info_";
 
     /**
      * TODO: 显示在帮助页面的信息，这玩意放在别的地方

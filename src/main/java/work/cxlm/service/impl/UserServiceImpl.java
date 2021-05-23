@@ -24,7 +24,6 @@ import work.cxlm.model.entity.User;
 import work.cxlm.model.entity.id.JoiningId;
 import work.cxlm.model.enums.LogType;
 import work.cxlm.model.enums.UserRole;
-import work.cxlm.model.params.LogParam;
 import work.cxlm.model.params.UserLoginParam;
 import work.cxlm.model.params.UserParam;
 import work.cxlm.rpc.RpcClient;
@@ -75,7 +74,7 @@ public class UserServiceImpl extends AbstractCacheCrudService<User, Integer> imp
                            ApplicationEventPublisher eventPublisher,
                            Key3Properties key3Properties,
                            MultiStringCache multiCache) {
-        super(userRepository, multiCache, User::getId, User.class, "user.map.cache");
+        super(userRepository, multiCache, User::getId, User.class, Key3Const.USER_INFO_CACHE_PREFIX);
         this.userRepository = userRepository;
         this.eventPublisher = eventPublisher;
         this.key3Properties = key3Properties;
@@ -189,9 +188,7 @@ public class UserServiceImpl extends AbstractCacheCrudService<User, Integer> imp
             throw new MissingPropertyException("若开启通知，则必须填写邮箱地址");
         }
         param.update(currentUser);
-        currentUser = userRepository.save(currentUser);
-        // 清除使用的缓存
-        afterModified();
+        currentUser = update(currentUser);
         log.info("用户 [{}]-[{}] 更新（完善）了信息", currentUser.getRealName(), ServletUtils.getRequestIp());
         if (firstLogin) {
             eventPublisher.publishEvent(new LogEvent(currentUser, currentUser.getId(), LogType.NEW_USER,
@@ -215,11 +212,10 @@ public class UserServiceImpl extends AbstractCacheCrudService<User, Integer> imp
     @Override
     public List<User> getClubUsers(@NonNull Integer clubId) {
         Assert.notNull(clubId, "社团 ID 不能为 null");
-        Map<Integer, User> allUserMap = getAllUserMap();
         List<Joining> allJoining = joiningService.listAllJoiningByClubId(clubId);
         return allJoining.stream().
-                map(joining -> allUserMap.get(joining.getId().getUserId())).
-                filter(user -> user != null && user.getId() != -1).
+                map(joining -> getById(joining.getId().getUserId())).
+                filter(user -> user.getId() != -1).
                 collect(Collectors.toList());
     }
 

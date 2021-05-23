@@ -206,7 +206,7 @@ public class AdminServiceImpl implements AdminService {
                     targetUser.setRole(UserRole.NORMAL);
                 }
                 // 为用户创建消息
-                noticeService.notifyAndSave(NoticeType.AUTHORITY_CHANGED, "您的权限被系统管理员【" +
+                noticeService.notifyByMail(NoticeType.AUTHORITY_CHANGED, "您的权限被系统管理员【" +
                         admin.getRealName() + "进行了调整", targetUser, admin);
             }
             userParam.update(targetUser);
@@ -272,18 +272,20 @@ public class AdminServiceImpl implements AdminService {
         List<Joining> allJoining = joiningService.listAllJoiningByUserId(admin.getId());
         return clubService.listAllByIds(allJoining.stream().
                 // 确保为管理员角色
-                filter(Joining::getAdmin).
+                        filter(Joining::getAdmin).
                 // 得到社团 ID
-                map(joining -> joining.getId().getClubId()).
+                        map(joining -> joining.getId().getClubId()).
                 // 转为 List，去数据库查询
-                collect(Collectors.toList()));
+                        collect(Collectors.toList()));
     }
 
     @Override
     public DashboardVO dashboardDataOf(Integer clubId) {
         Club targetClub = clubService.getById(clubId);
         List<Joining> clubMembers = joiningService.listAllJoiningByClubId(clubId);
-        long activeUserCount = userService.listAllByIds(clubMembers.stream().map(j -> j.getId().getUserId()).collect(Collectors.toList())).stream().filter(u -> StringUtils.isNotEmpty(u.getWxId())).count();
+        long activeUserCount = clubMembers.stream()
+                .filter(joining -> joining.getTotal() > 0)
+                .count();
 
         DashboardVO dashboardVO = new DashboardVO();
         dashboardVO.setBills(billService.pageClubLatest(5, clubId, true));

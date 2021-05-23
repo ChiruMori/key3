@@ -39,21 +39,21 @@ public interface NoticeService extends CrudService<Notice, Long> {
     Page<NoticeDTO> pageAllNoticeOfUser(@NonNull Pageable pageable);
 
     /**
-     * 发送通知并进行存储
+     * 发送通知（不再进行存储）
      *
      * @param targetUser 接受者
      * @param publisher  发送者
      * @param content    内容
      * @param type       通知类型（泛型）
      */
-    void notifyAndSave(@NonNull NoticeType type, String content, @NonNull User targetUser, User publisher);
+    void notifyByMail(@NonNull NoticeType type, String content, @NonNull User targetUser, User publisher);
 
     /**
-     * 批量发送通知并进行存储
+     * 批量发送通知（不再进行存储）
      *
      * @param notices 通知集合
      */
-    void saveAndNotifyInBatch(@NonNull Collection<Notice> notices);
+    void notifyByMailInBatch(@NonNull Collection<Notice> notices);
 
     /**
      * 通过公告实体发送通知

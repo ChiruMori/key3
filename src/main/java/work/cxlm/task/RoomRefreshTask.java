@@ -59,7 +59,6 @@ public class RoomRefreshTask {
                 room -> new CacheUsingSimpleRoomDTO().convertFrom(room));
         List<Belong> belongs = belongService.listAll();
         List<Joining> allJoining = joiningService.listAll();
-        Map<Integer, User> userMap = userService.getAllUserMap();
         // 整理数据：得到活动室 ID 与 社团 ID 的对应关系
         Map<Integer, List<Integer>> room2ClubMap = ServiceUtils.list2ListMap(belongs,
                 b -> b.getId().getRoomId(), b -> b.getId().getClubId());
@@ -77,13 +76,12 @@ public class RoomRefreshTask {
                 // 删除不接受通知的用户
                 club2JoiningMap.get(clubId).forEach(joining -> {
                     Integer userId = joining.getId().getUserId();
-                    boolean listening = userMap.containsKey(userId);
-                    if (listening) {
-                        Boolean receiveMsg = userMap.get(userId).getReceiveMsg();
-                        listening = receiveMsg != null && receiveMsg;
-                    }
-                    if (listening) {
-                        userIdSet.add(userId);
+                    User targetUser = userService.getByIdOfNullable(userId);
+                    if (null != targetUser) {
+                        Boolean receiveMsg = targetUser.getReceiveMsg();
+                        if (receiveMsg != null && receiveMsg) {
+                            userIdSet.add(userId);
+                        }
                     }
                 });
             });
@@ -118,10 +116,10 @@ public class RoomRefreshTask {
         if (sb.length() != 0) {
             sb.deleteCharAt(sb.length() - 1);
         }
-        noticeService.saveAndNotifyInBatch(notices);
+        noticeService.notifyByMailInBatch(notices);
         // 当前时间点存在有活动室发生了重置时，记录日志
         if (!StringUtils.isEmpty(sb)) {
-            log.info("已向活动室【{}】用户发送重置通知", sb.toString());
+            log.info("已向活动室【{}】用户发送重置通知", sb);
         }
     }
 

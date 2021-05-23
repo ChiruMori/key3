@@ -7,6 +7,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.annotation.Transactional;
 import work.cxlm.exception.NotFoundException;
+import work.cxlm.model.entity.BaseEntity;
 
 import java.util.Collection;
 import java.util.List;

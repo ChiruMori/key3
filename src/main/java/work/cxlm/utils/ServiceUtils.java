@@ -238,4 +238,46 @@ public class ServiceUtils {
         }
         return new ArrayList<>(valueMap.values());
     }
+
+    /**
+     * 使用 Sort 对象描述的排序规则进行排序
+     *
+     * @param domains 要排序的元素集合
+     * @param sort    自动生成的排序规则
+     */
+    public static <DOMAIN> void localSort(List<DOMAIN> domains, Sort sort) {
+        domains.sort((o1, o2) -> {
+            for (Sort.Order order : sort) {
+                // 处理 NULL 的处理策略
+                Sort.NullHandling nullHandling = order.getNullHandling();
+                if (null == o1) {
+                    if (nullHandling == Sort.NullHandling.NULLS_FIRST) {
+                        return -1;
+                    }
+                    return 1;
+                }
+                if (null == o2) {
+                    if (nullHandling == Sort.NullHandling.NULLS_FIRST) {
+                        return 1;
+                    }
+                    return -1;
+                }
+                // 根据字段的排序规则进行排序
+                String property = order.getProperty();
+                Object v1 = ReflectionUtils.getFieldValue(property, o1);
+                Object v2 = ReflectionUtils.getFieldValue(property, o2);
+                int direction;
+                if (order.getDirection().isAscending()) {
+                    direction = 1;
+                } else {
+                    direction = -1;
+                }
+                int comp = v1.toString().compareTo(v2.toString());
+                if (comp != 0) {
+                    return comp * direction;
+                }
+            }
+            return 0;
+        });
+    }
 }

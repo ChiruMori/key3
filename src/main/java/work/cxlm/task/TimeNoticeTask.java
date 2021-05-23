@@ -64,6 +64,6 @@ public class TimeNoticeTask {
         validTimePeriods.forEach(time -> notices.add(new Notice(NoticeType.TIME_START,
                 "您在活动室【" + roomMap.get(time.getRoomId()).getName() + "】预约的时段: [" +
                         nextTopHourPointer.getFormattedTime() + "] 即将开始", -1, time.getUserId())));
-        noticeService.saveAndNotifyInBatch(notices);
+        noticeService.notifyByMailInBatch(notices);
     }
 }

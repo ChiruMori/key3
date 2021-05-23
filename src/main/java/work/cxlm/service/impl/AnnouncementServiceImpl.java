@@ -22,7 +22,6 @@ import work.cxlm.utils.ServiceUtils;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 /**
  * created 2020/12/15 20:57
@@ -56,7 +55,6 @@ public class AnnouncementServiceImpl extends AbstractCrudService<Announcement, I
     @Override
     public List<AnnouncementDTO> getClubAnnouncements(@NonNull Integer clubId) {
         Assert.notNull(clubId, "社团 ID 不能为 null");
-        Map<Integer, User> userMap = userService.getAllUserMap();
 
         User admin = SecurityContextHolder.ensureUser();
 
@@ -68,7 +66,7 @@ public class AnnouncementServiceImpl extends AbstractCrudService<Announcement, I
         }
         return ServiceUtils.convertList(announcements, announcement -> {
             AnnouncementDTO dto = new AnnouncementDTO().convertFrom(announcement);
-            dto.fromUserData(userMap.get(announcement.getPublisherId()));
+            dto.fromUserData(userService.getById(announcement.getPublisherId()));
             return dto;
         });
     }
@@ -134,11 +132,9 @@ public class AnnouncementServiceImpl extends AbstractCrudService<Announcement, I
 
     @Override
     public Page<AnnouncementDTO> pageClubAnnouncements(Integer clubId, Pageable pageable) {
-        Map<Integer, User> allUserMap = userService.getAllUserMap();
-
         return ServiceUtils.convertPageElements(repository.findAllByClubId(clubId, pageable), pageable, anno -> {
             AnnouncementDTO dto = new AnnouncementDTO().convertFrom(anno);
-            dto.fromUserData(allUserMap.get(anno.getPublisherId()));
+            dto.fromUserData(userService.getById(anno.getPublisherId()));
             return dto;
         });
     }

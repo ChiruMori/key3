@@ -41,14 +41,11 @@ public class MonitorServiceImpl implements MonitorService {
     @Value("${logging.file.path}")
     private String logFileDir;
     private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-    private final UserService userService;
     private final MultiStringCache multiCache;
     private final ApplicationEventPublisher eventPublisher;
 
-    public MonitorServiceImpl(UserService userService,
-                              MultiStringCache multiCache,
+    public MonitorServiceImpl(MultiStringCache multiCache,
                               ApplicationEventPublisher eventPublisher) {
-        this.userService = userService;
         this.multiCache = multiCache;
         this.eventPublisher = eventPublisher;
     }
@@ -108,7 +105,6 @@ public class MonitorServiceImpl implements MonitorService {
         User admin = SecurityContextHolder.ensureSystemAdmin();
         // 缓存中间件
         multiCache.clear();
-        userService.clear();
         eventPublisher.publishEvent(new JoiningOrBelongUpdatedEvent(this));
         eventPublisher.publishEvent(new LogEvent(this, admin.getId(), LogType.EMERGENCY_KIT, "指令：清除全部缓存"));
     }
@@ -116,19 +112,19 @@ public class MonitorServiceImpl implements MonitorService {
     private void buildTokenPairToMap(Map<String, String> cacheMap, String prefix, Integer uid) {
         // AccessToken
         String accK1 = SecurityUtils.buildAccessTokenKey(uid, prefix);
-        Optional<String> accessOptional = multiCache.get(accK1);
+        Optional<String> accessOptional = multiCache.getAny(accK1, String.class);
         if (accessOptional.isPresent()) {
             cacheMap.put(accK1, accessOptional.get());
             String accK2 = SecurityUtils.buildAccessTokenKey(accessOptional.get(), prefix);
-            String accId = multiCache.get(accK2).orElse("");
+            String accId = multiCache.getAny(accK2, String.class).orElse("");
             cacheMap.put(accK2, accId);
             // RefreshToken，只在 accessToken 存在时才有可能存在
             String refK1 = SecurityUtils.buildRefreshTokenKey(uid, prefix);
-            Optional<String> refreshOptional = multiCache.get(refK1);
+            Optional<String> refreshOptional = multiCache.getAny(refK1, String.class);
             if (refreshOptional.isPresent()) {
                 cacheMap.put(refK1, refreshOptional.get());
                 String refK2 = SecurityUtils.buildRefreshTokenKey(refreshOptional.get(), prefix);
-                String refId = multiCache.get(refK2).orElse("");
+                String refId = multiCache.getAny(refK2, String.class).orElse("");
                 cacheMap.put(refK2, refId);
             }
         }
@@ -156,15 +152,19 @@ public class MonitorServiceImpl implements MonitorService {
                 buildTokenPairToMap(res, Key3Const.ADMIN_AUTH_KEY_PREFIX, id);
                 // passcode
                 String passcodeCacheKey = Key3Const.ADMIN_PASSCODE_PREFIX + id;
-                Optional<String> passcodeOptional = multiCache.get(passcodeCacheKey);
+                Optional<String> passcodeOptional = multiCache.getAny(passcodeCacheKey, String.class);
                 passcodeOptional.ifPresent(s -> res.put(passcodeCacheKey, s));
+                // 用户信息缓存，直接取回，不进行转化
+                String userInfoCacheKey = Key3Const.USER_INFO_CACHE_PREFIX + id;
+                Optional<String> userInfoOptional = multiCache.get(userInfoCacheKey);
+                userInfoOptional.ifPresent(s -> res.put(userInfoCacheKey, s));
                 break;
             case "system-options":
-                Optional<String> optionsOptional = multiCache.get(Key3Const.OPTION_KEY);
+                Optional<String> optionsOptional = multiCache.getAny(Key3Const.OPTION_KEY, String.class);
                 optionsOptional.ifPresent(s -> res.put(Key3Const.OPTION_KEY, s));
                 break;
             case "locations":
-                Optional<String> locationOptional = multiCache.get(Key3Const.LOCATION_KEY);
+                Optional<String> locationOptional = multiCache.getAny(Key3Const.LOCATION_KEY, String.class);
                 locationOptional.ifPresent(s -> res.put(Key3Const.LOCATION_KEY, s));
                 break;
             case "special":
