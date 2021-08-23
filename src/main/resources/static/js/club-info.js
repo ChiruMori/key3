@@ -41,7 +41,8 @@ $().ready(function () {
     utils.subscribeEvent(CONST_VAL.clubChangedEventKey, function (club) {
         utils.showLoading();
         if (skipOnce || newClubMode()) { // 新建社团模式
-            skipOnce = false;
+            skipOnce = false;  // BUG：点击新建社团后，加载动画不会自动关闭
+            utils.hideLoading();
         } else {
             $('#clubId').val(club.id);
             // 获取社团完整数据

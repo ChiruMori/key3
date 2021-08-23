@@ -16,6 +16,13 @@ import java.lang.annotation.*;
 @Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 @Inherited
 public @interface DsLock {
+
+    /**
+     * 因为异常导致无法在方法结束后解锁时，自动解锁的等待时长，单位s
+     * 本机制对设定了等待时长的锁不会生效
+     */
+    int MAX_WAIT_TIMEOUT = 5 * 60;
+
     /**
      * 自定义锁对象的 key 值，默认 uuid
      */
