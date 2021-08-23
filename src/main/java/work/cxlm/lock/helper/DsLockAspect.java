@@ -77,7 +77,7 @@ public class DsLockAspect {
         RedisLock lock = new RedisLock(key, valuePrefix, dsLockAnnotation.expire(),
                 dsLockAnnotation.msg(), dsLockAnnotation.reject(), dsLockAnnotation.type());
         boolean blockLock = dsLockAnnotation.block();
-        boolean lockSuccess = (!blockLock && lock.tryLock()) ||
+        boolean lockSuccess = (!blockLock && lock.tryLock(DsLock.MAX_WAIT_TIMEOUT, TimeUnit.SECONDS)) ||
                 (blockLock && lock.tryLock(dsLockAnnotation.timeout(), TimeUnit.MILLISECONDS));
         if (lockSuccess) {
             /* 加锁成功，把 key 放入 ThreadLocal */
