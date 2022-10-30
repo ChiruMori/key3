@@ -179,7 +179,7 @@ public class UserServiceImpl extends AbstractCacheCrudService<User, Integer> imp
             throw new NotFoundException("无效的学号，请联系管理员授权后使用");
         }
         // 首次登陆完善学号的情况
-        boolean firstLogin = currentUser.getWxId().isEmpty();
+        boolean firstLogin = StringUtils.isEmpty(currentUser.getWxId());
         if (!firstLogin && param.getWxId() != null && !Objects.equals(currentUser.getWxId(), param.getWxId())) {
             throw new ForbiddenException("该学号已存在，请联系管理员，并提供您的学号");
         }
