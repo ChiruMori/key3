@@ -9,8 +9,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import work.cxlm.lock.DsLock;
-import work.cxlm.lock.helper.RejectionPolicy;
+import work.cxlm.lock.CacheLock;
 import work.cxlm.model.dto.UserDTO;
 import work.cxlm.model.entity.User;
 import work.cxlm.model.params.UserLoginParam;
@@ -69,8 +68,7 @@ public class UserController {
 
     @PostMapping("/refresh/{refreshToken}")
     @ApiOperation("刷新用户凭证过期时间，需要使用 refreshToken 进行刷新")
-    // 针对用户 token 加锁，非阻塞锁，重复获取锁时失败，方法结束后自动解锁，防止 token 在多处进行刷新时获得立即失效的 token，一般不存在这种情况
-    @DsLock(name = "'user.token.' + #refreshToken", reject = RejectionPolicy.REPEAT_ABORT, block = false)
+    @CacheLock(prefix = "user_token_", argSuffix = "refreshToken", msg = "正在登录人数过多，请重试")
     public AuthToken refresh(@PathVariable("refreshToken") String refreshToken) {
         return userService.refreshToken(refreshToken, StringUtils.EMPTY, User::getWxId, userService::getByOpenId, String.class);
     }

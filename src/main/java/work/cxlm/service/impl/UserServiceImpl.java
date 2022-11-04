@@ -16,8 +16,7 @@ import work.cxlm.cache.MultiStringCache;
 import work.cxlm.config.Key3Properties;
 import work.cxlm.event.LogEvent;
 import work.cxlm.exception.*;
-import work.cxlm.lock.DsLock;
-import work.cxlm.lock.helper.RejectionPolicy;
+import work.cxlm.lock.CacheLock;
 import work.cxlm.model.entity.Club;
 import work.cxlm.model.entity.Joining;
 import work.cxlm.model.entity.User;
@@ -109,8 +108,7 @@ public class UserServiceImpl extends AbstractCacheCrudService<User, Integer> imp
     }
 
     @Override
-    // 针对用户 openId 加锁，非阻塞锁，重复获取锁时失败，方法结束后自动解锁，防止用户在使用小程序时意外造成重新登陆的情况
-    @DsLock(name = "'user.login.' + #openId", reject = RejectionPolicy.REPEAT_ABORT, block = false)
+    @CacheLock(prefix = "user_login_", argSuffix = "openId")
     public AuthToken login(@Nullable String openId) {
         if (openId == null) {
             log.debug("openId 为空，无法登录");

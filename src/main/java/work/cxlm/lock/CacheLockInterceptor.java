@@ -8,6 +8,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import work.cxlm.cache.MultiStringCache;
 import work.cxlm.exception.FrequentAccessException;
@@ -28,7 +29,6 @@ import java.util.Objects;
 @Slf4j
 @Aspect
 @Configuration
-@Deprecated
 public class CacheLockInterceptor {
 
     private static final String CACHE_LOCK_PREFIX = "cache_lock_";

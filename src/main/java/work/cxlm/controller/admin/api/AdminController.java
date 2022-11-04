@@ -2,8 +2,6 @@ package work.cxlm.controller.admin.api;
 
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
-import work.cxlm.lock.DsLock;
-import work.cxlm.lock.helper.RejectionPolicy;
 import work.cxlm.model.params.LoginParam;
 import work.cxlm.model.params.AuthorityParam;
 import work.cxlm.model.vo.DashboardVO;
@@ -30,7 +28,6 @@ public class AdminController {
     @PostMapping("login")
     @ApiOperation("管理员登录")
     // 针对管理员的学号加锁，非阻塞锁，重复获取锁时失败，方法结束后自动解锁，防止一个账号在多处同时登陆时获得立即失效的 token
-    @DsLock(name = "'admin.auth.' + #loginParam.studentNo", reject = RejectionPolicy.REPEAT_ABORT, block = false)
     public AuthToken authLogin(@RequestBody @Valid LoginParam loginParam) {
         return adminService.authenticate(loginParam);
     }
@@ -45,7 +42,6 @@ public class AdminController {
     @PostMapping("refresh/{refreshToken}")
     @ApiOperation("刷新登录凭证")
     // 针对管理员 token 加锁，非阻塞锁，重复获取锁时失败，方法结束后自动解锁，防止 token 在多处进行刷新时获得立即失效的 token
-    @DsLock(name = "'admin.token.' + #refreshToken", reject = RejectionPolicy.REPEAT_ABORT, block = false)
     public AuthToken refresh(@PathVariable("refreshToken") String refreshToken) {
         return adminService.refreshToken(refreshToken);
     }

@@ -37,7 +37,6 @@ ext {
     hutoolVersion = "5.3.8"
     commonsLangVersion = "3.10"
     levelDbVersion = "0.12"
-    jedisVersion = "2.9.3"
     swaggerVersion = "2.9.2"
 }
 
@@ -57,8 +56,6 @@ dependencies {
     implementation group: 'org.springframework.boot', name: 'spring-boot-devtools', version: '2.3.4.RELEASE'
     // Bean Utils
     compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
-    // Redisson
-    compile group: 'org.redisson', name: 'redisson-spring-data-21', version: '3.11.5'
     // autoconfigure
     implementation 'com.github.drtrang:spring-boot2-autoconfigure:1.1.8'
     // caffeine
@@ -76,7 +73,6 @@ dependencies {
     // 缓存
     // LevelDB是 Google 开源的持久化 KV 单机数据库，具有很高的随机写、顺序读写性能，解决了 Redis 双写导致的一系列问题
     implementation "org.iq80.leveldb:leveldb:$levelDbVersion"
-    implementation "redis.clients:jedis:$jedisVersion"
     runtimeOnly "mysql:mysql-connector-java"
 
     compileOnly "org.projectlombok:lombok"
