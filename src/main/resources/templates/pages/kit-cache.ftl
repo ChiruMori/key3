@@ -42,8 +42,6 @@
                                     <select class="form-control" id="cacheTypeSelect">
                                         <option class="text-black-50" value="sample" disabled>选择操作选项</option>
                                         <option value="user-cache" >用户缓存</option>
-                                        <option value="system-options">系统配置</option>
-                                        <option value="locations">坐标维护</option>
                                         <option value="special">指定缓存</option>
                                     </select>
 

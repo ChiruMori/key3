@@ -18,7 +18,6 @@ import work.cxlm.model.support.Key3Const;
 import work.cxlm.security.context.SecurityContextHolder;
 import work.cxlm.security.util.SecurityUtils;
 import work.cxlm.service.MonitorService;
-import work.cxlm.service.UserService;
 
 import javax.validation.ValidationException;
 import java.io.*;
@@ -158,14 +157,6 @@ public class MonitorServiceImpl implements MonitorService {
                 String userInfoCacheKey = Key3Const.USER_INFO_CACHE_PREFIX + id;
                 Optional<String> userInfoOptional = multiCache.get(userInfoCacheKey);
                 userInfoOptional.ifPresent(s -> res.put(userInfoCacheKey, s));
-                break;
-            case "system-options":
-                Optional<String> optionsOptional = multiCache.getAny(Key3Const.OPTION_KEY, String.class);
-                optionsOptional.ifPresent(s -> res.put(Key3Const.OPTION_KEY, s));
-                break;
-            case "locations":
-                Optional<String> locationOptional = multiCache.getAny(Key3Const.LOCATION_KEY, String.class);
-                locationOptional.ifPresent(s -> res.put(Key3Const.LOCATION_KEY, s));
                 break;
             case "special":
                 if (null == val) {

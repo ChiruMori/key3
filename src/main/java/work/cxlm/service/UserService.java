@@ -166,15 +166,6 @@ public interface UserService extends CrudService<User, Integer> {
     boolean managerOf(@NonNull User admin, @NonNull User other);
 
     /**
-     * 获取全部的用户信息，以 id, user 映射的方式返回
-     *
-     * @deprecated 尽可能使用缓存替代本方法的使用，除非明确需要全表扫描时
-     * @return ID, User 的映射集
-     */
-    @Deprecated
-    Map<Integer, User> getAllUserMap();
-
-    /**
      * 获取社团的全部用户列表
      *
      * @param clubId 指定的社团 id
