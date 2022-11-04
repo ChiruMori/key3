@@ -6,6 +6,7 @@ import work.cxlm.model.dto.LogDTO;
 import work.cxlm.model.entity.Log;
 import work.cxlm.service.base.CrudService;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -32,4 +33,12 @@ public interface LogService extends CrudService<Log, Long> {
      * @return 社团的全部日志列表
      */
     List<LogDTO> listAllByClubId(Integer clubId);
+
+    /**
+     * 清除某个时间点以前的全部日志
+     *
+     * @param timeTo 指定的时间点
+     * @return 删除的记录条数
+     */
+    int cleanAllBeforeDate(Date timeTo);
 }
