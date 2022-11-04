@@ -1,24 +1,11 @@
 <#-- 顶部导航栏 -->
-<nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow" style="overflow-x: auto; overflow-y: hidden;">
+<nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
 
     <#-- 侧边栏在顶部导航栏的开关按钮 -->
     <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
         <i class="fa fa-bars"></i>
     </button>
 
-    <#-- 搜索框 -->
-    <!--form
-            class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
-        <div class="input-group">
-            <input type="text" class="form-control bg-light border-0 small" placeholder="搜索人员、活动室信息"
-                   aria-label="Search" aria-describedby="basic-addon2">
-            <div class="input-group-append">
-                <button class="btn btn-primary" type="button">
-                    <i class="fas fa-search fa-sm"></i>
-                </button>
-            </div>
-        </div>
-    </form-->
     <div class="nav-item no-arrow mx-1">
         <#if base.docUrl??>
             <a style="white-space: nowrap" class="nav-link" href="${base.docUrl!'https://cxlm.work'}" target="_blank" role="button">
@@ -28,32 +15,6 @@
 
     <!-- 顶部导航选项 -->
     <ul class="navbar-nav ml-auto">
-
-        <#--
-        <!-- 搜索框
-        <li class="nav-item dropdown no-arrow d-sm-none">
-            <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button"
-               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <i class="fas fa-search fa-fw"></i>
-            </a>
-            <!-- 下拉菜单
-            <div class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in"
-                 aria-labelledby="searchDropdown">
-                <form class="form-inline mr-auto w-100 navbar-search">
-                    <div class="input-group">
-                        <input type="text" class="form-control bg-light border-0 small"
-                               placeholder="搜索人员、活动室信息" aria-label="Search"
-                               aria-describedby="basic-addon2">
-                        <div class="input-group-append">
-                            <button class="btn btn-primary" type="button">
-                                <i class="fas fa-search fa-sm"></i>
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </li>
-        -->
 
         <!-- 社团选择 -->
         <li class="nav-item dropdown no-arrow mx-1">
