@@ -1,5 +1,9 @@
 package work.cxlm.service.impl;
 
+import com.alibaba.excel.EasyExcel;
+import com.alibaba.excel.context.AnalysisContext;
+import com.alibaba.excel.exception.ExcelDataConvertException;
+import com.alibaba.excel.read.listener.ReadListener;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -12,11 +16,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 import work.cxlm.event.JoiningOrBelongUpdatedEvent;
 import work.cxlm.event.LogEvent;
+import work.cxlm.exception.AbstractKey3Exception;
 import work.cxlm.exception.DataConflictException;
 import work.cxlm.exception.ForbiddenException;
 import work.cxlm.exception.NotFoundException;
+import work.cxlm.lock.CacheLock;
 import work.cxlm.model.dto.JoiningDTO;
 import work.cxlm.model.entity.Club;
 import work.cxlm.model.entity.Joining;
@@ -38,7 +45,9 @@ import work.cxlm.utils.ServiceUtils;
 import work.cxlm.utils.ValidationUtils;
 
 import javax.validation.ValidationException;
+import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * created 2020/11/18 13:13
@@ -291,13 +300,11 @@ public class JoiningServiceImpl extends AbstractModifyNotifyCrudService<Joining,
     @Override
     public List<Joining> listAllJoiningByUserIdIn(@NonNull List<Integer> userIds) {
         Assert.notNull(userIds, "userIds 不能为 null");
-        if(CollectionUtils.isEmpty(userIds)) {
+        if (CollectionUtils.isEmpty(userIds)) {
             return Collections.emptyList();
         }
         return joiningRepository.findAllByIdUserIdIn(userIds);
     }
-
-    // **************** Private **********************
 
     private JoiningDTO buildResult(Joining joining, User targetUser) {
         JoiningDTO res = new JoiningDTO().convertFrom(joining);
@@ -325,5 +332,44 @@ public class JoiningServiceImpl extends AbstractModifyNotifyCrudService<Joining,
     @Override
     protected void afterModifiedBatch(@NonNull Collection<Joining> joinings) {
         eventPublisher.publishEvent(new JoiningOrBelongUpdatedEvent(this));
+    }
+
+    @Override
+    @CacheLock(value = "file_import", msg = "其他文件正在导入，请稍后重试。。。")
+    public List<String> importJoiningByFile(MultipartFile file, @NonNull Integer clubId) {
+        try {
+            List<String> resultList = new ArrayList<>();
+            EasyExcel.read(file.getInputStream(), JoiningParam.class, new ReadListener<JoiningParam>() {
+                @Override
+                public void invoke(JoiningParam data, AnalysisContext context) {
+                    data.setClubId(clubId);
+                    data.setTotal(0);
+                    // 事务可能失效
+                    newJoiningBy(data);
+                }
+
+                @Override
+                public void doAfterAllAnalysed(AnalysisContext context) {
+                    log.info("Excel 解析完成");
+                }
+
+                @Override
+                public void onException(Exception exception, AnalysisContext context) {
+                    String errMsg;
+                    if (exception instanceof ExcelDataConvertException) {
+                        ExcelDataConvertException convertException = (ExcelDataConvertException) exception;
+                        errMsg = String.format("第%d行，第%d列数据解析异常，原因：%s", convertException.getRowIndex(), convertException.getColumnIndex(), convertException.getMessage());
+                    } else {
+                        errMsg = String.format("第%d行数据导入失败，%s", context.readRowHolder().getRowIndex(), exception.getMessage());
+                    }
+                    log.error(errMsg);
+                    resultList.add(errMsg);
+                }
+            }).sheet().doRead();
+            return resultList;
+        } catch (IOException e) {
+            log.error("读取文件出错", e);
+            return List.of("文件读取出错：" + e.getMessage());
+        }
     }
 }

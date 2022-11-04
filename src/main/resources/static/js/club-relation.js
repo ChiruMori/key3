@@ -34,7 +34,7 @@ $(document).ready(function () {
                     render: function (headUrl) {
                         return '<img alt="头像而已" style="width: 3rem; height: 3rem" src="' +
                             headUrl +
-                            '" onerror="this.src=\'https://cxlm.work/upload/2020/12/error-df59117371c948238cd6d68dba76449a.png\'"/>'
+                            '" onerror="this.src=\'/key3/vendor/error.png\'"/>'
                     },
                     orderable: false,
                     searchable: false,
@@ -140,5 +140,26 @@ $(document).ready(function () {
     utils.subscribeEvent(CONST_VAL.clubChangedEventKey, function (club) {
         utils.showLoading();
         refreshTable(club.id);
+    });
+
+    // 文件 Input
+    const fileInp = $('#fileUploader');
+    const fileBtn = $('#fileUploadBtn');
+
+    fileBtn.on('click', () => {
+        const files = fileInp.prop('files');
+        const data = new FormData();
+        data.append('file', files[0]);
+        utils.showLoading("导入中...");
+        utils.ajax('admin/api/joining/' + GLOBAL_VAL.nowClubId + '/import', data, 'POST', data => {
+            if (data.data && data.data.length === 0) {
+                utils.success("成功", "文件导入成功！");
+            } else {
+                utils.error("导入失败", String(data.data));
+            }
+        }, function (res) {
+            utils.error('ERROR', res.responseJSON.msg);
+            console.debug(res);
+        }, utils.hideLoading, true);
     });
 });

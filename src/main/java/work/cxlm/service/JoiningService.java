@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import work.cxlm.model.dto.JoiningDTO;
 import work.cxlm.model.entity.Joining;
 import work.cxlm.model.entity.User;
@@ -168,4 +169,13 @@ public interface JoiningService extends CrudService<Joining, JoiningId> {
      * @return 用户 id 列表关联的全部 Joining 实例
      */
     List<Joining> listAllJoiningByUserIdIn(@NonNull List<Integer> userIds);
+
+    /**
+     * 通过文件导入成员信息，并返回错误信息
+     *
+     * @param file   文件
+     * @param clubId 社团 id
+     * @return 错误信息
+     */
+    List<String> importJoiningByFile(MultipartFile file, @NonNull Integer clubId);
 }

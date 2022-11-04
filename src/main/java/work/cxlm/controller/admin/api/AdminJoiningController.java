@@ -1,11 +1,14 @@
 package work.cxlm.controller.admin.api;
 
+import com.alibaba.excel.EasyExcel;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import work.cxlm.model.dto.JoiningDTO;
 import work.cxlm.model.params.JoiningParam;
 import work.cxlm.service.JoiningService;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -48,4 +51,9 @@ public class AdminJoiningController {
         return joiningService.updateJoiningBy(param);
     }
 
+    @ApiOperation("文件导入")
+    @PostMapping("joining/{clubId:\\d+}/import")
+    public List<String> excelImport(@RequestParam("file") MultipartFile file, @PathVariable Integer clubId) throws IOException {
+        return joiningService.importJoiningByFile(file, clubId);
+    }
 }

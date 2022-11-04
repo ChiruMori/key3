@@ -87,7 +87,7 @@ let utils = (function () {
             formObj[this.name] = this.value;
         });
         return formObj;
-    }
+    };
 
     const server = "/key3/";
 
@@ -111,7 +111,7 @@ let utils = (function () {
             });
         }
         return paramStr.substr(1);
-    }
+    };
 
     /**
      * 发送 Ajax 请求
@@ -121,8 +121,9 @@ let utils = (function () {
      * @param successFn 成功时的回调函数
      * @param failFn 失败时的回调函数
      * @param complete 无论是否成功都会执行的回调函数，可选
+     * @param uploadFile 上传文件？
      */
-    const ajax = function (url, data, method, successFn, failFn, complete) {
+    const ajax = function (url, data, method, successFn, failFn, complete, uploadFile = false) {
         if (!complete) complete = function () {
         };
         if (method === 'GET' || method === 'DELETE') {
@@ -132,7 +133,7 @@ let utils = (function () {
                 url = url + connector + parseParam(data);
             }
             data = '';
-        } else {
+        } else if (!uploadFile) {
             data = JSON.stringify(data);
         }
         let tokenHeaders = {};
@@ -146,7 +147,8 @@ let utils = (function () {
             data: data,
             dataType: 'json',
             headers: tokenHeaders,
-            contentType: 'application/json;charset=utf-8',
+            contentType: uploadFile ? false : 'application/json;charset=utf-8',
+            processData: uploadFile ? false : undefined,
             success: function (res) {
                 successFn(res);
             },
@@ -197,7 +199,7 @@ let utils = (function () {
             return;
         }
         simpleEventCenter[type] = event;
-    }
+    };
 
     /**
      * 订阅消息
@@ -213,7 +215,7 @@ let utils = (function () {
             fn(simpleEventCenter[type]);
             delete simpleEventCenter[type];
         }
-    }
+    };
 
     let loadingShowing = false;
 
@@ -350,7 +352,7 @@ let utils = (function () {
             });
             selectTag.onchange = function () {
                 swal.setActionValue(selectTag.value);
-            }
+            };
             return swal({
                 title: title,
                 text: msg,

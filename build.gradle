@@ -69,6 +69,7 @@ dependencies {
     implementation "org.apache.commons:commons-lang3:$commonsLangVersion"
     implementation "io.springfox:springfox-swagger2:$swaggerVersion"
     implementation "io.springfox:springfox-swagger-ui:$swaggerVersion"
+    implementation 'com.alibaba:easyexcel:3.1.2'
 
     // 缓存
     // LevelDB是 Google 开源的持久化 KV 单机数据库，具有很高的随机写、顺序读写性能，解决了 Redis 双写导致的一系列问题

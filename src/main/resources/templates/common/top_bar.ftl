@@ -61,7 +61,7 @@
                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <span class="mr-2 d-none d-lg-inline text-gray-600 small">欢迎，${base.userName}</span>
                 <img class="img-profile rounded-circle"
-                     src="${base.head!"https://cxlm.work/upload/2020/12/error-df59117371c948238cd6d68dba76449a.png"}"
+                     src="${base.head!"/key3/vendor/error.png"}"
                      alt="嗯？头像呢">
             </a>
             <!-- 下拉列表：管理员信息维护 -->

@@ -86,8 +86,8 @@ public class Key3Const {
     /**
      * 占位图 URL
      */
-    public static final String ERROR_HEAD_URL = "https://cxlm.work/upload/2020/12/error-df59117371c948238cd6d68dba76449a.png";
-    public static final String SYSTEM_HEAD = "https://cxlm.work/upload/2020/12/1010-d61f21ca80a9406c8e2fcf553b099ed1.png";
+    public static final String ERROR_HEAD_URL = "/key3/vendor/error.png";
+    public static final String SYSTEM_HEAD = "/key3/vendor/system.png";
 
     /**
      * 活动室位置在缓存中使用的键
