@@ -95,7 +95,6 @@ public class RoomRefreshTask {
      * 秒 分 时 日 月 星期
      */
     @Async
-    // @Scheduled(cron = "0 2 12 16 2 ?")
     @Scheduled(cron = "0 0 * ? * SUN")
     public void notifyUsersAtTheEndOfWeekend() {
         if (room2UserMap == null) {

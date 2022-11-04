@@ -18,36 +18,3 @@ key3:
   mode: production
   workDir: ${user.home}/key3-prod/
   cache: level
-
-redis:
-  default-name: single
-  clients:
-    single:  # single node cluster
-      mode: SINGLE
-      address: redis://127.0.0.1:6543
-      password: REDIS_mima~9749
-      database: 0
-      codec-bean-name: jsonJacksonCodec
-      min-idle: 10
-      max-active: 100
-      max-idle-timeout: 1800_000
-
-# jedis properties, for redis lock
-jedis:
-  timeout: 1000
-  pool:
-    max-total: 200
-    max-wait-millis: 2000
-    max-idle: 100
-    min-idle: 10
-    min-evictable-idle-time-millis: 1800000
-  master-s1:
-    host: 127.0.0.1
-    port: 6543
-    name: master-s1
-    password: REDIS_mima~9749
-  slave-s1:
-    host: 127.0.0.1
-    port: 6543
-    name: slave-s1
-    password: REDIS_mima~9749

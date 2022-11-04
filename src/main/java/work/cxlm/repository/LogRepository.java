@@ -4,6 +4,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import work.cxlm.model.entity.Log;
 
+import javax.transaction.Transactional;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -29,4 +31,13 @@ public interface LogRepository extends BaseRepository<Log, Long> {
      * @return 某社团日志的分页数据集
      */
     List<Log> findAllByGroupId(Integer groupId);
+
+    /**
+     * 删除某个时间点以前的全部记录
+     *
+     * @param timeTo 截至时间
+     * @return 删除记录条数
+     */
+    @Transactional(rollbackOn = Exception.class)
+    int deleteByCreateTimeBefore(Date timeTo);
 }

@@ -88,8 +88,11 @@ public class BelongServiceImpl extends AbstractModifyNotifyCrudService<Belong, B
         HashMap<Integer, Integer> roomClubCounter = new HashMap<>(8);
         HashMap<Integer, Integer> clubRoomCounter = new HashMap<>(4);
         belongs.forEach(belong -> {
-            Integer rId = belong.getId().getRoomId();
             Integer cId = belong.getId().getClubId();
+            if (!clubId.equals(cId)) {
+                return;
+            }
+            Integer rId = belong.getId().getRoomId();
             Integer roomCounter = clubRoomCounter.containsKey(cId) ? clubRoomCounter.get(cId) + 1 : 1;
             Integer clubCounter = roomClubCounter.containsKey(rId) ? roomClubCounter.get(rId) + 1 : 1;
             clubRoomCounter.put(cId, roomCounter);

@@ -64,6 +64,16 @@ public class DateUtils {
     }
 
     /**
+     * 计算并切换月份
+     *
+     * @param date   要操作的日期对象
+     * @param amount 变化的月份，可以为负数，表示从前
+     */
+    public static Date changeMonthOf(Date date, int amount) {
+        return INSTANCE.of(date).changeMonth(amount).get();
+    }
+
+    /**
      * 计算基于开始周，目标周的周次。开始周为第 1 周，开始周前一周为 -1 周
      *
      * @param start  开始周
@@ -194,6 +204,16 @@ public class DateUtils {
      */
     public DateUtils changeWeek(int amount) {
         calendar.add(Calendar.WEEK_OF_MONTH, amount);
+        return this;
+    }
+
+    /**
+     * 切换月份
+     *
+     * @param amount 要切换的月份数，可以为负数
+     */
+    public DateUtils changeMonth(int amount) {
+        calendar.add(Calendar.MONTH, amount);
         return this;
     }
 

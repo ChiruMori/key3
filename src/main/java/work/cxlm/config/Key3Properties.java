@@ -37,19 +37,6 @@ public class Key3Properties {
     private String cache = "level";
 
     /**
-     * 可用的 Redis 节点
-     */
-    private List<String> redisNodes = new ArrayList<>();
-
-    private String redisPwd = "REDIS_mima~9749";
-
-    @PostConstruct
-    private void init() {
-        // 配置使用的 Redis 节点
-        redisNodes.add("120.27.248.158:6543");
-    }
-
-    /**
      * 系统运行模式
      */
     private Mode mode = Mode.PRODUCTION;

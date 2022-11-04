@@ -23,4 +23,3 @@ key3:
 #  auth-enabled: true
   mode: development
   workDir: ${user.home}/my-font-dev/
-  cache: memory

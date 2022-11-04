@@ -16,6 +16,7 @@ import work.cxlm.service.LogService;
 import work.cxlm.service.UserService;
 import work.cxlm.service.base.AbstractCrudService;
 
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -80,5 +81,10 @@ public class LogServiceImpl extends AbstractCrudService<Log, Long> implements Lo
         User targetUser = userService.getById(logDTO.getLogKey());
         logDTO.fromUserData(targetUser);
         return logDTO;
+    }
+
+    @Override
+    public int cleanAllBeforeDate(Date timeTo) {
+        return logRepository.deleteByCreateTimeBefore(timeTo);
     }
 }

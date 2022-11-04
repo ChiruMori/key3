@@ -56,7 +56,7 @@ $(document).ready(function () {
                     data: 'head',
                     render: function (headUrl) {
                         return '<img alt="头像而已" style="width: 3rem; height: 3rem" src="' +
-                            headUrl + '" onerror="this.src=\'https://cxlm.work/upload/2020/12/error-df59117371c948238cd6d68dba76449a.png\'"/>'
+                            headUrl + '" onerror="this.src=\'/key3/vendor/error.png\'"/>'
                     },
                     orderable: false,
                     searchable: false
