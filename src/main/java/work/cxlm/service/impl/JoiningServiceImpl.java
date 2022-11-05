@@ -3,6 +3,7 @@ package work.cxlm.service.impl;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.exception.ExcelDataConvertException;
+import com.alibaba.excel.exception.ExcelRuntimeException;
 import com.alibaba.excel.read.listener.ReadListener;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import work.cxlm.event.JoiningOrBelongUpdatedEvent;
 import work.cxlm.event.LogEvent;
-import work.cxlm.exception.AbstractKey3Exception;
 import work.cxlm.exception.DataConflictException;
 import work.cxlm.exception.ForbiddenException;
 import work.cxlm.exception.NotFoundException;
@@ -47,7 +47,6 @@ import work.cxlm.utils.ValidationUtils;
 import javax.validation.ValidationException;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * created 2020/11/18 13:13
@@ -367,7 +366,7 @@ public class JoiningServiceImpl extends AbstractModifyNotifyCrudService<Joining,
                 }
             }).sheet().doRead();
             return resultList;
-        } catch (IOException e) {
+        } catch (IOException | ExcelRuntimeException e) {
             log.error("读取文件出错", e);
             return List.of("文件读取出错：" + e.getMessage());
         }

@@ -35,14 +35,14 @@
                         <div class="card border-left-primary shadow h-100 py-2">
 
                             <div class="card-body">
-                                <h6>你可以通过一个 Excel 文件来批量导入成员信息，点击<a href="/key3/vendor/template.xlsx" class="font-weight-bold">此链接</a>开始下载 Excel
+                                <h6>你可以通过上传一个 Excel 文件来批量导入成员基本信息，点击<a href="/key3/vendor/template.xlsx" class="font-weight-bold">此链接</a>开始下载 Excel
                                     的模板文件。</h6>
                                 <hr/>
 
                                 <div class="input-group">
                                     <div class="custom-file">
                                         <input type="file" class="custom-file-input" id="fileUploader"
-                                               aria-describedby="fileUplodBtn">
+                                               aria-describedby="fileUploadBtn" accept=".xlsx">
                                         <label class="custom-file-label" for="fileUploader">选择要上传的文件</label>
                                     </div>
                                     <div class="input-group-append">
